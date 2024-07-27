@@ -1,19 +1,19 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { supabase } from '@/lib/supabaseClient';
-import { OpenAI } from 'openai';
+import { NextApiRequest, NextApiResponse } from "next";
+import { supabase } from "@/lib/supabaseClient";
+import { OpenAI } from "openai";
+import { openai_client } from "@/lib/openai-client";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     console.log("called");
     // Fetch videos with transcripts from Supabase
     const { data: videos, error } = await supabase
-      .from('youtube')
-      .select('id, transcript')
-      .not('transcript', 'is', null);
+      .from("youtube")
+      .select("id, transcript")
+      .not("transcript", "is", null);
 
     if (error) {
       throw error;
@@ -25,8 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log(transcriptItems);
 
       for (const item of transcriptItems) {
-        const embeddingResponse = await openai.embeddings.create({
-          model: 'text-embedding-ada-002',
+        const embeddingResponse = await openai_client.embeddings.create({
+          model: "text-embedding-ada-002",
           input: item.text,
         });
 
@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         };
 
         const { error: insertError } = await supabase
-          .from('video_embeddings')
+          .from("video_embeddings")
           .insert(embedding);
 
         if (insertError) {
@@ -50,9 +50,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    res.status(200).json({ message: 'Embeddings generated and stored successfully' });
+    res
+      .status(200)
+      .json({ message: "Embeddings generated and stored successfully" });
   } catch (error) {
-    console.error('Error generating embeddings:', error);
-    res.status(500).json({ error: 'Failed to generate embeddings' });
+    console.error("Error generating embeddings:", error);
+    res.status(500).json({ error: "Failed to generate embeddings" });
   }
 }

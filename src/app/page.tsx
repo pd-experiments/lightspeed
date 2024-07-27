@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectTrigger, SelectValue, SelectItem, SelectContent } from "@/components/ui/select";
 
 export type Video = {
   id: string;
@@ -364,12 +365,24 @@ export default function Home() {
             <div className="mb-4 mt-10">
               <h3 className="text-base text-gray-600 font-semibold mb-2">Global Semantic Search</h3>
               <div className="mb-4">
-                <Input
-                  placeholder="Search across all videos..."
-                  value={searchQuery}
-                  onChange={handleGlobalSearch}
-                  className="mb-2"
-                />
+                <div className="flex items-center">
+                  <Input
+                    placeholder="Search across all videos..."
+                    value={searchQuery}
+                    onChange={handleGlobalSearch}
+                    className="mr-2"
+                  />
+                  <Select>
+                    <SelectTrigger className="max-w-[200px] mr-2">
+                      <SelectValue placeholder="Select an outline (placeholder)" />
+                    </SelectTrigger>
+                    <SelectContent className="max-w-[200px]">
+                      <SelectItem value="1">Outline 1</SelectItem>
+                      <SelectItem value="2">Outline 2</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button>Add to Outline</Button>
+                </div>
                 {isSearching && <p className="text-sm text-gray-500">Searching...</p>}
               </div>
               <div className="rounded-md overflow-hidden">

@@ -29,7 +29,8 @@
     "react-player": "^2.16.0",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
-    "youtube-transcript": "^1.2.1"
+    "youtube-transcript": "^1.2.1",
+    "ytdl-core": "^4.11.5"
   },
   "devDependencies": {
     "@types/lodash.debounce": "^4.0.9",

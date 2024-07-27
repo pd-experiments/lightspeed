@@ -152,7 +152,7 @@ export default function Home() {
     {
       id: "transcript",
       header: "Transcript",
-      cell: ({ row }) => <Button onClick={() => { console.log("selected"); displayTranscript(row.original.transcript, row.original.video_id, row.original.id); }}>View Transcript</Button>,
+      cell: ({ row }) => <Button onClick={() => { console.log("selected"); displayTranscript(row.original.transcript, row.original.video_id, row.original.id); }}>Search Transcript</Button>,
     },
   ];
 
@@ -291,7 +291,7 @@ export default function Home() {
         <Tabs defaultValue="youtube">
           <TabsList>
             <TabsTrigger value="youtube">YouTube Directory & Transcript Semantic Search</TabsTrigger>
-            <TabsTrigger value="global">Global Semantic Search</TabsTrigger>
+            <TabsTrigger value="global">Clip Search</TabsTrigger>
           </TabsList>
           <TabsContent value="youtube">
             {selectedTranscript && currentVideoId && (

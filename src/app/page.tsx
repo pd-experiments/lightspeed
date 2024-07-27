@@ -361,7 +361,7 @@ export default function Home() {
             </div>
           </TabsContent>
           <TabsContent value="global">
-            <div className="mb-4">
+            <div className="mb-4 mt-10">
               <h3 className="text-base text-gray-600 font-semibold mb-2">Global Semantic Search</h3>
               <div className="mb-4">
                 <Input
@@ -433,6 +433,9 @@ export default function Home() {
                                   )}
                                 </CardDescription>
                               </div>
+                              <Button className="w-full">
+                                Add to Outline
+                              </Button>
                             </CardContent>
                           </Card>
                         ))}

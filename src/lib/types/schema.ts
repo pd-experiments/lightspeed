@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      frames_records: {
+        Row: {
+          created_at: string
+          frame_number: string | null
+          id: string
+          storage_path: string | null
+          video_id: string | null
+          video_uuid: string | null
+        }
+        Insert: {
+          created_at?: string
+          frame_number?: string | null
+          id?: string
+          storage_path?: string | null
+          video_id?: string | null
+          video_uuid?: string | null
+        }
+        Update: {
+          created_at?: string
+          frame_number?: string | null
+          id?: string
+          storage_path?: string | null
+          video_id?: string | null
+          video_uuid?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "frames_video_uuid_fkey"
+            columns: ["video_uuid"]
+            isOneToOne: false
+            referencedRelation: "youtube"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       outline: {
         Row: {
           created_at: string
@@ -173,6 +208,18 @@ export type Database = {
             }
             Returns: unknown
           }
+      fetch_random_clips: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          video_uuid: string
+          video_id: string
+          title: string
+          description: string
+          start_timestamp: string
+          end_timestamp: string
+          text: string
+        }[]
+      }
       halfvec_avg: {
         Args: {
           "": number[]

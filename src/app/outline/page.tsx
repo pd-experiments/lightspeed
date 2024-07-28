@@ -7,10 +7,13 @@ import ReactPlayer from 'react-player';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Trash2Icon } from 'lucide-react';
+import { generateFcpxml } from '@/lib/helperUtils/generateFcpxml';
+import { saveAs } from 'file-saver';
 
 type Outline = Tables<'outline'>;
 type OutlineElement = Tables<'outline_elements'>;
-type OutlineElementWithVideoTitle = OutlineElement & { video_title: string };
+export type OutlineElementWithVideoTitle = OutlineElement & { video_title: string };
 type YouTubeVideo = Tables<'youtube'>;
 
 export default function Lists() {
@@ -297,6 +300,33 @@ export default function Lists() {
     alert("AI-generated outline ordering applied successfully.");
   };
 
+  const handleDeleteElement = async (elementId: string) => {
+    try {
+      const response = await fetch(`/api/outlines/delete-element`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: elementId }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to delete element');
+      }
+  
+      setOutlineElements(outlineElements.filter(element => element.id !== elementId));
+    } catch (error) {
+      console.error('Error deleting element:', error);
+      alert('Error deleting element.');
+    }
+  };
+
+  const handleExportFcpxml = () => {
+    const fcpxmlContent = generateFcpxml(outlineElements);
+    const blob = new Blob([fcpxmlContent], { type: 'application/xml' });
+    saveAs(blob, 'outline.fcpxml');
+  };
+
   return (
     <>
       <Navbar />
@@ -338,6 +368,7 @@ export default function Lists() {
               <div className="mb-6 flex items-center space-x-2">
                 <Button className="w-full" onClick={handleCreateOutline}>Play</Button>
                 <Button className="w-full" onClick={generateAIOutlineOrdering}>Generate AI-Generated Outline(s)</Button>
+                <Button variant="outline" className="w-full" onClick={handleExportFcpxml}>Export as Final Cut Pro XML</Button>
               </div>
             </>
           )}
@@ -395,13 +426,23 @@ export default function Lists() {
               ))}
             </div>
           )}
-          <div ref={timelineRef} className="overflow-y-scroll p-2 border border-gray-200 rounded-md video-editor relative w-full h-auto min-h-[250px] mt-4" onDrop={handleDrop} onDragOver={handleDragOver}>
+          <div ref={timelineRef} className="overflow-y-scroll p-2 border border-gray-200 rounded-md video-editor relative w-full h-auto min-h-[280px] mt-4" onDrop={handleDrop} onDragOver={handleDragOver}>
             <div className="absolute top-0 left-0 w-full h-full">
-              {Array.from({ length: Math.round(totalDuration) }).map((_, index) => (
-                <div key={index} className="absolute border-l border-gray-300" style={{ left: `${(index / totalDuration) * 100}%`, height: index % 5 === 0 ? '100%' : '50%' }}>
-                  {index % 5 === 0 ? <span className="text-xs">{index}s</span> : <span className="text-[0.5rem]">&nbsp;</span>}
-                </div>
-              ))}
+              {Array.from({ length: Math.round(totalDuration) }).map((_, index) => {
+                // const interval = totalDuration > 100 ? 10 : 1;
+                // if (index % interval !== 0) return null;
+                // return (
+                //   <div key={index} className="absolute border-l border-gray-300" style={{ left: `${(index / totalDuration) * 100}%`, height: index % (interval * 5) === 0 ? '100%' : '50%' }}>
+                //     <span className="text-xs">{index}s</span>
+                //   </div>
+                // );
+                const interval = totalDuration > 100 ? 10 : 5;
+                return (
+                  <div key={index} className="absolute border-l border-gray-300" style={{ left: `${(index / totalDuration) * 100}%`, height: index % interval === 0 ? '100%' : '50%' }}>
+                    {index % interval === 0 ? <span className="text-xs">{index}s</span> : <span className="text-[0.5rem]">&nbsp;</span>}
+                  </div>
+                );
+              })}
             </div>
             {outlineElements.map((element) => {
               if (!element.position_start_time || !element.position_end_time) return null;
@@ -422,8 +463,9 @@ export default function Lists() {
                     onDrop={handleResizeDrop}
                   />
                   <CardContent className="p-2 h-full flex flex-col justify-between"> 
-                    <div className="text-sm justify-start w-full">
+                    <div className="flex text-sm justify-start w-full">
                       <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
+                      <Button size="sm" variant="outline" className="justify-end hover:bg-red-50" onClick={() => handleDeleteElement(element.id)}><Trash2Icon className="w-4 h-4 text-red-500"/></Button>
                     </div>
                     <div className="relative my-2 rounded-md h-full">
                       <ReactPlayer

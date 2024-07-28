@@ -1,4 +1,5 @@
-'use client';
+"use client";
+
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { DataTable } from '@/components/ui/data-table';
 import { ColumnDef } from "@tanstack/react-table";
@@ -34,6 +35,11 @@ export type TranscriptItem = {
   text: string;
 };
 
+export type Outline = {
+  id: string;
+  title: string;
+};
+
 export default function Home() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [selectedTranscript, setSelectedTranscript] = useState<TranscriptItem[] | null>(null);
@@ -47,6 +53,22 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showMore, setShowMore] = useState<number | null>(null);
+  const [selectedOutlineId, setSelectedOutlineId] = useState<string | null>(null);
+  const [outlines, setOutlines] = useState<Outline[]>([]);
+
+  useEffect(() => {
+    const fetchOutlines = async () => {
+      try {
+        const response = await fetch('/api/outlines/get-all-outlines');
+        const data = await response.json();
+        setOutlines(data.outlines);
+      } catch (error) {
+        console.error('Error fetching outlines:', error);
+      }
+    };
+
+    fetchOutlines();
+  }, []);
 
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
@@ -284,6 +306,41 @@ export default function Home() {
       .join('. ');
   };
 
+  const addToOutline = async (item: any) => {
+    if (!selectedOutlineId) {
+      alert("Please select an outline first.");
+      return;
+    }
+
+    const element = {
+      outline_id: selectedOutlineId,
+      video_uuid: item.video_uuid,
+      video_start_time: item.start_timestamp,
+      video_end_time: item.end_timestamp,
+      position_start_time: item.start_timestamp,
+      position_end_time: item.end_timestamp,
+    };
+
+    try {
+      const response = await fetch('/api/outlines/create-element', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(element),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add element to outline');
+      }
+
+      alert("Element added to outline successfully.");
+    } catch (error) {
+      console.error('Error adding element to outline:', error);
+      alert("Error adding element to outline.");
+    }
+  };
+
   return (
     <>
     <Navbar />
@@ -372,16 +429,19 @@ export default function Home() {
                     onChange={handleGlobalSearch}
                     className="mr-2"
                   />
-                  <Select>
+                  <Select onValueChange={(value) => setSelectedOutlineId(value || '')} value={selectedOutlineId || ''}>
                     <SelectTrigger className="max-w-[200px] mr-2">
-                      <SelectValue placeholder="Select an outline (placeholder)" />
+                      <SelectValue placeholder="Select an outline" />
                     </SelectTrigger>
                     <SelectContent className="max-w-[200px]">
-                      <SelectItem value="1">Outline 1</SelectItem>
-                      <SelectItem value="2">Outline 2</SelectItem>
+                      {outlines.map((outline) => (
+                        <SelectItem key={outline.id} value={outline.id}>
+                          {outline.title}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                  <Button>Add to Outline</Button>
+                  <Button onClick={() => addToOutline(searchResults)}>Add to Outline</Button>
                 </div>
                 {isSearching && <p className="text-sm text-gray-500">Searching...</p>}
               </div>
@@ -446,7 +506,7 @@ export default function Home() {
                                   )}
                                 </CardDescription>
                               </div>
-                              <Button className="w-full">
+                              <Button className="w-full" onClick={() => addToOutline(item)}>
                                 Add to Outline
                               </Button>
                             </CardContent>
@@ -463,43 +523,43 @@ export default function Home() {
                           header: "Timestamp",
                           cell: ({ row }) => (
                             <div
-                              className="text-sm font-medium text-gray-600 cursor-pointer"
-                              onClick={() => {
-                                if (playerRef.current) {
-                                  playerRef.current.seekTo(new Date(row.original.start_timestamp).getTime() / 1000, 'seconds');
-                                }
-                              }}
-                            >
-                              {new Date(row.original.start_timestamp).toISOString().slice(11, 19)} - {new Date(row.original.end_timestamp).toISOString().slice(11, 19)}
-                            </div>
-                          ),
-                        },
-                        {
-                          accessorKey: "video_id",
-                          header: "Video ID",
-                          cell: ({ row }) => <div className="text-gray-800 text-sm text-left">{row.original.video_id}</div>,
-                        },
-                        {
-                          accessorKey: "title",
-                          header: "Title",
-                          cell: ({ row }) => <div className="text-gray-800 text-sm text-left">{row.original.title}</div>,
-                        },
-                        {
-                          accessorKey: "text",
-                          header: "Soundbite",
-                          cell: ({ row }) => <div className=" text-gray-800 max-w-[700px] text-sm text-left">{formatText(row.original.text)}</div>,
-                        },
-                      ]}
-                      data={searchResults}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </div>
+                            className="text-sm font-medium text-gray-600 cursor-pointer"
+                            onClick={() => {
+                              if (playerRef.current) {
+                                playerRef.current.seekTo(new Date(row.original.start_timestamp).getTime() / 1000, 'seconds');
+                              }
+                            }}
+                          >
+                            {new Date(row.original.start_timestamp).toISOString().slice(11, 19)} - {new Date(row.original.end_timestamp).toISOString().slice(11, 19)}
+                          </div>
+                        ),
+                      },
+                      {
+                        accessorKey: "video_id",
+                        header: "Video ID",
+                        cell: ({ row }) => <div className="text-gray-800 text-sm text-left">{row.original.video_id}</div>,
+                      },
+                      {
+                        accessorKey: "title",
+                        header: "Title",
+                        cell: ({ row }) => <div className="text-gray-800 text-sm text-left">{row.original.title}</div>,
+                      },
+                      {
+                        accessorKey: "text",
+                        header: "Soundbite",
+                        cell: ({ row }) => <div className=" text-gray-800 max-w-[700px] text-sm text-left">{formatText(row.original.text)}</div>,
+                      },
+                    ]}
+                    data={searchResults}
+                  />
+                </TabsContent>
+              </Tabs>
             </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </main>
-    </>
-  );
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  </main>
+  </>
+);
 }

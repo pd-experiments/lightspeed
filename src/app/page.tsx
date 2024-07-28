@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectTrigger, SelectValue, SelectItem, SelectContent } from "@/components/ui/select";
+import { Database } from '@/lib/types/schema';
+import * as CustomTypes from '@/lib/types/customTypes';
 
 export type Video = {
   id: string;
@@ -50,7 +52,7 @@ export default function Home() {
   const transcriptRef = useRef<HTMLDivElement>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<CustomTypes.ClipSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showMore, setShowMore] = useState<number | null>(null);
   const [selectedOutlineId, setSelectedOutlineId] = useState<string | null>(null);
@@ -306,22 +308,39 @@ export default function Home() {
       .join('. ');
   };
 
-  const addToOutline = async (item: any) => {
+  const addToOutline = async (item: CustomTypes.ClipSearchResult) => {
     if (!selectedOutlineId) {
       alert("Please select an outline first.");
       return;
     }
-
-    const element = {
-      outline_id: selectedOutlineId,
-      video_uuid: item.video_uuid,
-      video_start_time: item.start_timestamp,
-      video_end_time: item.end_timestamp,
-      position_start_time: item.start_timestamp,
-      position_end_time: item.end_timestamp,
-    };
-
+  
     try {
+      const { data: lastClip, error: lastClipError } = await supabase
+        .from('outline_elements')
+        .select('position_end_time')
+        .eq('outline_id', selectedOutlineId)
+        .order('position_end_time', { ascending: false })
+        .limit(1)
+        .single();
+  
+      if (lastClipError) {
+        throw new Error('Failed to fetch the last clip in the outline');
+      }
+  
+      const newStartTime = lastClip ? new Date(lastClip.position_end_time).toISOString() : item.start_timestamp;
+      const duration = new Date(item.end_timestamp).getTime() - new Date(item.start_timestamp).getTime();
+      const newEndTime = new Date(new Date(newStartTime).getTime() + duration).toISOString();
+
+      const element = {
+        outline_id: selectedOutlineId,
+        video_uuid: item.video_uuid,
+        video_id: item.video_id,
+        video_start_time: item.start_timestamp,
+        video_end_time: item.end_timestamp,
+        position_start_time: newStartTime,
+        position_end_time: newEndTime,
+      };
+  
       const response = await fetch('/api/outlines/create-element', {
         method: 'POST',
         headers: {
@@ -329,11 +348,11 @@ export default function Home() {
         },
         body: JSON.stringify(element),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to add element to outline');
       }
-
+  
       alert("Element added to outline successfully.");
     } catch (error) {
       console.error('Error adding element to outline:', error);
@@ -441,9 +460,9 @@ export default function Home() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button onClick={() => addToOutline(searchResults)}>Add to Outline</Button>
+                  <Button onClick={() => searchResults.map((item) => addToOutline(item))}>Add to Outline</Button>
                 </div>
-                {isSearching && <p className="text-sm text-gray-500">Searching...</p>}
+                {isSearching && <p className="text-sm text-gray-500 mt-2">Searching...</p>}
               </div>
               <div className="rounded-md overflow-hidden">
                 <Tabs defaultValue="cards">

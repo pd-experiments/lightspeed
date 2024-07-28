@@ -10,15 +10,17 @@ import { Button } from '@/components/ui/button';
 
 type Outline = Tables<'outline'>;
 type OutlineElement = Tables<'outline_elements'>;
+type OutlineElementWithVideoTitle = OutlineElement & { video_title: string };
 type YouTubeVideo = Tables<'youtube'>;
 
 export default function Lists() {
   const [outlines, setOutlines] = useState<Outline[]>([]);
   const [selectedOutlineId, setSelectedOutlineId] = useState<string | null>(null);
-  const [outlineElements, setOutlineElements] = useState<OutlineElement[]>([]);
+  const [outlineElements, setOutlineElements] = useState<OutlineElementWithVideoTitle[]>([]);
   const [currentVideo, setCurrentVideo] = useState<YouTubeVideo | null>(null);
   const [totalDuration, setTotalDuration] = useState<number>(0);
   const [newOutlineTitle, setNewOutlineTitle] = useState<string>('');
+  const [aiOrderings, setAiOrderings] = useState<OutlineElementWithVideoTitle[][]>([]);
   const playerRef = useRef<ReactPlayer | null>(null);
   const timelineRef = useRef<HTMLDivElement | null>(null);
 
@@ -36,13 +38,17 @@ export default function Lists() {
       if (selectedOutlineId) {
         const response = await fetch(`/api/outlines/get-elements?outline_id=${selectedOutlineId}`);
         const data = await response.json();
-        setOutlineElements(data);
-        if (data.length > 0) {
-          const videoUuid = data[0].video_uuid;
+        const updatedElements = await Promise.all(data.map(async (element: OutlineElement) => {
+          const videoResponse = await fetch(`/api/get-video-by-id?id=${element.video_uuid}`);
+          const videoData = await videoResponse.json();
+          return { ...element, video_title: videoData.title };
+        }));
+        setOutlineElements(updatedElements);
+        if (updatedElements.length > 0) {
+          const videoUuid = updatedElements[0].video_uuid;
           const videoResponse = await fetch(`/api/get-video-by-id?id=${videoUuid}`);
           const videoData = await videoResponse.json();
           setCurrentVideo(videoData);
-          console.log(currentVideo);
         }
       }
     }
@@ -250,6 +256,44 @@ export default function Lists() {
     }
   };
 
+  const generateAIOutlineOrdering = async () => {
+    if (!selectedOutlineId) {
+      alert("Please select an outline first.");
+      return;
+    }
+  
+    try {
+      const response = await fetch('/api/outlines/create-ai-outline-ordering', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ element_ids: outlineElements.map(el => el.id) }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to generate AI outline ordering');
+      }
+  
+      const data = await response.json();
+      const orderings = data.orderings.map((order: string[]) => {
+        return order.map((id: string) => {
+          return outlineElements.find(el => el.id === id);
+        }).filter(Boolean) as OutlineElementWithVideoTitle[];
+      });
+  
+      setAiOrderings(orderings);
+    } catch (error) {
+      console.error('Error generating AI outline ordering:', error);
+      alert("Error generating AI outline ordering.");
+    }
+  };
+
+  const applyOrdering = (ordering: OutlineElementWithVideoTitle[]) => {
+    setOutlineElements(ordering);
+    alert("AI-generated outline ordering applied successfully.");
+  };
+
   return (
     <>
       <Navbar />
@@ -277,15 +321,75 @@ export default function Lists() {
             </SelectContent>
           </Select>
           {currentVideo && (
-            <div className="mb-6 rounded-md overflow-hidden">
-              <ReactPlayer
-                ref={playerRef}
-                url={`https://www.youtube.com/watch?v=${currentVideo.video_id}`}
-                controls
-                width="100%"
-                height="600px"
-                className="rounded-lg"
-              />
+            <>
+              <div className="mb-6 rounded-md overflow-hidden">
+                <ReactPlayer
+                  ref={playerRef}
+                  url={`https://www.youtube.com/watch?v=${currentVideo.video_id}`}
+                  controls
+                  width="100%"
+                  height="600px"
+                  className="rounded-lg"
+                />
+              </div>
+              <div className="mb-6 flex items-center space-x-2">
+                <Button className="w-full" onClick={handleCreateOutline}>Play</Button>
+                <Button className="w-full" onClick={generateAIOutlineOrdering}>Generate AI-Generated Outline(s)</Button>
+              </div>
+            </>
+          )}
+          {aiOrderings.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-4">Select an AI-Generated Outline Ordering:</h3>
+              {aiOrderings.map((ordering, index) => (
+                <div key={index} className="mb-4 p-4 border rounded-md cursor-pointer" onClick={() => applyOrdering(ordering)}>
+                  <h4 className="text-md font-medium">Ordering {index + 1}</h4>
+                  {/* <div className="relative w-full h-auto min-h-[150px] mt-4">
+                    {ordering.map((element, idx) => {
+                      if (!element.position_start_time || !element.position_end_time) return null;
+                      const { left, width } = calculatePosition(element.position_start_time, element.position_end_time);
+                      return (
+                        <Card
+                          key={element.video_uuid}
+                          className="clip flex-shrink-0 cursor-pointer absolute"
+                          style={{ left: `${left}%`, width: `${width}%`, top: `${idx * 30}px` }}
+                        >
+                          <CardContent className="p-2 h-full flex flex-col justify-between">
+                            <div className="text-sm justify-start w-full">
+                              <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
+                            </div>
+                            <div className="text-xs text-right justify-end font-medium w-full text-gray-700">
+                              <span>{new Date(element.position_start_time).toISOString().slice(11, 19)} - {new Date(element.position_end_time).toISOString().slice(11, 19)}</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div> */}
+                  <div className="relative w-full h-auto min-h-[100px] overflow-x-scroll mt-4 p-4">
+                    {ordering.map((element, idx) => {
+                      if (!element.position_start_time || !element.position_end_time) return null;
+                      const { left, width } = calculatePosition(element.position_start_time, element.position_end_time);
+                      return (
+                        <Card
+                          key={element.video_uuid}
+                          className="clip flex-shrink-0 cursor-pointer absolute"
+                          style={{ left, width }}
+                        >
+                          <CardContent className="p-2 h-full flex flex-col justify-between">
+                            <div className="text-sm justify-start w-full">
+                              <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
+                            </div>
+                            <div className="text-xs text-right justify-end font-medium w-full text-gray-700">
+                              <span>{new Date(element.position_start_time).toISOString().slice(11, 19)} - {new Date(element.position_end_time).toISOString().slice(11, 19)}</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
           <div ref={timelineRef} className="overflow-y-scroll p-2 border border-gray-200 rounded-md video-editor relative w-full h-auto min-h-[250px] mt-4" onDrop={handleDrop} onDragOver={handleDragOver}>
@@ -316,7 +420,7 @@ export default function Lists() {
                   />
                   <CardContent className="p-2 h-full flex flex-col justify-between"> 
                     <div className="text-sm justify-start w-full">
-                      <span className="text-blue-500 font-semibold break-words">{element.video_uuid}</span>
+                      <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
                     </div>
                     <div className="relative my-2 rounded-md h-full">
                       <ReactPlayer
@@ -353,4 +457,4 @@ export default function Lists() {
       </main>
     </>
   );
-}
+};

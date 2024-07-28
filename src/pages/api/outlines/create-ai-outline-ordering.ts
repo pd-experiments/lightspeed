@@ -1,7 +1,3 @@
-/*
-This handler uses GPT to generate a list of possible ordering of outline elements given every clip + clip metadata.
-*/
-
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
 import { Database } from "@/lib/types/schema";
@@ -13,10 +9,13 @@ type YouTubeVideo = Database["public"]["Tables"]["youtube"]["Row"];
 
 type GPTClipMetadata = {
   id: string;
-  video_uuid: {
+  video: {
     title: string;
     description: string;
   };
+  clip_soundbite_text: string;
+  video_start_time: string;
+  video_end_time: string;
 };
 
 async function get_ordering_two_calls(
@@ -143,17 +142,53 @@ export default async function handler(
     // Get list of GPTClipMetadata elements
     const { data: gpt_input_clips, error } = await supabase
       .from("outline_elements")
-      .select("id, video_uuid (title, description)")
+      .select("id, video_uuid, video_start_time, video_end_time")
       .in("id", element_ids)
-      .returns<GPTClipMetadata[]>();
+      .returns<OutlineElement[]>();
 
     if (error) {
       throw error;
     }
 
+    // Fetch the text from video_embeddings for each clip
+    const gpt_input_clips_with_text = await Promise.all(
+      gpt_input_clips.map(async (clip) => {
+        const { data: embeddings, error: embeddingsError } = await supabase
+          .from("video_embeddings")
+          .select("text")
+          .eq("video_uuid", clip.video_uuid)
+          .gte("timestamp", clip.video_start_time)
+          .lte("timestamp", clip.video_end_time);
+
+        if (embeddingsError) {
+          throw embeddingsError;
+        }
+
+        const combinedText = embeddings.map((e) => e.text).join(" ");
+
+        const { data: youtubeData, error: youtubeError } = await supabase
+          .from("youtube")
+          .select("title, description")
+          .eq("id", clip.video_uuid)  // Corrected column name
+          .single();
+
+        if (youtubeError) {
+          throw youtubeError;
+        }
+
+        return { 
+          ...clip, 
+          clip_soundbite_text: combinedText,
+          video: {
+            title: youtubeData.title,
+            description: youtubeData.description
+          }
+        };
+      })
+    );
+
     // Query OpenAI GPT to generate possible ordering of outline elements
-    // const parsedResponse = await get_ordering_two_calls(gpt_input_clips);
-    const parsedResponse = await get_ordering_one_call(gpt_input_clips);
+    const parsedResponse = await get_ordering_one_call(gpt_input_clips_with_text);
 
     return res.status(200).json(parsedResponse);
   } catch (error) {

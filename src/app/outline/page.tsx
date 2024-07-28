@@ -320,7 +320,7 @@ export default function Lists() {
                     </div>
                     <div className="relative my-2 rounded-md h-full">
                       <ReactPlayer
-                        url={`https://www.youtube.com/watch?v=${element.video_uuid}`}
+                        url={`https://www.youtube.com/watch?v=${element.video_id}`}
                         controls
                         width="100%"
                         height="100%"

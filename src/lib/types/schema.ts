@@ -43,6 +43,7 @@ export type Database = {
           updated_at: string | null
           video_embeddings: string[] | null
           video_end_time: string
+          video_id: string
           video_start_time: string
           video_uuid: string
         }
@@ -55,6 +56,7 @@ export type Database = {
           updated_at?: string | null
           video_embeddings?: string[] | null
           video_end_time: string
+          video_id: string
           video_start_time: string
           video_uuid?: string
         }
@@ -67,6 +69,7 @@ export type Database = {
           updated_at?: string | null
           video_embeddings?: string[] | null
           video_end_time?: string
+          video_id?: string
           video_start_time?: string
           video_uuid?: string
         }
@@ -93,6 +96,7 @@ export type Database = {
           id: string
           text: string | null
           timestamp: string | null
+          video_id: string
           video_uuid: string | null
         }
         Insert: {
@@ -100,6 +104,7 @@ export type Database = {
           id?: string
           text?: string | null
           timestamp?: string | null
+          video_id: string
           video_uuid?: string | null
         }
         Update: {
@@ -107,6 +112,7 @@ export type Database = {
           id?: string
           text?: string | null
           timestamp?: string | null
+          video_id?: string
           video_uuid?: string | null
         }
         Relationships: [

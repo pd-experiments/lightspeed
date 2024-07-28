@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
 import { openai_client } from "@/lib/openai-client";
+import { ClipSearchResult } from "@/lib/types/customTypes";
 
 export default async function handler(
   req: NextApiRequest,
@@ -29,14 +30,23 @@ export default async function handler(
       }
     );
 
-    console.log(searchResults);
-
     if (error) {
       throw error;
     }
 
     if (searchResults && searchResults.length > 0) {
-      res.status(200).json(searchResults);
+      const formattedResults: ClipSearchResult[] = searchResults.map((item: any) => ({
+        id: item.video_uuid,
+        title: item.title,
+        video_id: item.video_id,
+        video_uuid: item.video_uuid,
+        text: item.text,
+        description: item.description,
+        start_timestamp: item.start_timestamp,
+        end_timestamp: item.end_timestamp,
+      }));
+
+      res.status(200).json(formattedResults);
     } else {
       res.status(404).json({ message: "No matching results found" });
     }

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { DataTable } from '@/components/ui/data-table';
@@ -110,7 +110,10 @@ export default function Home() {
 
   const debouncedGlobalSearch = useCallback(
     debounce(async (query: string) => {
-      if (!query.trim()) return;
+      if (!query.trim()) {
+        fetchRandomClips();
+        return;
+      }
 
       setIsSearching(true);
       try {
@@ -248,6 +251,20 @@ export default function Home() {
     };
   
     loadVideos();
+  }, []);
+
+  const fetchRandomClips = async () => {
+    try {
+      const response = await fetch('/api/random-videos-clip-search');
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (error) {
+      console.error('Error fetching random clips:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRandomClips();
   }, []);
 
   const handleProgress = (state: { playedSeconds: number }) => {
@@ -451,7 +468,7 @@ export default function Home() {
                   <Select onValueChange={(value) => setSelectedOutlineId(value || '')} value={selectedOutlineId || ''}>
                     <SelectTrigger className="max-w-[200px] mr-2">
                       <SelectValue placeholder="Select an outline" />
-                    </SelectTrigger>
+                      </SelectTrigger>
                     <SelectContent className="max-w-[200px]">
                       {outlines.map((outline) => (
                         <SelectItem key={outline.id} value={outline.id}>
@@ -471,7 +488,7 @@ export default function Home() {
                     <TabsTrigger value="table">Table View</TabsTrigger>
                   </TabsList>
                   <TabsContent value="cards">
-                    {searchResults.length === 0 ? (
+                    {(!searchResults || searchResults.length === 0 || searchResults === undefined) ? (
                       <div className="p-4 text-center text-gray-500">
                         No results found.
                       </div>

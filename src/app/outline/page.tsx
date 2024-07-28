@@ -29,6 +29,9 @@ export default function Lists() {
       const response = await fetch('/api/outlines/get-all-outlines');
       const data = await response.json();
       setOutlines(data.outlines);
+      if (data.outlines.length > 0) {
+        setSelectedOutlineId(data.outlines[0].id);
+      }
     }
     fetchOutlines();
   }, []);

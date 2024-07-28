@@ -90,7 +90,7 @@ async function get_ordering_one_call(
     },
     {
       role: "user",
-      content: `Given the following clips and their metadata, what are 3 possible unique orderings of the outline elements? Output the orderings as the following json schema: {"orderings": [ [one permutation of ids, another permutation of ids, ...], [one permutation of ids, another permutation of ids, ...], ... ]}. Regardless of the reasoning, your response must follow this schema. Do not include Markdown or any other formatting. Each ordering must contain some permutation of all the ids. Each ordering must be unique.\n\n${JSON.stringify(
+      content: `Given the following clips and their metadata, what are 3 possible unique orderings of the outline elements and your recommendations on what should go in between the consecutive clips? Output the orderings as the following json schema: {"orderings": [ [one permutation of ids, another permutation of ids, ...], [one permutation of ids, another permutation of ids, ...], ... ], "in_between": [ [str, str, ...], ...]}. The in_between section for each order should be a list that has one fewer element than the corresponding orderings list and should describe a good way to transition between the two clips. For context, the clips are from news videos, and we are helping the user create political ads. So these transition points should be generated with the big picture in mind. Regardless of the reasoning, your response must follow this schema. Do not include Markdown or any other formatting. Each ordering must contain some permutation of all the ids. Each ordering must be unique.\n\n${JSON.stringify(
         gpt_input_clips
       )}`,
     },
@@ -114,7 +114,15 @@ async function get_ordering_one_call(
   }
 
   if (!Array.isArray(parsedResponse.orderings)) {
-    throw new Error("Parsed response does not have the expected structure.");
+    throw new Error(
+      "Parsed response does not have the expected structure (orderings)."
+    );
+  }
+
+  if (!Array.isArray(parsedResponse.in_between)) {
+    throw new Error(
+      "Parsed response does not have the expected structure (in_between)."
+    );
   }
 
   return parsedResponse;
@@ -147,7 +155,7 @@ export default async function handler(
     // const parsedResponse = await get_ordering_two_calls(gpt_input_clips);
     const parsedResponse = await get_ordering_one_call(gpt_input_clips);
 
-    return res.status(200).json({ orderings: parsedResponse.orderings });
+    return res.status(200).json(parsedResponse);
   } catch (error) {
     console.error("Error generating AI outline ordering:", error);
     res.status(500).json({ error: "Error generating AI outline ordering" });

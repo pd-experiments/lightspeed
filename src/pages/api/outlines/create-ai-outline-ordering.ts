@@ -185,7 +185,7 @@ export default async function handler(
         const { data: youtubeData, error: youtubeError } = await supabase
           .from("youtube")
           .select("title, description")
-          .eq("id", clip.video_uuid)  // Corrected column name
+          .eq("id", clip.video_uuid)
           .single();
 
         if (youtubeError) {

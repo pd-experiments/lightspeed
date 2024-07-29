@@ -75,6 +75,14 @@ async function get_ordering_two_calls(
     throw new Error("Parsed response does not have the expected structure.");
   }
 
+  // Ensure each ordering has the same number of clips as the input
+  const expectedLength = gpt_input_clips.length;
+  parsedResponse.orderings.forEach((ordering: string[]) => {
+    if (ordering.length !== expectedLength) {
+      throw new Error("Ordering does not contain the expected number of clips.");
+    }
+  });
+
   return parsedResponse;
 }
 
@@ -124,6 +132,14 @@ async function get_ordering_one_call(
     );
   }
 
+  // Ensure each ordering has the same number of clips as the input
+  const expectedLength = gpt_input_clips.length;
+  parsedResponse.orderings.forEach((ordering: string[]) => {
+    if (ordering.length !== expectedLength) {
+      throw new Error("Ordering does not contain the expected number of clips.");
+    }
+  });
+
   return parsedResponse;
 }
 
@@ -169,7 +185,7 @@ export default async function handler(
         const { data: youtubeData, error: youtubeError } = await supabase
           .from("youtube")
           .select("title, description")
-          .eq("id", clip.video_uuid)  // Corrected column name
+          .eq("id", clip.video_uuid)
           .single();
 
         if (youtubeError) {

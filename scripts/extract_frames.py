@@ -1,6 +1,8 @@
 import os
 import logging
-from pytube import YouTube
+#pip install git+https://github.com/JuanBindez/pytubefix.git@c0c07b046d8b59574552404931f6ce3c6590137d
+#https://github.com/JuanBindez/pytubefix/commit/c0c07b046d8b59574552404931f6ce3c6590137d
+from pytubefix import YouTube
 from supabase import create_client, Client
 from io import BytesIO
 from uuid import uuid4
@@ -9,13 +11,21 @@ import torch
 import torchvision.transforms as transforms
 from PIL import Image
 from torchvision.models import resnet50
+from dotenv import load_dotenv
+import time
 
 import cv2
 
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 supabase_url = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
 supabase_key = os.getenv("NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY")
+
+if not supabase_url or not supabase_key:
+    logging.error("Supabase URL or key is not set. Please set the environment variables.")
+    raise EnvironmentError("Supabase URL or key is not set.")
+
 supabase: Client = create_client(supabase_url, supabase_key)
 
 # Load a pre-trained ResNet model
@@ -33,9 +43,25 @@ preprocess = transforms.Compose([
 def download_youtube_video(url):
     logging.info(f"Downloading YouTube video from URL: {url}")
     yt = YouTube(url)
+
+    try:
+        yt.bypass_age_gate()
+    except Exception as e:
+        logging.error(f"Failed to bypass age gate: {e}") ##error I receive, just run the script in a venv with the packages from req.txt and the pytubefix and you'll see  
+        return None  # Indicate failure
+
     stream = yt.streams.filter(file_extension='mp4').first()
+    if stream is None:
+        logging.error("No suitable stream found for the video.") 
+        return None  # Indicate failure
+
     video_data = BytesIO()
-    stream.stream_to_buffer(video_data)
+    try:
+        stream.stream_to_buffer(video_data)
+    except Exception as e:
+        logging.error(f"Failed to download video: {e}")
+        return None  # Indicate failure
+
     video_data.seek(0)
     logging.info("Download complete")
     return video_data
@@ -91,24 +117,25 @@ def extract_frames_and_upload(video_id, video_data, interval=1):
 
 def fetch_video_ids():
     logging.info("Fetching video IDs from database")
-    response = supabase \
-        .from_("youtube") \
-        .select("video_id") \
-        .join("video_embeddings", "youtube.id", "video_embeddings.video_uuid") \
-        .execute()
-    
-    if response.error:
-        raise Exception(f"Error fetching video IDs: {response.error.message}")
-    
+    response = supabase.rpc("fetch_youtube_videos_with_embeddings_records").execute()
+
+    # print("RESPONSE", response)
+
+    video_ids = [item['video_id'] for item in response.data]
     logging.info("Video IDs fetched successfully")
-    return [item["video_id"] for item in response.data]
+    return video_ids
 
 def main(interval=1):
     logging.info("Starting main process")
     video_ids = fetch_video_ids()
+    print("VIDEO IDS", len(video_ids)) #works until here, able to grab video ids 
     for video_id in video_ids:
         youtube_url = f"https://www.youtube.com/watch?v={video_id}"
-        video_data = download_youtube_video(youtube_url)
+        video_data = download_youtube_video(youtube_url) #fails here for all the videos 
+        
+        if video_data is None:  # Check if download failed
+            logging.warning(f"Skipping video ID {video_id} due to download failure.")
+            continue  # Skip to the next video
         
         # Upload video to Supabase storage
         logging.info(f"Uploading video {video_id} to Supabase storage")

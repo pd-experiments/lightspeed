@@ -3,16 +3,19 @@ import logging
 #pip install git+https://github.com/JuanBindez/pytubefix.git@c0c07b046d8b59574552404931f6ce3c6590137d
 #https://github.com/JuanBindez/pytubefix/commit/c0c07b046d8b59574552404931f6ce3c6590137d
 from pytubefix import YouTube
+from pytubefix.cli import on_progress
+
 from supabase import create_client, Client
 from io import BytesIO
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timedelta
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
 from torchvision.models import resnet50
 from dotenv import load_dotenv
 import time
+import tempfile
 
 import cv2
 
@@ -42,29 +45,37 @@ preprocess = transforms.Compose([
 
 def download_youtube_video(url):
     logging.info(f"Downloading YouTube video from URL: {url}")
-    yt = YouTube(url)
-
     try:
-        yt.bypass_age_gate()
+        yt = YouTube(url, on_progress_callback=on_progress)
+        try:
+            print("YT", yt.title)
+        except KeyError:
+            logging.error("Failed to access video title.")
+            return None
+
+        stream = yt.streams.get_highest_resolution()
+
+        if stream is None:
+            logging.error("No suitable stream found for the video.")
+            return None
+
+        print(f"Stream URL: {stream.url}")
+        print(f"Stream Resolution: {stream.resolution}")
+        print(f"Stream Mime Type: {stream.mime_type}")
+
+        video_data = BytesIO()
+        try:
+            stream.stream_to_buffer(video_data)
+        except Exception as e:
+            logging.error(f"Failed to download video: {str(e)}")
+            return None
+
+        video_data.seek(0)
+        logging.info("Download complete")
+        return video_data
     except Exception as e:
-        logging.error(f"Failed to bypass age gate: {e}") ##error I receive, just run the script in a venv with the packages from req.txt and the pytubefix and you'll see  
-        return None  # Indicate failure
-
-    stream = yt.streams.filter(file_extension='mp4').first()
-    if stream is None:
-        logging.error("No suitable stream found for the video.") 
-        return None  # Indicate failure
-
-    video_data = BytesIO()
-    try:
-        stream.stream_to_buffer(video_data)
-    except Exception as e:
-        logging.error(f"Failed to download video: {e}")
-        return None  # Indicate failure
-
-    video_data.seek(0)
-    logging.info("Download complete")
-    return video_data
+        logging.error(f"Failed to download video: {str(e)}")
+        return None
 
 def generate_embedding(image):
     logging.info("Generating embedding for the frame")
@@ -77,7 +88,7 @@ def generate_embedding(image):
     logging.info("Embedding generated")
     return embedding.squeeze().numpy()
 
-def extract_frames_and_upload(video_id, video_data, interval=1):
+def extract_frames_and_upload(video_id, video_uuid, video_data, interval=1):
     logging.info(f"Extracting frames from video ID: {video_id}")
     cap = cv2.VideoCapture(video_data)
     frame_count = 0
@@ -89,25 +100,51 @@ def extract_frames_and_upload(video_id, video_data, interval=1):
             is_success, buffer = cv2.imencode(".jpg", frame)
             frame_data = BytesIO(buffer)
             
+            # Save frame_data to a temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_frame_file:
+                temp_frame_file.write(frame_data.getbuffer())
+                temp_frame_file_path = temp_frame_file.name
+            
+            # # Check if frame already exists in storage
+            # try:
+            #     supabase.storage.from_("frames").download(frame_filename)
+            #     logging.warning(f"Frame {frame_filename} already exists in storage. Skipping upload.")
+            #     os.remove(temp_frame_file_path)
+            #     continue
+            # except Exception as e:
+            #     if 'Not Found' not in str(e):
+            #         logging.error(f"Failed to check frame {frame_filename}: {str(e)}")
+            #         os.remove(temp_frame_file_path)
+            #         continue
+            
             # Upload frame to Supabase storage
             logging.info(f"Uploading frame {frame_count} to Supabase storage")
-            supabase.storage().from_("frames").upload(frame_filename, frame_data)
+            supabase.storage.from_("frames").upload(frame_filename, temp_frame_file_path)
             
             # Generate embedding for the frame
-            image = Image.open(frame_data)
+            image = Image.open(temp_frame_file_path)
             embedding = generate_embedding(image)
+            
+            # Get the timestamp in ISO 8601 format
+            timestamp_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
+            timestamp = (datetime(1970, 1, 1) + timedelta(milliseconds=timestamp_ms)).isoformat() + 'Z'
             
             # Insert frame record into frames_records table
             frame_record = {
                 "id": str(uuid4()),
+                "video_uuid": video_uuid,
                 "video_id": video_id,
                 "frame_number": frame_count,
                 "storage_path": frame_filename,
                 "created_at": datetime.utcnow().isoformat(),
+                "timestamp": timestamp,  # Timestamp in ISO 8601 format
                 "embedding": embedding.tolist()  # Store the embedding
             }
             logging.info(f"Inserting frame record for frame {frame_count} into database")
             supabase.from_("frames_records").insert(frame_record).execute()
+            
+            # Clean up the temporary file
+            os.remove(temp_frame_file_path)
         
         success, frame = cap.read()
         frame_count += 1
@@ -116,32 +153,50 @@ def extract_frames_and_upload(video_id, video_data, interval=1):
     logging.info(f"Finished extracting frames for video ID: {video_id}")
 
 def fetch_video_ids():
-    logging.info("Fetching video IDs from database")
-    response = supabase.rpc("fetch_youtube_videos_with_embeddings_records").execute()
-
-    # print("RESPONSE", response)
-
-    video_ids = [item['video_id'] for item in response.data]
-    logging.info("Video IDs fetched successfully")
-    return video_ids
+    logging.info("Fetching video IDs and UUIDs from database")
+    response = supabase.from_("youtube").select("video_id, id").limit(40).execute()
+    video_data = {(item['video_id'], item['id']) for item in response.data}  # Use a set to remove duplicates
+    logging.info("Video IDs and UUIDs fetched successfully")
+    return list(video_data)
 
 def main(interval=1):
     logging.info("Starting main process")
-    video_ids = fetch_video_ids()
-    print("VIDEO IDS", len(video_ids)) #works until here, able to grab video ids 
-    for video_id in video_ids:
+    video_data = fetch_video_ids()
+    print("VIDEO IDS", len(video_data))  # works until here, able to grab video ids 
+    for video_id, id in video_data:
         youtube_url = f"https://www.youtube.com/watch?v={video_id}"
-        video_data = download_youtube_video(youtube_url) #fails here for all the videos 
+        video_data = download_youtube_video(youtube_url) 
         
         if video_data is None:  # Check if download failed
             logging.warning(f"Skipping video ID {video_id} due to download failure.")
             continue  # Skip to the next video
         
+        # Save video_data to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video_file:
+            temp_video_file.write(video_data.getbuffer())
+            temp_video_file_path = temp_video_file.name
+        
+        # # Check if video already exists in storage
+        # try:
+        #     supabase.storage.from_("videos").download(f"{video_id}.mp4")
+        #     logging.warning(f"Video {video_id} already exists in storage. Skipping upload.")
+        #     os.remove(temp_video_file_path)
+        #     continue
+        # except Exception as e:
+        #     if 'Not Found' not in str(e):
+        #         logging.error(f"Failed to check video {video_id}: {str(e)}")
+        #         os.remove(temp_video_file_path)
+        #         continue
+        
         # Upload video to Supabase storage
         logging.info(f"Uploading video {video_id} to Supabase storage")
-        supabase.storage().from_("videos").upload(f"{video_id}.mp4", video_data)
+        supabase.storage.from_("videos").upload(f"{video_id}.mp4", temp_video_file_path)
         
-        extract_frames_and_upload(video_id, video_data, interval)
+        extract_frames_and_upload(video_id, id, temp_video_file_path, interval)
+        
+        # Clean up the temporary file
+        os.remove(temp_video_file_path)
+        
     logging.info("Main process completed")
 
 if __name__ == "__main__":

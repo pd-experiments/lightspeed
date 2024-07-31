@@ -12,31 +12,81 @@ export type Database = {
       frames_records: {
         Row: {
           created_at: string
+          embedding: string | null
           frame_number: string | null
           id: string
           storage_path: string | null
+          timestamp: string | null
           video_id: string | null
           video_uuid: string | null
         }
         Insert: {
           created_at?: string
+          embedding?: string | null
           frame_number?: string | null
           id?: string
           storage_path?: string | null
+          timestamp?: string | null
           video_id?: string | null
           video_uuid?: string | null
         }
         Update: {
           created_at?: string
+          embedding?: string | null
           frame_number?: string | null
           id?: string
           storage_path?: string | null
+          timestamp?: string | null
           video_id?: string | null
           video_uuid?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "frames_video_uuid_fkey"
+            columns: ["video_uuid"]
+            isOneToOne: false
+            referencedRelation: "youtube"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grouped_video_embeddings: {
+        Row: {
+          created_at: string
+          duration: string
+          embedding: string | null
+          id: string
+          soundbytes: string[]
+          text: string | null
+          timestamp: string
+          updated_at: string
+          video_uuid: string
+        }
+        Insert: {
+          created_at?: string
+          duration?: string
+          embedding?: string | null
+          id?: string
+          soundbytes?: string[]
+          text?: string | null
+          timestamp: string
+          updated_at?: string
+          video_uuid?: string
+        }
+        Update: {
+          created_at?: string
+          duration?: string
+          embedding?: string | null
+          id?: string
+          soundbytes?: string[]
+          text?: string | null
+          timestamp?: string
+          updated_at?: string
+          video_uuid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grouped_video_embeddings_video_uuid_fkey"
             columns: ["video_uuid"]
             isOneToOne: false
             referencedRelation: "youtube"
@@ -127,6 +177,7 @@ export type Database = {
       }
       video_embeddings: {
         Row: {
+          duration: string
           embedding: string | null
           id: string
           text: string | null
@@ -135,6 +186,7 @@ export type Database = {
           video_uuid: string | null
         }
         Insert: {
+          duration?: string
           embedding?: string | null
           id?: string
           text?: string | null
@@ -143,6 +195,7 @@ export type Database = {
           video_uuid?: string | null
         }
         Update: {
+          duration?: string
           embedding?: string | null
           id?: string
           text?: string | null
@@ -218,6 +271,31 @@ export type Database = {
           start_timestamp: string
           end_timestamp: string
           text: string
+        }[]
+      }
+      fetch_youtube_videos_with_embeddings_records: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          video_id: string
+        }[]
+      }
+      get_grouped_video_embeddings: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          video_uuid: string
+          soundbytes: Json[]
+        }[]
+      }
+      get_latest_unique_youtube_videos: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          published_at: string | null
+          title: string | null
+          transcript: Json | null
+          video_id: string | null
         }[]
       }
       halfvec_avg: {

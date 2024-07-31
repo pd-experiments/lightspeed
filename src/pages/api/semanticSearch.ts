@@ -31,6 +31,8 @@ export default async function handler(
       }
     );
 
+    console.log(error);
+
     if (error) {
       throw error;
     }

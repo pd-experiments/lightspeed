@@ -14,6 +14,11 @@ import { saveAs } from 'file-saver';
 type Outline = Tables<'outline'>;
 type OutlineElement = Tables<'outline_elements'>;
 export type OutlineElementWithVideoTitle = OutlineElement & { video_title: string };
+export type OutlineElementSuggestions = {
+  ordering: OutlineElementWithVideoTitle[];
+  timestamps: { id: string; start: string; end: string }[];
+  in_between: string[];
+};
 type YouTubeVideo = Tables<'youtube'>;
 
 export default function Lists() {
@@ -23,9 +28,10 @@ export default function Lists() {
   const [currentVideo, setCurrentVideo] = useState<YouTubeVideo | null>(null);
   const [totalDuration, setTotalDuration] = useState<number>(0);
   const [newOutlineTitle, setNewOutlineTitle] = useState<string>('');
-  const [aiOrderings, setAiOrderings] = useState<OutlineElementWithVideoTitle[][]>([]);
+  const [aiOrderings, setAiOrderings] = useState<OutlineElementSuggestions[]>([]);
   const playerRef = useRef<ReactPlayer | null>(null);
   const timelineRef = useRef<HTMLDivElement | null>(null);
+  const [description, setDescription] = useState<string>('');
 
   useEffect(() => {
     async function fetchOutlines() {
@@ -84,6 +90,19 @@ export default function Lists() {
   
     const totalDuration = new Date(lastElement.position_end_time).getTime() - new Date(firstElement.position_start_time).getTime();
     const left = ((startTime - new Date(firstElement.position_start_time).getTime()) / totalDuration) * 100;
+    const width = ((endTime - startTime) / totalDuration) * 100;
+  
+    return { left: `${left}%`, width: `${width}%` };
+  }
+
+  function calculatePositionForOrdering(start: string, end: string, timelineStart: string, timelineEnd: string) {
+    const startTime = new Date(`1970-01-01T${start}Z`).getTime();
+    const endTime = new Date(`1970-01-01T${end}Z`).getTime();
+    const timelineStartTime = new Date(`1970-01-01T${timelineStart}Z`).getTime();
+    const timelineEndTime = new Date(`1970-01-01T${timelineEnd}Z`).getTime();
+  
+    const totalDuration = timelineEndTime - timelineStartTime;
+    const left = ((startTime - timelineStartTime) / totalDuration) * 100;
     const width = ((endTime - startTime) / totalDuration) * 100;
   
     return { left: `${left}%`, width: `${width}%` };
@@ -282,11 +301,27 @@ export default function Lists() {
       }
   
       const data = await response.json();
-      const orderings = data.orderings.map((order: string[]) => {
-        return order.map((id: string) => {
-          return outlineElements.find(el => el.id === id);
-        }).filter(Boolean) as OutlineElementWithVideoTitle[];
+      console.log(data);
+      const orderings = data.orderings.map((order: string[], index: number) => {
+        console.log("ORDER", order);
+        const orderingWithDetails = order.map((id: string) => {
+          const element = outlineElements.find(el => el.id === id);
+          if (!element) {
+            throw new Error(`Element with id ${id} not found in outlineElements`);
+          }
+          return element;
+        });
+
+        console.log("ORDERING WITH DETAILS", orderingWithDetails);
+  
+        return {
+          ordering: orderingWithDetails,
+          timestamps: data.timestamps[index],
+          in_between: data.in_between[index]
+        };
       });
+
+      console.log(orderings);
   
       setAiOrderings(orderings);
     } catch (error) {
@@ -353,6 +388,14 @@ export default function Lists() {
               ))}
             </SelectContent>
           </Select>
+          <div className="mb-6 flex items-center">
+            <Input
+              placeholder="Ex: This is a video about Donald Trump's felonious activities..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="mr-2"
+            />
+          </div>
           {currentVideo && (
             <>
               <div className="mb-6 rounded-md overflow-hidden">
@@ -375,67 +418,58 @@ export default function Lists() {
           {aiOrderings.length > 0 && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-4">Select an AI-Generated Outline Ordering:</h3>
-              {aiOrderings.map((ordering, index) => (
-                <div key={index} className="mb-4 p-4 border rounded-md cursor-pointer" onClick={() => applyOrdering(ordering)}>
-                  <h4 className="text-md font-medium">Ordering {index + 1}</h4>
-                  {/* <div className="relative w-full h-auto min-h-[150px] mt-4">
-                    {ordering.map((element, idx) => {
-                      if (!element.position_start_time || !element.position_end_time) return null;
-                      const { left, width } = calculatePosition(element.position_start_time, element.position_end_time);
-                      return (
-                        <Card
-                          key={element.video_uuid}
-                          className="clip flex-shrink-0 cursor-pointer absolute"
-                          style={{ left: `${left}%`, width: `${width}%`, top: `${idx * 30}px` }}
-                        >
-                          <CardContent className="p-2 h-full flex flex-col justify-between">
-                            <div className="text-sm justify-start w-full">
-                              <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
-                            </div>
-                            <div className="text-xs text-right justify-end font-medium w-full text-gray-700">
-                              <span>{new Date(element.position_start_time).toISOString().slice(11, 19)} - {new Date(element.position_end_time).toISOString().slice(11, 19)}</span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div> */}
-                  <div className="relative w-full h-auto min-h-[100px] overflow-x-scroll mt-4 p-4">
-                    {ordering.map((element, idx) => {
-                      if (!element.position_start_time || !element.position_end_time) return null;
-                      const { left, width } = calculatePosition(element.position_start_time, element.position_end_time);
-                      return (
-                        <Card
-                          key={element.video_uuid}
-                          className="clip flex-shrink-0 cursor-pointer absolute"
-                          style={{ left, width }}
-                        >
-                          <CardContent className="p-2 h-full flex flex-col justify-between">
-                            <div className="text-sm justify-start w-full">
-                              <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
-                            </div>
-                            <div className="text-xs text-right justify-end font-medium w-full text-gray-700">
-                              <span>{new Date(element.position_start_time).toISOString().slice(11, 19)} - {new Date(element.position_end_time).toISOString().slice(11, 19)}</span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
+              {aiOrderings.map((orderingDetails, index) => {
+                const timestamps = orderingDetails.timestamps;
+                const timelineStart = timestamps.reduce((earliest, current) => current.start < earliest ? current.start : earliest, timestamps[0].start);
+                const timelineEnd = timestamps.reduce((latest, current) => current.end > latest ? current.end : latest, timestamps[0].end);
+              
+                return (
+                  <div key={index} className="mb-4 p-4 border rounded-md cursor-pointer">
+                    <h4 className="text-base font-medium">Ordering {index + 1}</h4>
+                    <div className="relative w-full h-auto min-h-[140px] overflow-x-scroll mt-4 p-4">
+                      {orderingDetails.ordering.map((element, idx) => {
+                        const timestamp = orderingDetails.timestamps.find(ts => ts.id === element.id);
+                        if (!timestamp) return null;
+                        const { left, width } = calculatePositionForOrdering(timestamp.start, timestamp.end, timelineStart, timelineEnd);
+                        return (
+                          <Card
+                            key={element.video_uuid}
+                            className="clip flex-shrink-0 cursor-pointer absolute"
+                            style={{ left, width }}
+                          >
+                            <CardContent className="p-2 h-full flex flex-col justify-between">
+                              <div className="text-sm justify-start w-full">
+                                <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
+                              </div>
+                              <div className="mt-2 text-xs text-right justify-end font-medium w-full text-gray-700">
+                                <span>{new Date(`1970-01-01T${timestamp.start}Z`).toISOString().slice(11, 19)} - {new Date(`1970-01-01T${timestamp.end}Z`).toISOString().slice(11, 19)}</span>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-8">
+                      <div className="font-semibold mb-2">LAI&apos;s suggestion:</div>
+                      <div className="flex justify-between">
+                        <ul className="list-disc list-inside flex-1">
+                          {orderingDetails.in_between.map((transition, idx) => (
+                            <li key={idx} className="break-words">
+                              {transition}
+                            </li>
+                          ))}
+                        </ul>
+                        <Button size="sm" className="ml-4" onClick={() => applyOrdering(orderingDetails.ordering)}>Apply Suggestion</Button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
           <div ref={timelineRef} className="overflow-y-scroll p-2 border border-gray-200 rounded-md video-editor relative w-full h-auto min-h-[280px] mt-4" onDrop={handleDrop} onDragOver={handleDragOver}>
             <div className="absolute top-0 left-0 w-full h-full">
               {Array.from({ length: Math.round(totalDuration) }).map((_, index) => {
-                // const interval = totalDuration > 100 ? 10 : 1;
-                // if (index % interval !== 0) return null;
-                // return (
-                //   <div key={index} className="absolute border-l border-gray-300" style={{ left: `${(index / totalDuration) * 100}%`, height: index % (interval * 5) === 0 ? '100%' : '50%' }}>
-                //     <span className="text-xs">{index}s</span>
-                //   </div>
-                // );
                 const interval = totalDuration > 100 ? 10 : 5;
                 return (
                   <div key={index} className="absolute border-l border-gray-300" style={{ left: `${(index / totalDuration) * 100}%`, height: index % interval === 0 ? '100%' : '50%' }}>

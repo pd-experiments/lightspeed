@@ -398,20 +398,10 @@ export default function Home() {
         .order("position_end_time", { ascending: false })
         .limit(1)
         .single();
-
-      if (lastClipError) {
-        throw new Error("Failed to fetch the last clip in the outline");
-      }
-
-      const newStartTime = lastClip
-        ? new Date(lastClip.position_end_time).toISOString()
-        : item.start_timestamp;
-      const duration =
-        new Date(item.end_timestamp).getTime() -
-        new Date(item.start_timestamp).getTime();
-      const newEndTime = new Date(
-        new Date(newStartTime).getTime() + duration
-      ).toISOString();
+  
+      const newStartTime = lastClip ? lastClip.position_end_time : "1970-01-01T00:00:00.000+00:00";
+      const duration = new Date(item.end_timestamp).getTime() - new Date(item.start_timestamp).getTime();
+      const newEndTime = new Date(new Date(newStartTime).getTime() + duration).toISOString();
 
       const element = {
         outline_id: selectedOutlineId,

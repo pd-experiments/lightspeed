@@ -7,9 +7,12 @@ import ReactPlayer from 'react-player';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Trash2Icon } from 'lucide-react';
+import { ChevronUpIcon, Trash2Icon, ChevronDownIcon } from 'lucide-react';
 import { generateFcpxml } from '@/lib/helperUtils/generateFcpxml';
 import { saveAs } from 'file-saver';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from '@/components/ui/badge';
 
 type Outline = Tables<'outline'>;
 type OutlineElement = Tables<'outline_elements'>;
@@ -32,6 +35,15 @@ export default function Lists() {
   const playerRef = useRef<ReactPlayer | null>(null);
   const timelineRef = useRef<HTMLDivElement | null>(null);
   const [description, setDescription] = useState<string>('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedView, setSelectedView] = useState('timeline');
+  const [transitions, setTransitions] = useState<number[]>([]);
+  const [currentTransitionIndex, setCurrentTransitionIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    setTransitions([0, outlineElements.length]);
+    setCurrentTransitionIndex(0);
+  }, [outlineElements.length]);
 
   useEffect(() => {
     async function fetchOutlines() {
@@ -374,7 +386,7 @@ export default function Lists() {
               onChange={(e) => setNewOutlineTitle(e.target.value)}
               className="mr-2"
             />
-            <Button onClick={handleCreateOutline}>Create Outline</Button>
+            <Button size="sm" onClick={handleCreateOutline}>Create Outline</Button>
           </div>
           <Select onValueChange={(value) => setSelectedOutlineId(value || '')} value={selectedOutlineId || ''}>
             <SelectTrigger className="mb-6 p-2 border">
@@ -388,7 +400,7 @@ export default function Lists() {
               ))}
             </SelectContent>
           </Select>
-          <div className="mb-6 flex items-center">
+          <div className="mb-3 flex items-center">
             <Input
               placeholder="Ex: This is a video about Donald Trump's felonious activities..."
               value={description}
@@ -398,26 +410,44 @@ export default function Lists() {
           </div>
           {currentVideo && (
             <>
-              <div className="mb-6 rounded-md overflow-hidden">
-                <ReactPlayer
-                  ref={playerRef}
-                  url={`https://www.youtube.com/watch?v=${currentVideo.video_id}`}
-                  controls
-                  width="100%"
-                  height="600px"
-                  className="rounded-lg"
-                />
-              </div>
+              <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="link" className="text-blue-500 hover:text-blue-700 mb-3">
+                    {isOpen ? (
+                      <>
+                        Hide Video <ChevronUpIcon className="w-4 h-4" />
+                      </>
+                    ) : (
+                      <>
+                        Show Video <ChevronDownIcon className="w-4 h-4" />
+                      </>
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mb-6 rounded-md overflow-hidden">
+                    <ReactPlayer
+                      ref={playerRef}
+                      url={`https://www.youtube.com/watch?v=${currentVideo.video_id}`}
+                      controls
+                      width="100%"
+                      height="600px"
+                      className="rounded-lg"
+                    />
+                </CollapsibleContent>
+              </Collapsible>
               <div className="mb-6 flex items-center space-x-2">
-                <Button className="w-full" onClick={handleCreateOutline}>Play</Button>
-                <Button className="w-full" onClick={generateAIOutlineOrdering}>Generate AI-Generated Outline(s)</Button>
-                <Button variant="outline" className="w-full" onClick={handleExportFcpxml}>Export as Final Cut Pro XML</Button>
+                <Button size="sm" className="w-full" onClick={handleCreateOutline}>Play</Button>
+                <Button size="sm" variant="outline" className="w-full" onClick={handleExportFcpxml}>Export as Final Cut Pro XML</Button>
               </div>
+              {selectedView === 'timeline' && (
+                <div className="py-2">
+                  <Button size="sm" className="w-full border-blue-400 text-blue-500 hover:text-blue-400 hover:border-blue-300" variant="outline" onClick={generateAIOutlineOrdering}>Generate AI Outline Suggestion(s)</Button>
+                </div>
+              )}
             </>
           )}
           {aiOrderings.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-4">Select an AI-Generated Outline Ordering:</h3>
               {aiOrderings.map((orderingDetails, index) => {
                 const timestamps = orderingDetails.timestamps;
                 const timelineStart = timestamps.reduce((earliest, current) => current.start < earliest ? current.start : earliest, timestamps[0].start);
@@ -467,71 +497,200 @@ export default function Lists() {
               })}
             </div>
           )}
-          <div ref={timelineRef} className="overflow-y-scroll p-2 border border-gray-200 rounded-md video-editor relative w-full h-auto min-h-[280px] mt-4" onDrop={handleDrop} onDragOver={handleDragOver}>
-            <div className="absolute top-0 left-0 w-full h-full">
-              {Array.from({ length: Math.round(totalDuration) }).map((_, index) => {
-                const interval = totalDuration > 100 ? 10 : 5;
-                return (
-                  <div key={index} className="absolute border-l border-gray-300" style={{ left: `${(index / totalDuration) * 100}%`, height: index % interval === 0 ? '100%' : '50%' }}>
-                    {index % interval === 0 ? <span className="text-xs">{index}s</span> : <span className="text-[0.5rem]">&nbsp;</span>}
-                  </div>
-                );
-              })}
+          <Tabs defaultValue="timeline" onValueChange={setSelectedView}>
+            <div className="p-2">
+              <TabsList>
+                <TabsTrigger value="timeline">Timeline View</TabsTrigger>
+                <TabsTrigger value="script">Script View</TabsTrigger>
+              </TabsList>
             </div>
-            {outlineElements.map((element) => {
-              if (!element.position_start_time || !element.position_end_time) return null;
-              const { left, width } = calculatePosition(element.position_start_time, element.position_end_time);
-              return (
-                <Card
-                  key={element.video_uuid}
-                  className="clip flex-shrink-0 cursor-pointer absolute"
-                  style={{ left, width, minHeight: '150px', top: '20px' }}
-                  onClick={() => handleClipClick(element.video_start_time, element.video_end_time)}
-                  draggable
-                  onDragStart={(event) => handleDragStart(event, element)}
-                >
-                  <div
-                    className="resize-handle-left absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize"
-                    draggable
-                    onDragStart={(event) => handleResizeStart(event, element, 'left')}
-                    onDrop={handleResizeDrop}
-                  />
-                  <CardContent className="p-2 h-full flex flex-col justify-between"> 
-                    <div className="flex text-sm justify-start w-full">
-                      <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
-                      <Button size="sm" variant="outline" className="justify-end hover:bg-red-50" onClick={() => handleDeleteElement(element.id)}><Trash2Icon className="w-4 h-4 text-red-500"/></Button>
-                    </div>
-                    <div className="relative my-2 rounded-md h-full">
-                      <ReactPlayer
-                        url={`https://www.youtube.com/watch?v=${element.video_id}`}
-                        controls
-                        width="100%"
-                        height="100%"
-                        className="rounded-lg"
-                        config={{
-                          youtube: {
-                            playerVars: {
-                              start: new Date(element.video_start_time).getTime() / 1000,
-                              end: new Date(element.video_end_time).getTime() / 1000,
-                            },
-                          },
-                        }}
+            <TabsContent value="timeline">
+              <div ref={timelineRef} className="overflow-y-scroll p-2 border border-gray-200 rounded-md video-editor relative w-full h-auto min-h-[280px] mt-4" onDrop={handleDrop} onDragOver={handleDragOver}>
+                <div className="absolute top-0 left-0 w-full h-full">
+                  {Array.from({ length: Math.round(totalDuration) }).map((_, index) => {
+                    const interval = totalDuration > 100 ? 10 : 5;
+                    return (
+                      <div key={index} className="absolute border-l border-gray-300" style={{ left: `${(index / totalDuration) * 100}%`, height: index % interval === 0 ? '100%' : '50%' }}>
+                        {index % interval === 0 ? <span className="text-xs">{index}s</span> : <span className="text-[0.5rem]">&nbsp;</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+                {outlineElements.map((element) => {
+                  if (!element.position_start_time || !element.position_end_time) return null;
+                  const { left, width } = calculatePosition(element.position_start_time, element.position_end_time);
+                  return (
+                    <Card
+                      key={element.video_uuid}
+                      className="clip flex-shrink-0 cursor-pointer absolute"
+                      style={{ left, width, minHeight: '150px', top: '20px' }}
+                      onClick={() => handleClipClick(element.video_start_time, element.video_end_time)}
+                      draggable
+                      onDragStart={(event) => handleDragStart(event, element)}
+                    >
+                      <div
+                        className="resize-handle-left absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize"
+                        draggable
+                        onDragStart={(event) => handleResizeStart(event, element, 'left')}
+                        onDrop={handleResizeDrop}
                       />
+                      <CardContent className="p-2 h-full flex flex-col justify-between"> 
+                        <div className="flex text-sm justify-between w-full">
+                          <span className="text-blue-500 font-semibold break-words flex-grow">{element.video_title}</span>
+                          <Button size="sm" variant="outline" className="hover:bg-red-50" onClick={() => handleDeleteElement(element.id)}>
+                            <Trash2Icon className="w-4 h-4 text-red-500"/>
+                          </Button>
+                        </div>
+                        <div className="relative my-2 rounded-md h-full">
+                          <ReactPlayer
+                            url={`https://www.youtube.com/watch?v=${element.video_id}`}
+                            controls
+                            width="100%"
+                            height="100%"
+                            className="rounded-lg"
+                            config={{
+                              youtube: {
+                                playerVars: {
+                                  start: new Date(element.video_start_time).getTime() / 1000,
+                                  end: new Date(element.video_end_time).getTime() / 1000,
+                                },
+                              },
+                            }}
+                          />
+                        </div>
+                        <div className="text-xs text-right justify-end font-medium w-full text-gray-700">
+                          <span>{new Date(element.position_start_time).toISOString().slice(11, 19)} - {new Date(element.position_end_time).toISOString().slice(11, 19)}</span>
+                        </div>
+                      </CardContent>
+                      <div
+                        className="resize-handle-right absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize"
+                        draggable
+                        onDragStart={(event) => handleResizeStart(event, element, 'right')}
+                        onDrop={handleResizeDrop}
+                      />
+                    </Card>
+                  );
+                })}
+              </div>
+            </TabsContent>
+            <TabsContent value="script">
+              <div className="p-2">
+                <div className="flex justify-end mb-4">
+                  <Button size="sm" onClick={() => {
+                    if (currentTransitionIndex !== null && !transitions.includes(currentTransitionIndex)) {
+                      setTransitions([...transitions, currentTransitionIndex].sort((a, b) => a - b));
+                    }
+                  }}>
+                    Add Transition at Current Location
+                  </Button>
+                </div>
+                {transitions.includes(0) && (
+                  <div className="py-2 flex items-center" onClick={() => setCurrentTransitionIndex(0)}>
+                    <div
+                      className={`flex-1 h-[0.1rem] cursor-pointer ${currentTransitionIndex === 0 ? 'bg-blue-500' : 'bg-gray-200'}`}
+                    />
+                    <Badge className={`ml-2 ${currentTransitionIndex === 0 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>00:00:00</Badge>
+                  </div>
+                )}
+                {outlineElements.map((element, index) => (
+                  <div key={element.video_uuid}>
+                    {transitions.includes(index + 1) && (
+                      <div className="flex mb-4">
+                        <Card className="flex-[2] mr-4">
+                          <CardContent className="p-2 h-full flex flex-col">
+                            <label className="block text-sm font-medium text-gray-700">Transition</label>
+                            <textarea
+                              className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
+                              rows={3}
+                            />
+                          </CardContent>
+                        </Card>
+                        <Card className="flex-[3]">
+                          <CardContent className="p-2 h-full flex flex-col">
+                            <label className="block text-sm font-medium text-gray-700">Instructions</label>
+                            <textarea
+                              className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
+                              rows={3}
+                            />
+                            <label className="mt-2 block text-sm font-medium text-gray-700">Sources</label>
+                            <textarea
+                              className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
+                              rows={3}
+                            />
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+                    <div className="flex mb-4">
+                      <Card className="flex-[2] mr-4">
+                        <CardContent className="p-2 h-full flex flex-col">
+                          <div className="flex justify-between">
+                            <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
+                            <Button size="sm" variant="outline" className="hover:bg-red-50" onClick={() => handleDeleteElement(element.id)}>
+                              <Trash2Icon className="w-4 h-4 text-red-500"/>
+                            </Button>
+                          </div>
+                          <div className="relative my-2 rounded-md h-full">
+                            <ReactPlayer
+                              url={`https://www.youtube.com/watch?v=${element.video_id}`}
+                              controls
+                              width="100%"
+                              height="100%"
+                              className="rounded-lg"
+                              config={{
+                                youtube: {
+                                  playerVars: {
+                                    start: new Date(element.video_start_time).getTime() / 1000,
+                                    end: new Date(element.video_end_time).getTime() / 1000,
+                                  },
+                                },
+                              }}
+                            />
+                          </div>
+                          <div className="text-xs text-right justify-end font-medium w-full text-gray-700">
+                            <span>
+                              {new Date(element.position_start_time ?? '').toISOString().slice(11, 19)} - 
+                              {new Date(element.position_end_time ?? '').toISOString().slice(11, 19)}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card className="flex-[3]">
+                        <CardContent className="p-2 h-full flex flex-col">
+                            <label className="block text-sm font-medium text-gray-700">Instructions</label>
+                            <textarea
+                              className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
+                              rows={3}
+                            />
+                            <label className="mt-2 block text-sm font-medium text-gray-700">Sources</label>
+                            <textarea
+                              className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
+                              rows={3}
+                            />
+                        </CardContent>
+                      </Card>
                     </div>
-                    <div className="text-xs text-right justify-end font-medium w-full text-gray-700">
-                      <span>{new Date(element.position_start_time).toISOString().slice(11, 19)} - {new Date(element.position_end_time).toISOString().slice(11, 19)}</span>
-                    </div>
-                  </CardContent>
-                  <div
-                    className="resize-handle-right absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize"
-                    draggable
-                    onDragStart={(event) => handleResizeStart(event, element, 'right')}
-                    onDrop={handleResizeDrop}
-                  />
-                </Card>
-              );
-            })}
-          </div>
+                    {index < outlineElements.length - 1 && (
+                      <div className="py-2 flex items-center" onClick={() => setCurrentTransitionIndex(index + 1)}>
+                        <div
+                          className={`flex-1 h-[0.1rem] cursor-pointer ${currentTransitionIndex === index + 1 ? 'bg-blue-500' : 'bg-gray-200'}`}
+                        />
+                        <Badge className={`ml-2 ${currentTransitionIndex === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>{outlineElements[outlineElements.length - 1]?.position_end_time ? new Date(outlineElements[outlineElements.length - 1]?.position_end_time ?? '').toISOString().slice(11, 19) : '00:00:00'}</Badge>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {transitions.includes(outlineElements.length) && (
+                  <div className="py-2 flex items-center" onClick={() => setCurrentTransitionIndex(outlineElements.length)}>
+                    <div
+                      className={`flex-1 h-[0.1rem] cursor-pointer ${currentTransitionIndex === outlineElements.length ? 'bg-blue-500' : 'bg-gray-200'}`}
+                    />
+                    <Badge className={`ml-2 ${currentTransitionIndex === outlineElements.length ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>{outlineElements[outlineElements.length - 1]?.position_end_time ? new Date(outlineElements[outlineElements.length - 1]?.position_end_time ?? '').toISOString().slice(11, 19) : '00:00:00'}</Badge>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </>

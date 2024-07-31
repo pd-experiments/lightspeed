@@ -15,7 +15,7 @@ export default async function handler(
 
   try {
     const embeddingResponse = await openai_client.embeddings.create({
-      model: "text-embedding-ada-002",
+      model: "text-embedding-3-small",
       input: query,
     });
 
@@ -30,6 +30,8 @@ export default async function handler(
             video_uuid_specific: videoId,
         }
     );
+
+    console.log(error);
 
     if (error) {
       throw error;

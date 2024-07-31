@@ -14,81 +14,20 @@ type GPTClipMetadata = {
     description: string;
   };
   clip_soundbite_text: string;
-  video_start_time: string;
-  video_end_time: string;
+  duration: string;
 };
-
-async function get_ordering_two_calls(
-  gpt_input_clips: GPTClipMetadata[]
-): Promise<{ orderings: string[][] }> {
-  const messages: ChatCompletionMessageParam[] = [
-    {
-      role: "system",
-      content:
-        "The following is a conversation with an AI assistant about possible ordering of video news clipping outline elements.",
-    },
-    {
-      role: "user",
-      content: `Given the following clips and their metadata, what are 3 possible unique orderings of the outline elements? For each ordering, explain the reasoning behind the ordering and then output the ordering as a list of the ids.\n\n${JSON.stringify(
-        gpt_input_clips
-      )}`,
-    },
-  ];
-
-  const response = (
-    await openai_client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: messages,
-      temperature: 0.1,
-    })
-  ).choices[0].message.content;
-
-  if (response === "") {
-    throw new Error("No response from GPT");
-  }
-
-  const pre_structured_response = (
-    await openai_client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: messages.concat(
-        { role: "assistant", content: response },
-        {
-          role: "user",
-          content:
-            'Given the reasoning above, output the orderings as the following json schema: {"orderings": [ one permutation of ids, another permutation of ids, ... ]}. Regardless of the reasoning, your response must follow this schema. Do not include Markdown or any other formatting. Each ordering must contain some permutation of all the ids. Each ordering must be unique.',
-        }
-      ),
-      temperature: 0.1,
-    })
-  ).choices[0].message.content;
-
-  if (!pre_structured_response) {
-    throw new Error("No response from GPT");
-  }
-
-  const parsedResponse = JSON.parse(pre_structured_response);
-  if (parsedResponse.orderings === undefined) {
-    throw new Error("Parsed response does not have the expected structure.");
-  }
-
-  if (!Array.isArray(parsedResponse.orderings)) {
-    throw new Error("Parsed response does not have the expected structure.");
-  }
-
-  // Ensure each ordering has the same number of clips as the input
-  const expectedLength = gpt_input_clips.length;
-  parsedResponse.orderings.forEach((ordering: string[]) => {
-    if (ordering.length !== expectedLength) {
-      throw new Error("Ordering does not contain the expected number of clips.");
-    }
-  });
-
-  return parsedResponse;
-}
 
 async function get_ordering_one_call(
   gpt_input_clips: GPTClipMetadata[]
-): Promise<{ orderings: string[][] }> {
+): Promise<{ orderings: string[][], timestamps: { id: string, start: string, end: string }[][] }> {
+  const formattedClips = gpt_input_clips.map(clip => ({
+    id: clip.id,
+    title: clip.video.title,
+    description: clip.video.description,
+    clip_soundbite_text: clip.clip_soundbite_text,
+    duration: clip.duration
+  }));
+
   const messages: ChatCompletionMessageParam[] = [
     {
       role: "system",
@@ -97,25 +36,34 @@ async function get_ordering_one_call(
     },
     {
       role: "user",
-      content: `Given the following clips and their metadata, what are 3 possible unique orderings of the outline elements and your recommendations on what should go in between the consecutive clips? Output the orderings as the following json schema: {"orderings": [ [one permutation of ids, another permutation of ids, ...], [one permutation of ids, another permutation of ids, ...], ... ], "in_between": [ [str, str, ...], ...]}. The in_between section for each order should be a list that has one fewer element than the corresponding orderings list and should describe a good way to transition between the two clips. For context, the clips are from news videos, and we are helping the user create political ads. So these transition points should be generated with the big picture in mind. Regardless of the reasoning, your response must follow this schema. Do not include Markdown or any other formatting. Each ordering must contain some permutation of all the ids. Each ordering must be unique.\n\n${JSON.stringify(
-        gpt_input_clips
+      content: `Given the following clips and their metadata, generate 3 completely different and unique orderings of the outline elements. Each ordering must have unique timestamps and must not duplicate the current clip order or time spacing. Output the orderings as the following JSON schema: {"orderings": [ [one permutation of ids, another permutation of ids, ...], [one permutation of ids, another permutation of ids, ...], ... ], "in_between": [ [str, str, ...], ...], "timestamps": [ [ { "id": "clip_id", "start": "timestamp", "end": "timestamp" }, ... ], ... ]}. Each ordering must contain the same number of clips as provided in the input and must be unique (especially by timestamps, durations must be same, but you can add/remove time between videos as you please). The in_between section for each order should be a list that has one fewer element than the corresponding orderings list and should describe a good way to transition between the two clips. The orderings should not duplicate the current clip order or time spacing. You can return a longer duration of video by adding/reducing spaces between clips in the outline. For context, the clips are from news videos, and we are helping the user create political ads. So these transition points should be generated with the big picture in mind. Regardless of the reasoning, your response must follow this schema. Do not include Markdown or any other formatting. Ensure that the orderings are arrays of strings (clip IDs) only. The goal is to improve the current ordering by making it more engaging and coherent. It is crucial that each ordering and its timestamps are unique.\n\n${JSON.stringify(
+        formattedClips
       )}`,
     },
   ];
 
   const pre_structured_response = (
     await openai_client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: messages,
-      temperature: 0.1,
+      temperature: 0.6, // Increase temperature for more variety
     })
   ).choices[0].message.content;
+
+  console.log(pre_structured_response)
 
   if (!pre_structured_response) {
     throw new Error("No response from GPT");
   }
 
-  const parsedResponse = JSON.parse(pre_structured_response);
+  let parsedResponse;
+  try {
+    parsedResponse = JSON.parse(pre_structured_response);
+  } catch (error) {
+    console.error("Error parsing GPT response:", pre_structured_response);
+    throw new Error("Failed to parse GPT response");
+  }
+
   if (parsedResponse.orderings === undefined) {
     throw new Error("Parsed response does not have the expected structure.");
   }
@@ -129,6 +77,12 @@ async function get_ordering_one_call(
   if (!Array.isArray(parsedResponse.in_between)) {
     throw new Error(
       "Parsed response does not have the expected structure (in_between)."
+    );
+  }
+
+  if (!Array.isArray(parsedResponse.timestamps)) {
+    throw new Error(
+      "Parsed response does not have the expected structure (timestamps)."
     );
   }
 
@@ -181,6 +135,7 @@ export default async function handler(
         }
 
         const combinedText = embeddings.map((e) => e.text).join(" ");
+        const duration = new Date(clip.video_end_time).getTime() - new Date(clip.video_start_time).getTime();
 
         const { data: youtubeData, error: youtubeError } = await supabase
           .from("youtube")
@@ -195,6 +150,7 @@ export default async function handler(
         return { 
           ...clip, 
           clip_soundbite_text: combinedText,
+          duration: duration.toString(),
           video: {
             title: youtubeData.title,
             description: youtubeData.description
@@ -212,3 +168,7 @@ export default async function handler(
     res.status(500).json({ error: "Error generating AI outline ordering" });
   }
 }
+
+/*
+This handler uses GPT to generate a list of possible ordering of outline elements given every clip + clip metadata.
+*/

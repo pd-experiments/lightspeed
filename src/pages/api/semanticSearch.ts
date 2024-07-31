@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
 import { openai_client } from "@/lib/openai-client";
-import * as CustomTypes from '@/lib/types/customTypes';
+import * as CustomTypes from "@/lib/types/customTypes";
 
 export default async function handler(
   req: NextApiRequest,
@@ -22,13 +22,13 @@ export default async function handler(
     const embedding = embeddingResponse.data[0].embedding;
 
     const { data: searchResults, error } = await supabase.rpc(
-        "match_documents",
-        {
-            query_embedding: embedding,
-            match_threshold: 0.5,
-            match_count: 1,
-            video_uuid_specific: videoId,
-        }
+      "match_documents",
+      {
+        query_embedding: embedding,
+        match_threshold: 0.5,
+        match_count: 1,
+        video_uuid_specific: videoId,
+      }
     );
 
     console.log(error);
@@ -37,6 +37,7 @@ export default async function handler(
       throw error;
     }
 
+    console.log("Search results:", searchResults);
     if (searchResults && searchResults.length > 0) {
       res.status(200).json(searchResults[0]);
     } else {

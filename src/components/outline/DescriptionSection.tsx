@@ -57,6 +57,7 @@ const DescriptionSection: React.FC<DescriptionSectionProps> = ({
             className="flex-grow resize-none"
             value={element.description || ''}
             onChange={handleDescriptionChange}
+            placeholder="Provide a description of this clip or section here..."
           />
         )}
       </div>

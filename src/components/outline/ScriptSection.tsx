@@ -4,6 +4,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { OutlineElementWithVideoTitle } from '@/app/outline/page';
 import TimeInput from '@/components/ui/time-input';
 import { type ScriptElement, isScriptElement } from '@/lib/types/customTypes';
+import { Card, CardContent } from '@/components/ui/card';
+import { Trash2Icon } from 'lucide-react';
 
 interface ScriptSectionProps {
   element: OutlineElementWithVideoTitle;
@@ -99,29 +101,41 @@ const ScriptSection: React.FC<ScriptSectionProps> = ({
       <div className="flex flex-col h-full p-2">
         <div className="flex-grow overflow-y-auto">
           {scriptElements.map((scriptElement, index) => (
-            <div key={index} className="p-2">
-              <div className="flex justify-between items-center py-2">
-                <span className="text-sm font-medium">
-                  {new Date(scriptElement.start * 1000).toISOString().slice(11, 19)} - 
-                  {new Date(scriptElement.end * 1000).toISOString().slice(11, 19)}
-                </span>
+            <div key={index} className="p-2 flex items-start space-x-2">
+                <div className="flex-shrink-0 w-24 text-xs font-medium text-gray-600 flex flex-col">
+                    <div className="bg-gray-100 py-2 px-2 rounded-t h-[50%] flex items-center justify-center">
+                        {new Date(scriptElement.start * 1000).toISOString().slice(11, 19)}
+                    </div>
+                    <div className="bg-gray-100 py-2 px-2 rounded-b h-[50%] flex items-center justify-center border-t border-gray-300">
+                        {new Date(scriptElement.end * 1000).toISOString().slice(11, 19)}
+                    </div>
+                </div>
+                <Textarea
+                    value={scriptElement.text}
+                    onChange={(e) => handleUpdateScriptElement(index, e.target.value)}
+                    className="flex-grow py-2 px-3 h-full ml-2"
+                    placeholder="Ex. 'Hello, I'm John Doe. Today we're going to talk about the importance of..."
+                />
                 <Button
-                  size="sm"
-                  onClick={() => {
+                    size="icon"
+                    variant="outline"
+                    onClick={() => {
                     const updatedScriptElements = scriptElements.filter((_, i) => i !== index);
                     updateScript(updatedScriptElements);
-                  }}
+                    }}
+                    className="flex-shrink-0 bg-red-100 hover:bg-red-200 h-10 w-10 ml-2"
                 >
-                  Delete
+                    <Trash2Icon className="h-4 w-4 text-red-500" />
                 </Button>
-              </div>
-              <Textarea
-                value={scriptElement.text}
-                onChange={(e) => handleUpdateScriptElement(index, e.target.value)}
-                className="w-full"
-              />
             </div>
           ))}
+        {scriptElements.length === 0 && (
+            <Card className="p-4 h-full">
+                <CardContent className="flex items-center justify-center h-full py-3">
+                <p className="text-base text-gray-500">There are no script elements for this section. Start creating your script!</p>
+                </CardContent>
+            </Card>
+        )}
         </div>
         <div className="flex items-center py-2">
           <TimeInput

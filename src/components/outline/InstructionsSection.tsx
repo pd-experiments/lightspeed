@@ -53,6 +53,7 @@ const InstructionsSection: React.FC<InstructionsSectionProps> = ({
             className="flex-grow resize-none"
             value={element.instructions || ''}
             onChange={handleInstructionsChange}
+            placeholder="Explain instructions for video production here..."
           />
         )}
       </div>

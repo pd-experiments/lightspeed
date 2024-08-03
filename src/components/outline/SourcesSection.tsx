@@ -53,6 +53,7 @@ const SourcesSection: React.FC<SourcesSectionProps> = ({
             className="flex-grow resize-none"
             value={element.sources || ''}
             onChange={handleSourcesChange}
+            placeholder="Include sources to reference in your notes here..."
           />
         )}
       </div>

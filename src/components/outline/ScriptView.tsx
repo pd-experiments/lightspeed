@@ -24,8 +24,10 @@ interface TransitionElement {
 
 const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteElement, outline_id, setOutlineElements }) => {
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    setLoading(true);
     const combinedElements: OutlineElementWithVideoTitle[] = [
         ...outlineElements,
     ].sort((a, b) => new Date(a.position_start_time ?? '').getTime() - new Date(b.position_start_time ?? '').getTime());
@@ -33,6 +35,7 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
     if (JSON.stringify(combinedElements) !== JSON.stringify(outlineElements)) {
         setOutlineElements(combinedElements);
     }
+    setLoading(false);
   }, [outlineElements]);
 
   const handleAddTransition = async (index: number) => {
@@ -160,26 +163,30 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
 
   return (
     <div className="p-0">
-      {outlineElements.map((element, index) => {
-        const currentTime = element ? new Date(element.position_end_time ?? '').toISOString().slice(11, 19) : '00:00:00';
+      {loading ? (
+        <Skeleton className="w-full h-64" />
+      ) : (
+        outlineElements.map((element, index) => {
+          const currentTime = element ? new Date(element.position_end_time ?? '').toISOString().slice(11, 19) : '00:00:00';
 
-        return (
-          <div key={element.id}>
-            <ElementCard
-              element={element}
-              handleDeleteElement={handleDeleteElement}
-              setOutlineElements={setOutlineElements}
-              outlineElements={outlineElements}
-              handleGenerateSuggestion={handleGenerateSuggestion}
-              loadingStates={loadingStates}
-            />
-            <TimestampDivider
-              currentTime={currentTime}
-              onAddTransition={() => handleAddTransition(index + 1)}
-            />
-          </div>
-        );
-      })}
+          return (
+            <div key={element.id}>
+              <ElementCard
+                element={element}
+                handleDeleteElement={handleDeleteElement}
+                setOutlineElements={setOutlineElements}
+                outlineElements={outlineElements}
+                handleGenerateSuggestion={handleGenerateSuggestion}
+                loadingStates={loadingStates}
+              />
+              <TimestampDivider
+                currentTime={currentTime}
+                onAddTransition={() => handleAddTransition(index + 1)}
+              />
+            </div>
+          );
+        })
+      )}
     </div>
   );
 };

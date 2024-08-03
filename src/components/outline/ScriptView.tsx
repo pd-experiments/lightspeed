@@ -3,6 +3,8 @@ import { OutlineElementWithVideoTitle } from '@/app/outline/page';
 import { v4 as uuidv4 } from 'uuid';
 import ElementCard from './ElementCard';
 import TimestampDivider from './TimestampDivider';
+import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from 'react';
 
 interface ScriptViewProps {
   outlineElements: OutlineElementWithVideoTitle[];
@@ -21,6 +23,8 @@ interface TransitionElement {
 }
 
 const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteElement, outline_id, setOutlineElements }) => {
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     const combinedElements: OutlineElementWithVideoTitle[] = [
         ...outlineElements,
@@ -116,6 +120,7 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
 
   const handleGenerateSuggestion = async (elementId: string, type: 'instruction' | 'description' | 'sources') => {
     try {
+      setLoadingStates(prev => ({ ...prev, [`${elementId}-${type}`]: true }));
       const response = await fetch(`/api/outlines/generate-${type}-suggestion`, {
         method: "POST",
         headers: {
@@ -123,17 +128,17 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
         },
         body: JSON.stringify({ outline_id, element_id: elementId }),
       });
-  
+
       if (!response.ok) {
         throw new Error(`Failed to generate ${type} suggestion`);
       }
-  
+
       const { suggestion } = await response.json();
-  
+
       setOutlineElements(outlineElements.map((el) => 
         el.id === elementId ? { ...el, [type]: suggestion } : el
       ));
-  
+
       const updateResponse = await fetch("/api/outlines/update-element", {
         method: "POST",
         headers: {
@@ -141,13 +146,15 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
         },
         body: JSON.stringify({ id: elementId, [type]: suggestion }),
       });
-  
+
       if (!updateResponse.ok) {
         throw new Error(`Failed to save ${type} suggestion`);
       }
     } catch (error) {
       console.error(`Error generating ${type} suggestion:`, error);
       alert(`Error generating ${type} suggestion.`);
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [`${elementId}-${type}`]: false }));
     }
   };
 
@@ -164,6 +171,7 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
               setOutlineElements={setOutlineElements}
               outlineElements={outlineElements}
               handleGenerateSuggestion={handleGenerateSuggestion}
+              loadingStates={loadingStates}
             />
             <TimestampDivider
               currentTime={currentTime}

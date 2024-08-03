@@ -14,6 +14,7 @@ interface ElementCardProps {
   setOutlineElements: (elements: OutlineElementWithVideoTitle[]) => void;
   outlineElements: OutlineElementWithVideoTitle[];
   handleGenerateSuggestion: (elementId: string, type: 'instruction' | 'description' | 'sources') => Promise<void>;
+  loadingStates: Record<string, boolean>;
 }
 
 const ElementCard: React.FC<ElementCardProps> = ({
@@ -22,6 +23,7 @@ const ElementCard: React.FC<ElementCardProps> = ({
   setOutlineElements,
   outlineElements,
   handleGenerateSuggestion,
+  loadingStates,
 }) => {
   return (
     <div className="flex mb-4">
@@ -59,6 +61,7 @@ const ElementCard: React.FC<ElementCardProps> = ({
             setOutlineElements={setOutlineElements}
             outlineElements={outlineElements}
             handleGenerateSuggestion={handleGenerateSuggestion}
+            isLoading={loadingStates[`${element.id}-description`]}
           />
         </CardContent>
       </Card>
@@ -69,12 +72,14 @@ const ElementCard: React.FC<ElementCardProps> = ({
             setOutlineElements={setOutlineElements}
             outlineElements={outlineElements}
             handleGenerateSuggestion={handleGenerateSuggestion}
+            isLoading={loadingStates[`${element.id}-instruction`]}
           />
           <SourcesSection
             element={element}
             setOutlineElements={setOutlineElements}
             outlineElements={outlineElements}
             handleGenerateSuggestion={handleGenerateSuggestion}
+            isLoading={loadingStates[`${element.id}-sources`]}
           />
         </CardContent>
       </Card>

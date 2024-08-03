@@ -2,12 +2,14 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from "@/components/ui/textarea";
 import { OutlineElementWithVideoTitle } from '@/app/outline/page';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DescriptionSectionProps {
   element: OutlineElementWithVideoTitle;
   setOutlineElements: (elements: OutlineElementWithVideoTitle[]) => void;
   outlineElements: OutlineElementWithVideoTitle[];
   handleGenerateSuggestion: (elementId: string, type: 'instruction' | 'description' | 'sources') => Promise<void>;
+  isLoading: boolean;
 }
 
 const DescriptionSection: React.FC<DescriptionSectionProps> = ({
@@ -15,6 +17,7 @@ const DescriptionSection: React.FC<DescriptionSectionProps> = ({
   setOutlineElements,
   outlineElements,
   handleGenerateSuggestion,
+  isLoading,
 }) => {
   return (
     <>
@@ -26,13 +29,17 @@ const DescriptionSection: React.FC<DescriptionSectionProps> = ({
         </span>
       </div>
       <div className="flex-grow flex flex-col mt-2">
-        <Textarea
-          className="flex-grow resize-none"
-          value={element.description || ''}
-          onChange={(e) => {
-            setOutlineElements(outlineElements.map((el) => el.id === element.id ? { ...el, description: e.target.value } : el));
-          }}
-        />
+        {isLoading ? (
+          <Skeleton className="w-full h-full" />
+        ) : (
+          <Textarea
+            className="flex-grow resize-none"
+            value={element.description || ''}
+            onChange={(e) => {
+              setOutlineElements(outlineElements.map((el) => el.id === element.id ? { ...el, description: e.target.value } : el));
+            }}
+          />
+        )}
       </div>
       <div className="flex justify-end p-2">
         <Button size="sm" onClick={() => handleGenerateSuggestion(element.id, 'description')}>

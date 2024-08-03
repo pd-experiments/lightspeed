@@ -24,8 +24,6 @@ interface TransitionElement {
 }
 
 const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteElement, outline_id, setOutlineElements }) => {
-  const [transitions, setTransitions] = useState<TransitionElement[]>([]);
-
   useEffect(() => {
     const combinedElements: OutlineElementWithVideoTitle[] = [
       ...outlineElements,
@@ -40,7 +38,7 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
     const previousElement = outlineElements[index - 1];
     const previousEndTime = previousElement ? new Date(previousElement.position_end_time ?? 0).getTime() : 0;
     const transitionStartTime = new Date(previousEndTime).toISOString();
-    const transitionEndTime = new Date(previousEndTime + 30000).toISOString(); // 30 seconds
+    const transitionEndTime = new Date(previousEndTime + 30000).toISOString();
   
     const newTransition: TransitionElement = {
       id: uuidv4(),
@@ -50,9 +48,6 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
       position_start_time: transitionStartTime,
       position_end_time: transitionEndTime,
     };
-    const newTransitions = [...transitions];
-    newTransitions.splice(index, 0, newTransition);
-    setTransitions(newTransitions);
   
     const element = {
       outline_id,
@@ -79,7 +74,6 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
         throw new Error("Failed to add transition to outline");
       }
   
-      // Update the position times of the subsequent elements
       const updatedElements = outlineElements.map((el, idx) => {
         if (idx >= index) {
           const newStartTime = new Date(new Date(el.position_start_time ?? '').getTime() + 30000).toISOString();
@@ -102,7 +96,6 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
         description: element.description,
       }));
 
-      // Update the elements in the backend
       const updateResponse = await fetch("/api/outlines/update-elements", {
         method: "POST",
         headers: {
@@ -121,6 +114,54 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
     } catch (error) {
       console.error("Error adding transition to outline:", error);
       alert("Error adding transition to outline.");
+    }
+  };
+
+  const handleGenerateInstructionSuggestion = async (elementId: string) => {
+    try {
+      const response = await fetch("/api/outlines/generate-instruction-suggestion", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ outline_id, element_id: elementId }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to generate instruction suggestion");
+      }
+  
+      const { suggestion } = await response.json();
+      setOutlineElements(outlineElements.map((el) => 
+        el.id === elementId ? { ...el, instructions: suggestion } : el
+      ));
+    } catch (error) {
+      console.error("Error generating instruction suggestion:", error);
+      alert("Error generating instruction suggestion.");
+    }
+  };
+  
+  const handleGenerateDescriptionSuggestion = async (elementId: string) => {
+    try {
+      const response = await fetch("/api/outlines/generate-description-suggestion", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ outline_id, element_id: elementId }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to generate description suggestion");
+      }
+  
+      const { suggestion } = await response.json();
+      setOutlineElements(outlineElements.map((el) => 
+        el.id === elementId ? { ...el, description: suggestion } : el
+      ));
+    } catch (error) {
+      console.error("Error generating description suggestion:", error);
+      alert("Error generating description suggestion.");
     }
   };
 
@@ -185,50 +226,68 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
             ) : (
               <div className="flex mb-4">
                 <Card className="flex-[2] mr-4">
-                  <CardContent className="p-2 h-full flex flex-col">
+                    <CardContent className="p-2 h-full flex flex-col">
                     <div className="flex justify-between">
-                      <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
-                      <Button size="sm" variant="outline" className="hover:bg-red-50" onClick={() => handleDeleteElement(element.id)}>
+                        <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
+                        <Button size="sm" variant="outline" className="hover:bg-red-50" onClick={() => handleDeleteElement(element.id)}>
                         <Trash2Icon className="w-4 h-4 text-red-500"/>
-                      </Button>
+                        </Button>
                     </div>
                     <div className="relative my-2 rounded-md h-full">
-                      <ReactPlayer
+                        <ReactPlayer
                         url={`https://www.youtube.com/watch?v=${element.video_id}`}
                         controls
                         width="100%"
                         height="100%"
                         className="rounded-lg"
                         config={{
-                          youtube: {
+                            youtube: {
                             playerVars: {
-                              start: new Date(element.video_start_time ?? '').getTime() / 1000,
-                              end: new Date(element.video_end_time ?? '').getTime() / 1000,
+                                start: new Date(element.video_start_time ?? '').getTime() / 1000,
+                                end: new Date(element.video_end_time ?? '').getTime() / 1000,
                             },
-                          },
+                            },
                         }}
-                      />
+                        />
                     </div>
                     <div className="text-xs text-right justify-end font-medium w-full text-gray-700">
-                      <span>{new Date(element.position_start_time ?? '').toISOString().slice(11, 19)} - 
+                        <span>{new Date(element.position_start_time ?? '').toISOString().slice(11, 19)} - 
                         {new Date(element.position_end_time ?? '').toISOString().slice(11, 19)}
-                      </span>
+                        </span>
                     </div>
-                  </CardContent>
+                    </CardContent>
                 </Card>
                 <Card className="flex-[3]">
-                  <CardContent className="p-2 h-full flex flex-col">
+                    <CardContent className="p-2 h-full flex flex-col">
                     <label className="block text-sm font-medium text-gray-700">Instructions</label>
-                    <textarea
-                      className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
-                      rows={3}
-                    />
-                    <label className="mt-2 block text-sm font-medium text-gray-700">Sources</label>
-                    <textarea
-                      className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
-                      rows={3}
-                    />
-                  </CardContent>
+                    <div className="flex items-center">
+                        <textarea
+                        className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
+                        rows={3}
+                        value={element.instructions || ''}
+                        onChange={(e) => {
+                            setOutlineElements(outlineElements.map((el) => el.id === element.id ? { ...el, instructions: e.target.value } : el));
+                        }}
+                        />
+                        <Button size="sm" variant="outline" className="ml-2" onClick={() => handleGenerateInstructionSuggestion(element.id)}>
+                        Suggest
+                        </Button>
+                    </div>
+                    <label className="mt-2 block text-sm font-medium text-gray-700">Description</label>
+                    <div className="flex items-center">
+                        <textarea
+                        className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
+                        rows={3}
+                        value={element.description || ''}
+                        onChange={(e) => {
+                            setOutlineElements(outlineElements.map((el) => el.id === element.id ? { ...el, description: e.target.value } : el));
+                        }}
+                        />
+                        <Button size="sm" variant="outline" className="ml-2" onClick={() => handleGenerateDescriptionSuggestion(element.id)}>
+                        Suggest
+                        </Button>
+                    </div>
+                    </CardContent>
                 </Card>
               </div>
             )}

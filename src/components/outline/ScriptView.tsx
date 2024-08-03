@@ -1,12 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Trash2Icon } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import ReactPlayer from 'react-player';
+import React, { useEffect } from 'react';
 import { OutlineElementWithVideoTitle } from '@/app/outline/page';
 import { v4 as uuidv4 } from 'uuid';
-import { Textarea } from "@/components/ui/textarea"
 import ElementCard from './ElementCard';
 import TimestampDivider from './TimestampDivider';
 

@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import ReactPlayer from 'react-player';
 import { OutlineElementWithVideoTitle } from '@/app/outline/page';
 import { v4 as uuidv4 } from 'uuid';
+import { Textarea } from "@/components/ui/textarea"
+import ElementCard from './ElementCard';
+import TimestampDivider from './TimestampDivider';
 
 interface ScriptViewProps {
   outlineElements: OutlineElementWithVideoTitle[];
@@ -26,11 +29,11 @@ interface TransitionElement {
 const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteElement, outline_id, setOutlineElements }) => {
   useEffect(() => {
     const combinedElements: OutlineElementWithVideoTitle[] = [
-      ...outlineElements,
+        ...outlineElements,
     ].sort((a, b) => new Date(a.position_start_time ?? '').getTime() - new Date(b.position_start_time ?? '').getTime());
-  
+    
     if (JSON.stringify(combinedElements) !== JSON.stringify(outlineElements)) {
-      setOutlineElements(combinedElements);
+        setOutlineElements(combinedElements);
     }
   }, [outlineElements]);
 
@@ -117,9 +120,9 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
     }
   };
 
-  const handleGenerateInstructionSuggestion = async (elementId: string) => {
+  const handleGenerateSuggestion = async (elementId: string, type: 'instruction' | 'description' | 'sources') => {
     try {
-      const response = await fetch("/api/outlines/generate-instruction-suggestion", {
+      const response = await fetch(`/api/outlines/generate-${type}-suggestion`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -128,40 +131,29 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
       });
   
       if (!response.ok) {
-        throw new Error("Failed to generate instruction suggestion");
+        throw new Error(`Failed to generate ${type} suggestion`);
       }
   
       const { suggestion } = await response.json();
-      setOutlineElements(outlineElements.map((el) => 
-        el.id === elementId ? { ...el, instructions: suggestion } : el
-      ));
-    } catch (error) {
-      console.error("Error generating instruction suggestion:", error);
-      alert("Error generating instruction suggestion.");
-    }
-  };
   
-  const handleGenerateDescriptionSuggestion = async (elementId: string) => {
-    try {
-      const response = await fetch("/api/outlines/generate-description-suggestion", {
+      setOutlineElements(outlineElements.map((el) => 
+        el.id === elementId ? { ...el, [type]: suggestion } : el
+      ));
+  
+      const updateResponse = await fetch("/api/outlines/update-element", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ outline_id, element_id: elementId }),
+        body: JSON.stringify({ id: elementId, [type]: suggestion }),
       });
   
-      if (!response.ok) {
-        throw new Error("Failed to generate description suggestion");
+      if (!updateResponse.ok) {
+        throw new Error(`Failed to save ${type} suggestion`);
       }
-  
-      const { suggestion } = await response.json();
-      setOutlineElements(outlineElements.map((el) => 
-        el.id === elementId ? { ...el, description: suggestion } : el
-      ));
     } catch (error) {
-      console.error("Error generating description suggestion:", error);
-      alert("Error generating description suggestion.");
+      console.error(`Error generating ${type} suggestion:`, error);
+      alert(`Error generating ${type} suggestion.`);
     }
   };
 
@@ -172,132 +164,17 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
 
         return (
           <div key={element.id}>
-            {element.type === 'TRANSITION' ? (
-              <div className="flex mb-4">
-                <Card className="flex-[2] mr-4">
-                  <CardContent className="p-2 h-full flex flex-col">
-                    <div className="flex justify-between">
-                      <span className="text-blue-500 font-semibold break-words">Transition</span>
-                      <Button size="sm" variant="outline" className="hover:bg-red-50" onClick={() => handleDeleteElement(element.id)}>
-                        <Trash2Icon className="w-4 h-4 text-red-500"/>
-                      </Button>
-                    </div>
-                    <div className="flex flex-col w-full py-1">
-                        <label className="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea
-                        className="border mt-1 min-h-40 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
-                        rows={3}
-                        value={element.description || ''}
-                        onChange={(e) => {
-                            setOutlineElements(outlineElements.map((el) => el.id === element.id ? { ...el, description: e.target.value } : el));
-                        }}
-                        />
-                    </div>
-                    <div className="text-xs text-right justify-end font-medium w-full text-gray-700">
-                      <span>{new Date(element.position_start_time ?? '').toISOString().slice(11, 19)} - 
-                        {new Date(element.position_end_time ?? '').toISOString().slice(11, 19)}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="flex-[3]">
-                  <CardContent className="p-2 h-full flex flex-col">
-                    <label className="block text-sm font-medium text-gray-700">Instructions</label>
-                    <textarea
-                      className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
-                      rows={3}
-                      value={element.instructions || ''}
-                      onChange={(e) => {
-                        setOutlineElements(outlineElements.map((el) => el.id === element.id ? { ...el, instructions: e.target.value } : el));
-                      }}
-                    />
-                    <label className="mt-2 block text-sm font-medium text-gray-700">Sources</label>
-                    <textarea
-                      className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
-                      rows={3}
-                      value={element.sources || ''}
-                      onChange={(e) => {
-                        setOutlineElements(outlineElements.map((el) => el.id === element.id ? { ...el, sources: e.target.value } : el));
-                      }}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-            ) : (
-              <div className="flex mb-4">
-                <Card className="flex-[2] mr-4">
-                    <CardContent className="p-2 h-full flex flex-col">
-                    <div className="flex justify-between">
-                        <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
-                        <Button size="sm" variant="outline" className="hover:bg-red-50" onClick={() => handleDeleteElement(element.id)}>
-                        <Trash2Icon className="w-4 h-4 text-red-500"/>
-                        </Button>
-                    </div>
-                    <div className="relative my-2 rounded-md h-full">
-                        <ReactPlayer
-                        url={`https://www.youtube.com/watch?v=${element.video_id}`}
-                        controls
-                        width="100%"
-                        height="100%"
-                        className="rounded-lg"
-                        config={{
-                            youtube: {
-                            playerVars: {
-                                start: new Date(element.video_start_time ?? '').getTime() / 1000,
-                                end: new Date(element.video_end_time ?? '').getTime() / 1000,
-                            },
-                            },
-                        }}
-                        />
-                    </div>
-                    <div className="text-xs text-right justify-end font-medium w-full text-gray-700">
-                        <span>{new Date(element.position_start_time ?? '').toISOString().slice(11, 19)} - 
-                        {new Date(element.position_end_time ?? '').toISOString().slice(11, 19)}
-                        </span>
-                    </div>
-                    </CardContent>
-                </Card>
-                <Card className="flex-[3]">
-                    <CardContent className="p-2 h-full flex flex-col">
-                    <label className="block text-sm font-medium text-gray-700">Instructions</label>
-                    <div className="flex items-center">
-                        <textarea
-                        className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
-                        rows={3}
-                        value={element.instructions || ''}
-                        onChange={(e) => {
-                            setOutlineElements(outlineElements.map((el) => el.id === element.id ? { ...el, instructions: e.target.value } : el));
-                        }}
-                        />
-                        <Button size="sm" variant="outline" className="ml-2" onClick={() => handleGenerateInstructionSuggestion(element.id)}>
-                        Suggest
-                        </Button>
-                    </div>
-                    <label className="mt-2 block text-sm font-medium text-gray-700">Description</label>
-                    <div className="flex items-center">
-                        <textarea
-                        className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
-                        rows={3}
-                        value={element.description || ''}
-                        onChange={(e) => {
-                            setOutlineElements(outlineElements.map((el) => el.id === element.id ? { ...el, description: e.target.value } : el));
-                        }}
-                        />
-                        <Button size="sm" variant="outline" className="ml-2" onClick={() => handleGenerateDescriptionSuggestion(element.id)}>
-                        Suggest
-                        </Button>
-                    </div>
-                    </CardContent>
-                </Card>
-              </div>
-            )}
-            <div className="py-2 flex items-center">
-              <div className="flex-1 h-[0.1rem] bg-gray-200" />
-              <Badge className="ml-2 bg-gray-200 text-gray-700">{currentTime}</Badge>
-              <Button size="sm" variant="outline" className="ml-2" onClick={() => handleAddTransition(index + 1)}>
-                Add Transition
-              </Button>
-            </div>
+            <ElementCard
+              element={element}
+              handleDeleteElement={handleDeleteElement}
+              setOutlineElements={setOutlineElements}
+              outlineElements={outlineElements}
+              handleGenerateSuggestion={handleGenerateSuggestion}
+            />
+            <TimestampDivider
+              currentTime={currentTime}
+              onAddTransition={() => handleAddTransition(index + 1)}
+            />
           </div>
         );
       })}

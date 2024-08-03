@@ -1,9 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
 import { openai_client } from "@/lib/openai-client";
-import { Database } from "@/lib/types/schema";
-
-type OutlineElement = Database["public"]["Tables"]["outline_elements"]["Row"];
 
 export default async function handler(
   req: NextApiRequest,

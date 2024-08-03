@@ -1,9 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
 import { openai_client } from "@/lib/openai-client";
-import { Database } from "@/lib/types/schema";
-
-type OutlineElement = Database["public"]["Tables"]["outline_elements"]["Row"];
 
 export default async function handler(
   req: NextApiRequest,
@@ -45,7 +42,14 @@ export default async function handler(
       model: "gpt-4",
       messages: [
         { role: "system", content: "You are an assistant helping to create instructions for video editing." },
-        { role: "user", content: `Given the following outline context:\n${JSON.stringify(context, null, 2)}\n\nGenerate concise instructions for the element at position ${currentElement.position_start_time} - ${currentElement.position_end_time}. Consider the flow and context of the entire outline.` }
+        { role: "user", content: `Given the following outline context for a political advertisement:\n${JSON.stringify(context, null, 2)}\n\nGenerate concise instructions for the video clip at position ${currentElement.position_start_time} - ${currentElement.position_end_time}. Focus on:
+        1. Key information or text to overlay on the video
+        2. Suggested sound effects or background music
+        3. Visual effects or transitions to emphasize the message
+        4. How to tie this clip into the overall narrative of the political ad
+        5. Any specific political messaging or talking points to highlight
+        
+        Consider the flow and context of the entire outline when making your suggestions. Fit your response within 150 tokens.` }      
       ],
       max_tokens: 150
     });

@@ -11,7 +11,7 @@ import { calculatePosition, calculatePositionForOrdering, calculateNewTime, getT
 
 import { OutlineCreator } from '@/components/outline/OutlineCreator';
 import { OutlineSelector } from '@/components/outline/OutlineSelector';
-import { VideoPlayer } from '@/components/ui/VideoPlayer';
+import { VideoPlayer } from '@/components/ui/SimpleVideoPlayer';
 import { AIOrderingSuggestions } from '@/components/outline/AIOrderingSuggestions';
 import { OutlineActions } from '@/components/outline/OutlineActions';
 
@@ -202,12 +202,16 @@ export default function Lists() {
       <Navbar />
       <main className="flex min-h-screen flex-col items-center justify-between p-24">
         <div className="w-full max-w-7xl">
+          <h1 className="text-3xl font-bold mb-6">Outlines</h1>
+          <p className="text-base text-gray-700 mb-6">Create and manage outlines for your political video productions with simple AI workflows.</p>
           <OutlineCreator onCreateOutline={handleCreateOutline} />
-          <OutlineSelector
-            outlines={outlines}
-            selectedOutlineId={selectedOutlineId}
-            onSelectOutline={setSelectedOutlineId}
-          />
+          <div className="mb-3 flex items-center">
+            <OutlineSelector
+              outlines={outlines}
+              selectedOutlineId={selectedOutlineId}
+              onSelectOutline={setSelectedOutlineId}
+            />
+          </div>
           <div className="mb-3 flex items-center">
             <Input
               placeholder="Ex: This is a video about Donald Trump's felonious activities..."

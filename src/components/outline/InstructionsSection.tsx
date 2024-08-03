@@ -19,28 +19,49 @@ const InstructionsSection: React.FC<InstructionsSectionProps> = ({
   handleGenerateSuggestion,
   isLoading,
 }) => {
+  const handleInstructionsChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newInstructions = e.target.value;
+    setOutlineElements(outlineElements.map((el) => el.id === element.id ? { ...el, instructions: newInstructions } : el));
+    
+    try {
+      const response = await fetch("/api/outlines/update-element", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: element.id, instructions: newInstructions }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update instructions");
+      }
+    } catch (error) {
+      console.error("Error updating instructions:", error);
+    }
+  };
+
   return (
-    <>
-      <label className="block text-sm font-medium text-gray-700">Instructions</label>
-      <div className="flex items-center">
+    <div className="flex flex-col h-full p-2">
+      <div className="flex justify-between items-center p-1">
+        <label className="text-sm font-medium text-gray-700">Instructions</label>
+      </div>
+      <div className="flex-grow flex flex-col">
         {isLoading ? (
-          <Skeleton className="w-full h-40" />
+          <Skeleton className="w-full h-full" />
         ) : (
           <Textarea
-            className="mt-1 min-h-40 flex-grow"
+            className="flex-grow resize-none"
             value={element.instructions || ''}
-            onChange={(e) => {
-              setOutlineElements(outlineElements.map((el) => el.id === element.id ? { ...el, instructions: e.target.value } : el));
-            }}
+            onChange={handleInstructionsChange}
           />
         )}
       </div>
-      <div className="flex justify-end p-2">
-        <Button size="sm" className="ml-2" onClick={() => handleGenerateSuggestion(element.id, 'instruction')}>
+      <div className="flex justify-end py-2">
+        <Button size="sm" onClick={() => handleGenerateSuggestion(element.id, 'instruction')}>
           Suggest
         </Button>
       </div>
-    </>
+    </div>
   );
 };
 

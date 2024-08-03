@@ -184,6 +184,7 @@ export type Database = {
           outline_id: string | null
           position_end_time: string | null
           position_start_time: string | null
+          script: Json | null
           sources: string | null
           type: Database["public"]["Enums"]["outlineElementType"] | null
           updated_at: string | null
@@ -201,6 +202,7 @@ export type Database = {
           outline_id?: string | null
           position_end_time?: string | null
           position_start_time?: string | null
+          script?: Json | null
           sources?: string | null
           type?: Database["public"]["Enums"]["outlineElementType"] | null
           updated_at?: string | null
@@ -218,6 +220,7 @@ export type Database = {
           outline_id?: string | null
           position_end_time?: string | null
           position_start_time?: string | null
+          script?: Json | null
           sources?: string | null
           type?: Database["public"]["Enums"]["outlineElementType"] | null
           updated_at?: string | null

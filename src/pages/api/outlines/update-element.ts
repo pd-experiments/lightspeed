@@ -9,12 +9,12 @@ export default async function handler(
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const { id, instructions } = req.body;
+  const { id, ...updateFields } = req.body;
 
   try {
     const { error } = await supabase
       .from("outline_elements")
-      .update({ instructions })
+      .update(updateFields)
       .eq("id", id);
 
     if (error) throw error;

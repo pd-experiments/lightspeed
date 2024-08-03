@@ -14,14 +14,22 @@ export default function ClipSearchPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<CustomTypes.ClipSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoadingPage, setIsLoadingPage] = useState(false);
   const [showMore, setShowMore] = useState<number | null>(null);
   const [selectedOutlineId, setSelectedOutlineId] = useState<string | null>(null);
   const [outlines, setOutlines] = useState<Outline[]>([]);
   const playerRef = useRef<ReactPlayer | null>(null);
 
   useEffect(() => {
-    fetchOutlines();
-    fetchRandomClips();
+    const fetchInitialData = async () => {
+      setIsLoadingPage(true);
+      try {
+        await Promise.all([fetchOutlines(), fetchRandomClips()]);
+      } finally {
+        setIsLoadingPage(false);
+      }
+    };
+    fetchInitialData();
   }, []);
 
   const fetchOutlines = async () => {
@@ -99,6 +107,7 @@ export default function ClipSearchPage() {
           <h1 className="text-3xl font-bold mb-6">Clip Search</h1>
           <p className="text-base text-gray-700 mb-6">Search for video content from across the country.</p>
           <GlobalSearch
+            isLoading={isLoadingPage}
             searchQuery={searchQuery}
             handleGlobalSearch={handleGlobalSearch}
             isSearching={isSearching}

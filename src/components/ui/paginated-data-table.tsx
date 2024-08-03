@@ -9,14 +9,16 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PaginatedDataTableProps<T> {
   columns: any[];
   data: T[];
   itemsPerPage: number;
+  isLoading?: boolean;
 }
 
-export function PaginatedDataTable<T>({ columns, data, itemsPerPage }: PaginatedDataTableProps<T>) {
+export function PaginatedDataTable<T>({ columns, data, itemsPerPage, isLoading }: PaginatedDataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
@@ -81,6 +83,16 @@ export function PaginatedDataTable<T>({ columns, data, itemsPerPage }: Paginated
       </PaginationContent>
     </Pagination>
   );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-8 w-full" />
+      </div>
+    );  
+  }
 
   return (
     <>

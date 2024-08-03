@@ -23,6 +23,7 @@ export default function DirectoryPage() {
   const [currentTimestamp, setCurrentTimestamp] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -32,11 +33,14 @@ export default function DirectoryPage() {
 
   const fetchVideos = async () => {
     try {
+      setIsLoading(true);
       const { data, error } = await supabase.from('youtube').select('*');
       if (error) throw error;
       setVideos(data);
     } catch (error) {
       console.error("Error fetching videos:", error);
+    } finally { 
+      setIsLoading(false);
     }
   };
 
@@ -95,6 +99,7 @@ export default function DirectoryPage() {
             />
           )}
           <PaginatedDataTable
+            isLoading={isLoading}
             columns={[
               {
                 accessorKey: "title",

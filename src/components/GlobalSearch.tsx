@@ -7,6 +7,9 @@ import { DataTable } from '@/components/ui/data-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ClipSearchResult } from '@/lib/types/customTypes';
 import { Database } from '@/lib/types/schema';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PaginatedDataTable } from './ui/paginated-data-table';
+import { Row } from '@tanstack/react-table';
 
 type Outline = Database['public']['Tables']['outline']['Row'];
 
@@ -22,6 +25,7 @@ interface GlobalSearchTabProps {
   showMore: number | null;
   setShowMore: (index: number | null) => void;
   playerRef: React.RefObject<any>;
+  isLoading: boolean;
 }
 
 export function GlobalSearchTab({
@@ -36,6 +40,7 @@ export function GlobalSearchTab({
   showMore,
   setShowMore,
   playerRef,
+  isLoading,
 }: GlobalSearchTabProps) {
   const formatText = (text: string) => {
     return text
@@ -52,9 +57,12 @@ export function GlobalSearchTab({
 
   return (
     <div className="mb-4 mt-10">
-      <div className="mb-4">
-        <div className="flex items-center space-x-2">
-          <div className="flex-grow">
+    <div className="mb-4">
+      <div className="flex items-center space-x-2">
+        <div className="flex-grow">
+          {isLoading ? (
+            <Skeleton className="h-10 w-full" />
+          ) : (
             <SearchInput
               value={searchQuery}
               onChange={handleGlobalSearch}
@@ -62,13 +70,21 @@ export function GlobalSearchTab({
               placeholder="Search across all videos..."
               className="w-full"
             />
-          </div>
+          )}
+        </div>
+        {isLoading ? (
+          <Skeleton className="h-10 w-40" />
+        ) : (
           <OutlineSelector
             outlines={outlines}
             selectedOutlineId={selectedOutlineId}
             onSelectOutline={setSelectedOutlineId}
             size="small"
           />
+        )}
+        {isLoading ? (
+          <Skeleton className="h-10 w-32" />
+        ) : (
           <Button
             onClick={() =>
               searchResults.map((item) => addToOutline(item))
@@ -76,25 +92,35 @@ export function GlobalSearchTab({
           >
             Add to Outline
           </Button>
-        </div>
-        {isSearching && (
-          <p className="text-sm text-gray-500 mt-2">Searching...</p>
         )}
       </div>
-      <div className="rounded-md overflow-hidden">
-        <Tabs defaultValue="cards">
-          <TabsList className="rounded-md">
-            <TabsTrigger value="cards">Card View</TabsTrigger>
-            <TabsTrigger value="table">Table View</TabsTrigger>
-          </TabsList>
-          <TabsContent value="cards">
-            {!searchResults || searchResults.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">
-                No results found.
-              </div>
-            ) : (
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {searchResults.map((item, index) => (
+      {isSearching && (
+        <p className="text-sm text-gray-500 mt-2">Searching...</p>
+      )}
+    </div>
+    <div className="rounded-md overflow-hidden">
+      <Tabs defaultValue="cards">
+        <TabsList className="rounded-md">
+          <TabsTrigger value="cards">Card View</TabsTrigger>
+          <TabsTrigger value="table">Table View</TabsTrigger>
+        </TabsList>
+        <TabsContent value="cards">
+          {isLoading ? (
+            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {[...Array(8)].map((_, index) => (
+                <Skeleton key={index} className="h-64 w-full" />
+              ))}
+            </div>
+          ) : !searchResults || searchResults.length === 0 ? (
+            <div className="p-4 text-center text-gray-500">
+              No results found.
+            </div>
+          ) : (
+            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {searchResults.map((item, index) => (
+                isSearching ? (
+                  <Skeleton key={index} className="h-64 w-full" />
+                ) : (
                   <ClipCard
                     key={index}
                     item={item}
@@ -102,17 +128,20 @@ export function GlobalSearchTab({
                     onShowMore={() => setShowMore(showMore === index ? null : index)}
                     onAddToOutline={() => addToOutline(item)}
                   />
-                ))}
-              </div>
-            )}
-          </TabsContent>
+                )
+              ))}
+            </div>
+          )}
+        </TabsContent>
           <TabsContent value="table">
-            <DataTable
+            <PaginatedDataTable
+              isLoading={isLoading}
+              itemsPerPage={20}
               columns={[
                 {
                   accessorKey: "timestamp",
                   header: "Timestamp",
-                  cell: ({ row }) => (
+                  cell: ({ row }: { row: Row<ClipSearchResult> }) => (
                     <div
                       className="text-sm font-medium text-gray-600 cursor-pointer"
                       onClick={() => {
@@ -132,7 +161,7 @@ export function GlobalSearchTab({
                 {
                   accessorKey: "video_id",
                   header: "Video ID",
-                  cell: ({ row }) => (
+                  cell: ({ row }: { row: Row<ClipSearchResult> }) => (
                     <div className="text-gray-800 text-sm text-left">
                       {row.original.video_id}
                     </div>
@@ -141,7 +170,7 @@ export function GlobalSearchTab({
                 {
                   accessorKey: "title",
                   header: "Title",
-                  cell: ({ row }) => (
+                  cell: ({ row }: { row: Row<ClipSearchResult> }) => (
                     <div className="text-gray-800 text-sm text-left">
                       {row.original.title}
                     </div>
@@ -150,7 +179,7 @@ export function GlobalSearchTab({
                 {
                   accessorKey: "text",
                   header: "Soundbite",
-                  cell: ({ row }) => (
+                  cell: ({ row }: { row: Row<ClipSearchResult> }) => (
                     <div className=" text-gray-800 max-w-[700px] text-sm text-left">
                       {formatText(row.original.text)}
                     </div>

@@ -13,3 +13,17 @@ export type TranscriptItem = { // transcript item for a clip search result
     offset: number;
     text: string;
 };
+
+export type ScriptElement = { // script element for an outline element
+    start: number;
+    end: number;
+    text: string;
+};
+
+// validators
+export const isScriptElement = (item: any): item is ScriptElement => {
+    return typeof item === 'object' && item !== null &&
+      typeof item.start === 'number' &&
+      typeof item.end === 'number' &&
+      typeof item.text === 'string';
+};

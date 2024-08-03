@@ -135,7 +135,7 @@ export default async function handler(
         }
 
         const combinedText = embeddings.map((e) => e.text).join(" ");
-        const duration = new Date(clip.video_end_time).getTime() - new Date(clip.video_start_time).getTime();
+        const duration = new Date(clip.video_end_time ?? '').getTime() - new Date(clip.video_start_time ?? '').getTime();
 
         const { data: youtubeData, error: youtubeError } = await supabase
           .from("youtube")

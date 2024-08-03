@@ -4,7 +4,6 @@ import Navbar from '@/components/ui/Navbar';
 import { Tables } from '@/lib/types/schema';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import ReactPlayer from 'react-player';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ChevronUpIcon, Trash2Icon, ChevronDownIcon } from 'lucide-react';
@@ -12,7 +11,10 @@ import { generateFcpxml } from '@/lib/helperUtils/generateFcpxml';
 import { saveAs } from 'file-saver';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Badge } from '@/components/ui/badge';
+import TimelineView from '@/components/outline/TimelineView';
+import ScriptView from '@/components/outline/ScriptView';
+import { calculatePosition, calculatePositionForOrdering, calculateNewTime, getTimelineDuration } from '@/lib/helperUtils/outline/utils';
+import { Card, CardContent } from '@/components/ui/card';
 
 type Outline = Tables<'outline'>;
 type OutlineElement = Tables<'outline_elements'>;
@@ -36,14 +38,7 @@ export default function Lists() {
   const timelineRef = useRef<HTMLDivElement | null>(null);
   const [description, setDescription] = useState<string>('');
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedView, setSelectedView] = useState('timeline');
-  const [transitions, setTransitions] = useState<number[]>([]);
-  const [currentTransitionIndex, setCurrentTransitionIndex] = useState<number | null>(null);
-
-  useEffect(() => {
-    setTransitions([0, outlineElements.length]);
-    setCurrentTransitionIndex(0);
-  }, [outlineElements.length]);
+  // const [selectedView, setSelectedView] = useState('timeline');
 
   useEffect(() => {
     async function fetchOutlines() {
@@ -63,24 +58,29 @@ export default function Lists() {
         const response = await fetch(`/api/outlines/get-elements?outline_id=${selectedOutlineId}`);
         const data = await response.json();
         const updatedElements = await Promise.all(data.map(async (element: OutlineElement) => {
+          if (element.type === 'TRANSITION') {
+            return { ...element, video_title: 'Transition' };
+          }
           const videoResponse = await fetch(`/api/get-video-by-id?id=${element.video_uuid}`);
           const videoData = await videoResponse.json();
           return { ...element, video_title: videoData.title };
         }));
         setOutlineElements(updatedElements);
         if (updatedElements.length > 0) {
-          const videoUuid = updatedElements[0].video_uuid;
-          const videoResponse = await fetch(`/api/get-video-by-id?id=${videoUuid}`);
-          const videoData = await videoResponse.json();
-          setCurrentVideo(videoData);
+          const firstVideoElement = updatedElements.find(el => el.type !== 'TRANSITION');
+          if (firstVideoElement) {
+            const videoResponse = await fetch(`/api/get-video-by-id?id=${firstVideoElement.video_uuid}`);
+            const videoData = await videoResponse.json();
+            setCurrentVideo(videoData);
+          }
         }
       }
     }
     fetchOutlineElements();
   }, [selectedOutlineId]);
-
+  
   useEffect(() => {
-    const { start, end } = getTimelineDuration();
+    const { start, end } = getTimelineDuration(outlineElements);
     setTotalDuration((end.getTime() - start.getTime()) / 1000); 
   }, [outlineElements]);
 
@@ -89,36 +89,6 @@ export default function Lists() {
       playerRef.current.seekTo(new Date(start).getTime() / 1000, 'seconds');
     }
   };
-
-  function calculatePosition(start: string, end: string) {
-    const startTime = new Date(start).getTime();
-    const endTime = new Date(end).getTime();
-    const firstElement = outlineElements[0];
-    const lastElement = outlineElements[outlineElements.length - 1];
-  
-    if (!firstElement.position_start_time || !lastElement.position_end_time) {
-      return { left: '0%', width: '0%' };
-    }
-  
-    const totalDuration = new Date(lastElement.position_end_time).getTime() - new Date(firstElement.position_start_time).getTime();
-    const left = ((startTime - new Date(firstElement.position_start_time).getTime()) / totalDuration) * 100;
-    const width = ((endTime - startTime) / totalDuration) * 100;
-  
-    return { left: `${left}%`, width: `${width}%` };
-  }
-
-  function calculatePositionForOrdering(start: string, end: string, timelineStart: string, timelineEnd: string) {
-    const startTime = new Date(`1970-01-01T${start}Z`).getTime();
-    const endTime = new Date(`1970-01-01T${end}Z`).getTime();
-    const timelineStartTime = new Date(`1970-01-01T${timelineStart}Z`).getTime();
-    const timelineEndTime = new Date(`1970-01-01T${timelineEnd}Z`).getTime();
-  
-    const totalDuration = timelineEndTime - timelineStartTime;
-    const left = ((startTime - timelineStartTime) / totalDuration) * 100;
-    const width = ((endTime - startTime) / totalDuration) * 100;
-  
-    return { left: `${left}%`, width: `${width}%` };
-  }
 
   const handleDragStart = (event: React.DragEvent<HTMLDivElement>, element: OutlineElement) => {
     event.dataTransfer.setData('elementId', element.id);
@@ -131,7 +101,7 @@ export default function Lists() {
     const type = event.dataTransfer.getData('type');
     if (type !== 'drag') return;
   
-    const newStartTime = calculateNewTime(event.clientX);
+    const newStartTime = calculateNewTime(event.clientX, timelineRef, outlineElements);
   
     const updatedElements = outlineElements.map(element => {
       if (element.id === elementId && element.position_end_time && element.position_start_time) {
@@ -186,7 +156,7 @@ export default function Lists() {
     const type = event.dataTransfer.getData('type');
     if (type !== 'resize') return;
   
-    const newTime = calculateNewTime(event.clientX);
+    const newTime = calculateNewTime(event.clientX, timelineRef, outlineElements);
     const updatedElements = outlineElements.map(element => {
       if (element.id === elementId) {
         if (direction === 'left') {
@@ -223,29 +193,6 @@ export default function Lists() {
     }
   
     setOutlineElements(updatedElements);
-  };
-
-  const calculateNewTime = (clientX: number) => {
-    if (!timelineRef.current) return new Date().toISOString();
-    const timelineRect = timelineRef.current.getBoundingClientRect();
-    const firstElementStartTime = outlineElements[0]?.position_start_time;
-    const lastElementEndTime = outlineElements[outlineElements.length - 1]?.position_end_time;
-
-    if (!firstElementStartTime || !lastElementEndTime) return new Date().toISOString();
-
-    const totalDuration = new Date(lastElementEndTime).getTime() - new Date(firstElementStartTime).getTime();
-    const newTime = new Date(new Date(firstElementStartTime).getTime() + ((clientX - timelineRect.left) / timelineRect.width) * totalDuration);
-    return newTime.toISOString();
-  };
-
-  const getTimelineDuration = () => {
-    if (outlineElements.length === 0) return { start: new Date(), end: new Date() };
-    const validElements = outlineElements.filter(element => element.position_start_time && element.position_end_time);
-    const startTimes = validElements.map(element => new Date(element.position_start_time!).getTime());
-    const endTimes = validElements.map(element => new Date(element.position_end_time!).getTime());
-    const earliestStart = new Date(Math.min(...startTimes));
-    const latestEnd = new Date(Math.max(...endTimes));
-    return { start: earliestStart, end: latestEnd };
   };
 
   const handleCreateOutline = async () => {
@@ -360,6 +307,8 @@ export default function Lists() {
       if (!response.ok) {
         throw new Error('Failed to delete element');
       }
+
+      alert("Element deleted from outline successfully.");
   
       setOutlineElements(outlineElements.filter(element => element.id !== elementId));
     } catch (error) {
@@ -373,6 +322,22 @@ export default function Lists() {
     const blob = new Blob([fcpxmlContent], { type: 'application/xml' });
     saveAs(blob, 'outline.fcpxml');
   };
+
+  function addSecondsToTimeString(timeString: string, seconds: number): string {
+    const [hours, minutes, secs] = timeString.split(':').map(Number);
+    let totalSeconds = hours * 3600 + minutes * 60 + secs + seconds;
+  
+    const newHours = Math.floor(totalSeconds / 3600);
+    totalSeconds %= 3600;
+    const newMinutes = Math.floor(totalSeconds / 60);
+    const newSeconds = totalSeconds % 60;
+  
+    return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}:${String(newSeconds).padStart(2, '0')}`;
+  }
+
+  useEffect(() => {
+    console.log("OUTLINE ELEMENTS", outlineElements);
+  }, [outlineElements]);
 
   return (
     <>
@@ -439,11 +404,9 @@ export default function Lists() {
                 <Button size="sm" className="w-full" onClick={handleCreateOutline}>Play</Button>
                 <Button size="sm" variant="outline" className="w-full" onClick={handleExportFcpxml}>Export as Final Cut Pro XML</Button>
               </div>
-              {selectedView === 'timeline' && (
-                <div className="py-2">
-                  <Button size="sm" className="w-full border-blue-400 text-blue-500 hover:text-blue-400 hover:border-blue-300" variant="outline" onClick={generateAIOutlineOrdering}>Generate AI Outline Suggestion(s)</Button>
-                </div>
-              )}
+              <div className="pt-2 pb-6">
+                <Button size="sm" className="w-full border-blue-400 text-blue-500 hover:text-blue-400 hover:border-blue-300" variant="outline" onClick={generateAIOutlineOrdering}>Generate AI Outline Suggestion(s)</Button>
+              </div>
             </>
           )}
           {aiOrderings.length > 0 && (
@@ -497,202 +460,47 @@ export default function Lists() {
               })}
             </div>
           )}
-          <Tabs defaultValue="timeline" onValueChange={setSelectedView}>
-            <div className="p-2">
+          <ScriptView
+            key={selectedOutlineId}
+            outline_id={selectedOutlineId}
+            outlineElements={outlineElements}
+            setOutlineElements={(newElements) => {
+              setOutlineElements(newElements);
+            }}
+            handleDeleteElement={handleDeleteElement}
+          />
+          {/* <Tabs defaultValue="timeline" onValueChange={setSelectedView}>
+            <div className="my-4">
               <TabsList>
                 <TabsTrigger value="timeline">Timeline View</TabsTrigger>
                 <TabsTrigger value="script">Script View</TabsTrigger>
               </TabsList>
-            </div>
+            </div> 
             <TabsContent value="timeline">
-              <div ref={timelineRef} className="overflow-y-scroll p-2 border border-gray-200 rounded-md video-editor relative w-full h-auto min-h-[280px] mt-4" onDrop={handleDrop} onDragOver={handleDragOver}>
-                <div className="absolute top-0 left-0 w-full h-full">
-                  {Array.from({ length: Math.round(totalDuration) }).map((_, index) => {
-                    const interval = totalDuration > 100 ? 10 : 5;
-                    return (
-                      <div key={index} className="absolute border-l border-gray-300" style={{ left: `${(index / totalDuration) * 100}%`, height: index % interval === 0 ? '100%' : '50%' }}>
-                        {index % interval === 0 ? <span className="text-xs">{index}s</span> : <span className="text-[0.5rem]">&nbsp;</span>}
-                      </div>
-                    );
-                  })}
-                </div>
-                {outlineElements.map((element) => {
-                  if (!element.position_start_time || !element.position_end_time) return null;
-                  const { left, width } = calculatePosition(element.position_start_time, element.position_end_time);
-                  return (
-                    <Card
-                      key={element.video_uuid}
-                      className="clip flex-shrink-0 cursor-pointer absolute"
-                      style={{ left, width, minHeight: '150px', top: '20px' }}
-                      onClick={() => handleClipClick(element.video_start_time, element.video_end_time)}
-                      draggable
-                      onDragStart={(event) => handleDragStart(event, element)}
-                    >
-                      <div
-                        className="resize-handle-left absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize"
-                        draggable
-                        onDragStart={(event) => handleResizeStart(event, element, 'left')}
-                        onDrop={handleResizeDrop}
-                      />
-                      <CardContent className="p-2 h-full flex flex-col justify-between"> 
-                        <div className="flex text-sm justify-between w-full">
-                          <span className="text-blue-500 font-semibold break-words flex-grow">{element.video_title}</span>
-                          <Button size="sm" variant="outline" className="hover:bg-red-50" onClick={() => handleDeleteElement(element.id)}>
-                            <Trash2Icon className="w-4 h-4 text-red-500"/>
-                          </Button>
-                        </div>
-                        <div className="relative my-2 rounded-md h-full">
-                          <ReactPlayer
-                            url={`https://www.youtube.com/watch?v=${element.video_id}`}
-                            controls
-                            width="100%"
-                            height="100%"
-                            className="rounded-lg"
-                            config={{
-                              youtube: {
-                                playerVars: {
-                                  start: new Date(element.video_start_time).getTime() / 1000,
-                                  end: new Date(element.video_end_time).getTime() / 1000,
-                                },
-                              },
-                            }}
-                          />
-                        </div>
-                        <div className="text-xs text-right justify-end font-medium w-full text-gray-700">
-                          <span>{new Date(element.position_start_time).toISOString().slice(11, 19)} - {new Date(element.position_end_time).toISOString().slice(11, 19)}</span>
-                        </div>
-                      </CardContent>
-                      <div
-                        className="resize-handle-right absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize"
-                        draggable
-                        onDragStart={(event) => handleResizeStart(event, element, 'right')}
-                        onDrop={handleResizeDrop}
-                      />
-                    </Card>
-                  );
-                })}
-              </div>
+              <TimelineView
+                outlineElements={outlineElements}
+                totalDuration={totalDuration}
+                handleClipClick={handleClipClick}
+                handleDragStart={handleDragStart}
+                handleResizeStart={handleResizeStart}
+                handleResizeDrop={handleResizeDrop}
+                handleDeleteElement={handleDeleteElement}
+                calculatePosition={(start, end) => calculatePosition(start, end, outlineElements)}
+                handleDrop={handleDrop}
+                handleDragOver={handleDragOver}
+                timelineRef={timelineRef}
+              />
             </TabsContent>
             <TabsContent value="script">
-              <div className="p-2">
-                <div className="flex justify-end mb-4">
-                  <Button size="sm" onClick={() => {
-                    if (currentTransitionIndex !== null && !transitions.includes(currentTransitionIndex)) {
-                      setTransitions([...transitions, currentTransitionIndex].sort((a, b) => a - b));
-                    }
-                  }}>
-                    Add Transition at Current Location
-                  </Button>
-                </div>
-                {transitions.includes(0) && (
-                  <div className="py-2 flex items-center" onClick={() => setCurrentTransitionIndex(0)}>
-                    <div
-                      className={`flex-1 h-[0.1rem] cursor-pointer ${currentTransitionIndex === 0 ? 'bg-blue-500' : 'bg-gray-200'}`}
-                    />
-                    <Badge className={`ml-2 ${currentTransitionIndex === 0 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>00:00:00</Badge>
-                  </div>
-                )}
-                {outlineElements.map((element, index) => (
-                  <div key={element.video_uuid}>
-                    {transitions.includes(index + 1) && (
-                      <div className="flex mb-4">
-                        <Card className="flex-[2] mr-4">
-                          <CardContent className="p-2 h-full flex flex-col">
-                            <label className="block text-sm font-medium text-gray-700">Transition</label>
-                            <textarea
-                              className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
-                              rows={3}
-                            />
-                          </CardContent>
-                        </Card>
-                        <Card className="flex-[3]">
-                          <CardContent className="p-2 h-full flex flex-col">
-                            <label className="block text-sm font-medium text-gray-700">Instructions</label>
-                            <textarea
-                              className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
-                              rows={3}
-                            />
-                            <label className="mt-2 block text-sm font-medium text-gray-700">Sources</label>
-                            <textarea
-                              className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
-                              rows={3}
-                            />
-                          </CardContent>
-                        </Card>
-                      </div>
-                    )}
-                    <div className="flex mb-4">
-                      <Card className="flex-[2] mr-4">
-                        <CardContent className="p-2 h-full flex flex-col">
-                          <div className="flex justify-between">
-                            <span className="text-blue-500 font-semibold break-words">{element.video_title}</span>
-                            <Button size="sm" variant="outline" className="hover:bg-red-50" onClick={() => handleDeleteElement(element.id)}>
-                              <Trash2Icon className="w-4 h-4 text-red-500"/>
-                            </Button>
-                          </div>
-                          <div className="relative my-2 rounded-md h-full">
-                            <ReactPlayer
-                              url={`https://www.youtube.com/watch?v=${element.video_id}`}
-                              controls
-                              width="100%"
-                              height="100%"
-                              className="rounded-lg"
-                              config={{
-                                youtube: {
-                                  playerVars: {
-                                    start: new Date(element.video_start_time).getTime() / 1000,
-                                    end: new Date(element.video_end_time).getTime() / 1000,
-                                  },
-                                },
-                              }}
-                            />
-                          </div>
-                          <div className="text-xs text-right justify-end font-medium w-full text-gray-700">
-                            <span>
-                              {new Date(element.position_start_time ?? '').toISOString().slice(11, 19)} - 
-                              {new Date(element.position_end_time ?? '').toISOString().slice(11, 19)}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                      <Card className="flex-[3]">
-                        <CardContent className="p-2 h-full flex flex-col">
-                            <label className="block text-sm font-medium text-gray-700">Instructions</label>
-                            <textarea
-                              className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
-                              rows={3}
-                            />
-                            <label className="mt-2 block text-sm font-medium text-gray-700">Sources</label>
-                            <textarea
-                              className="border mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm flex-grow"
-                              rows={3}
-                            />
-                        </CardContent>
-                      </Card>
-                    </div>
-                    {index < outlineElements.length - 1 && (
-                      <div className="py-2 flex items-center" onClick={() => setCurrentTransitionIndex(index + 1)}>
-                        <div
-                          className={`flex-1 h-[0.1rem] cursor-pointer ${currentTransitionIndex === index + 1 ? 'bg-blue-500' : 'bg-gray-200'}`}
-                        />
-                        <Badge className={`ml-2 ${currentTransitionIndex === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>{outlineElements[outlineElements.length - 1]?.position_end_time ? new Date(outlineElements[outlineElements.length - 1]?.position_end_time ?? '').toISOString().slice(11, 19) : '00:00:00'}</Badge>
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {transitions.includes(outlineElements.length) && (
-                  <div className="py-2 flex items-center" onClick={() => setCurrentTransitionIndex(outlineElements.length)}>
-                    <div
-                      className={`flex-1 h-[0.1rem] cursor-pointer ${currentTransitionIndex === outlineElements.length ? 'bg-blue-500' : 'bg-gray-200'}`}
-                    />
-                    <Badge className={`ml-2 ${currentTransitionIndex === outlineElements.length ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>{outlineElements[outlineElements.length - 1]?.position_end_time ? new Date(outlineElements[outlineElements.length - 1]?.position_end_time ?? '').toISOString().slice(11, 19) : '00:00:00'}</Badge>
-                  </div>
-                )}
-              </div>
+              <ScriptView
+                outline_id={selectedOutlineId}
+                outlineElements={outlineElements}
+                handleDeleteElement={handleDeleteElement}
+              />
             </TabsContent>
-          </Tabs>
+          </Tabs> */}
         </div>
       </main>
     </>
   );
-};
+}

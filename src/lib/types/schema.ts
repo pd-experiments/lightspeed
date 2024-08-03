@@ -94,6 +94,63 @@ export type Database = {
           },
         ]
       }
+      news: {
+        Row: {
+          article_html: string | null
+          authors: string[] | null
+          created_at: string
+          html: string | null
+          id: string
+          keywords: string[] | null
+          meta_keywords: string[] | null
+          movies: string[] | null
+          publish_date: string | null
+          source_url: string | null
+          summary: string | null
+          tags: string[] | null
+          text: string | null
+          title: string | null
+          updated_at: string | null
+          url: string | null
+        }
+        Insert: {
+          article_html?: string | null
+          authors?: string[] | null
+          created_at?: string
+          html?: string | null
+          id?: string
+          keywords?: string[] | null
+          meta_keywords?: string[] | null
+          movies?: string[] | null
+          publish_date?: string | null
+          source_url?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          text?: string | null
+          title?: string | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Update: {
+          article_html?: string | null
+          authors?: string[] | null
+          created_at?: string
+          html?: string | null
+          id?: string
+          keywords?: string[] | null
+          meta_keywords?: string[] | null
+          movies?: string[] | null
+          publish_date?: string | null
+          source_url?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          text?: string | null
+          title?: string | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
       outline: {
         Row: {
           created_at: string
@@ -121,42 +178,54 @@ export type Database = {
       outline_elements: {
         Row: {
           created_at: string
+          description: string | null
           id: string
+          instructions: string | null
           outline_id: string | null
           position_end_time: string | null
           position_start_time: string | null
+          sources: string | null
+          type: Database["public"]["Enums"]["outlineElementType"] | null
           updated_at: string | null
           video_embeddings: string[] | null
-          video_end_time: string
-          video_id: string
-          video_start_time: string
-          video_uuid: string
+          video_end_time: string | null
+          video_id: string | null
+          video_start_time: string | null
+          video_uuid: string | null
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
+          instructions?: string | null
           outline_id?: string | null
           position_end_time?: string | null
           position_start_time?: string | null
+          sources?: string | null
+          type?: Database["public"]["Enums"]["outlineElementType"] | null
           updated_at?: string | null
           video_embeddings?: string[] | null
-          video_end_time: string
-          video_id: string
-          video_start_time: string
-          video_uuid?: string
+          video_end_time?: string | null
+          video_id?: string | null
+          video_start_time?: string | null
+          video_uuid?: string | null
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
+          instructions?: string | null
           outline_id?: string | null
           position_end_time?: string | null
           position_start_time?: string | null
+          sources?: string | null
+          type?: Database["public"]["Enums"]["outlineElementType"] | null
           updated_at?: string | null
           video_embeddings?: string[] | null
-          video_end_time?: string
-          video_id?: string
-          video_start_time?: string
-          video_uuid?: string
+          video_end_time?: string | null
+          video_id?: string | null
+          video_start_time?: string | null
+          video_uuid?: string | null
         }
         Relationships: [
           {
@@ -491,7 +560,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      outlineElementType: "VIDEO" | "TRANSITION"
     }
     CompositeTypes: {
       [_ in never]: never

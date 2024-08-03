@@ -26,7 +26,6 @@ import {
   SelectItem,
   SelectContent,
 } from "@/components/ui/select";
-import { Database } from "@/lib/types/schema";
 import * as CustomTypes from "@/lib/types/customTypes";
 
 export type Video = {
@@ -411,6 +410,7 @@ export default function Home() {
         video_end_time: item.end_timestamp,
         position_start_time: newStartTime,
         position_end_time: newEndTime,
+        type: "VIDEO",
       };
 
       const response = await fetch("/api/outlines/create-element", {

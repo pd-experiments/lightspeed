@@ -8,7 +8,7 @@ interface InstructionsSectionProps {
   element: OutlineElementWithVideoTitle;
   setOutlineElements: (elements: OutlineElementWithVideoTitle[]) => void;
   outlineElements: OutlineElementWithVideoTitle[];
-  handleGenerateSuggestion: (elementId: string, type: 'instruction' | 'description' | 'sources') => Promise<void>;
+  handleGenerateSuggestion: (elementId: string, type: 'instructions' | 'description' | 'sources') => Promise<void>;
   isLoading: boolean;
 }
 
@@ -58,7 +58,7 @@ const InstructionsSection: React.FC<InstructionsSectionProps> = ({
         )}
       </div>
       <div className="flex justify-end py-2">
-        <Button size="sm" onClick={() => handleGenerateSuggestion(element.id, 'instruction')}>
+        <Button size="sm" onClick={() => handleGenerateSuggestion(element.id, 'instructions')}>
           Suggest
         </Button>
       </div>

@@ -7,6 +7,7 @@ import * as CustomTypes from '@/lib/types/customTypes';
 import debounce from "lodash.debounce";
 import ReactPlayer from "react-player";
 import { Database } from "@/lib/types/schema";
+import { supabase } from "@/lib/supabaseClient"; 
 
 type Outline = Database['public']['Tables']['outline']['Row'];
 
@@ -84,16 +85,43 @@ export default function ClipSearchPage() {
       return;
     }
     try {
-      const response = await fetch("/api/outlines/add-to-outline", {
+      const { data: lastElement, error } = await supabase
+      .from("outline_elements")
+      .select("*")
+      .eq("outline_id", selectedOutlineId)
+      .order("position_end_time", { ascending: false })
+      .limit(1)
+      .single();
+
+      if (error) throw new Error("Failed to fetch last outline element");
+
+      const lastPositionEndTime = lastElement ? new Date(lastElement.position_end_time).getTime() : 0;
+      const videoStartTime = new Date(item.start_timestamp).getTime();
+      const videoEndTime = new Date(item.end_timestamp).getTime();
+      const duration = videoEndTime - videoStartTime;
+  
+      const newPositionStartTime = new Date(lastPositionEndTime);
+      const newPositionEndTime = new Date(lastPositionEndTime + duration);
+  
+      const element = {
+        outline_id: selectedOutlineId,
+        video_uuid: item.video_uuid,
+        video_id: item.video_id,
+        video_start_time: item.start_timestamp,
+        video_end_time: item.end_timestamp,
+        position_start_time: newPositionStartTime.toISOString(),
+        position_end_time: newPositionEndTime.toISOString(),
+        type: 'VIDEO',
+        description: item.description,
+      };
+  
+      const response = await fetch("/api/outlines/create-element", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          outlineId: selectedOutlineId,
-          clipData: item,
-        }),
+        body: JSON.stringify(element),
       });
       if (!response.ok) throw new Error("Failed to add to outline");
-      console.log("Successfully added to outline");
+      alert("Successfully added to outline");
     } catch (error) {
       console.error("Error adding to outline:", error);
     }

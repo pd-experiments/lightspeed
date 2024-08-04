@@ -15,7 +15,7 @@ export default function Navbar() {
         </Link>
         <div className="ml-8 flex items-center">
           <NavItem href="/directory" icon={<VideoIcon className="w-4 h-4 mr-2" />} text="Directory" isActive={pathname === '/directory'} />
-          <NavItem href="/clipsearch" icon={<Search className="w-4 h-4 mr-2" />} text="Clip Search" isActive={pathname === '/clip-search'} />
+          <NavItem href="/clipsearch" icon={<Search className="w-4 h-4 mr-2" />} text="Clip Search" isActive={pathname === '/clipsearch'} />
           <NavItem href="/outline" icon={<BookOpenIcon className="w-4 h-4 mr-2" />} text="Outline" isActive={pathname === '/outline'} />
         </div>
       </div>

@@ -127,6 +127,7 @@ export function GlobalSearchTab({
                     showMore={showMore === index}
                     onShowMore={() => setShowMore(showMore === index ? null : index)}
                     onAddToOutline={() => addToOutline(item)}
+                    disabled={!selectedOutlineId}
                   />
                 )
               ))}
@@ -183,6 +184,15 @@ export function GlobalSearchTab({
                     <div className=" text-gray-800 max-w-[700px] text-sm text-left">
                       {formatText(row.original.text)}
                     </div>
+                  ),
+                },
+                {
+                  accessorKey: "outlineAdd",
+                  header: "Add to Outline",
+                  cell: ({ row }: { row: Row<ClipSearchResult> }) => (
+                    <Button className="w-full" onClick={() => addToOutline(row.original)} disabled={!selectedOutlineId}>
+                      Add to Outline
+                    </Button>
                   ),
                 },
               ]}

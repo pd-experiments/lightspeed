@@ -25,26 +25,56 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const previousElement = outlineElements[currentElementIndex - 1] || null;
     const nextElement = outlineElements[currentElementIndex + 1] || null;
 
+    const fetchGroupedVideoEmbeddings = async (element: any) => {
+      if (element.type !== "VIDEO") return null;
+    
+      const { data: videoEmbeddingsObjects, error } = await supabase
+        .from("grouped_video_embeddings")
+        .select("*")
+        .eq("video_uuid", element.video_uuid);
+    
+      if (error) throw error;
+
+      const filteredEmbeddingsObjects = videoEmbeddingsObjects.filter((embedding: any) => {
+        const startTime = new Date(embedding.timestamp).getTime();
+        const endTime = startTime + new Date(embedding.duration).getTime();
+        const elementStartTime = new Date(element.video_start_time).getTime();
+        const elementEndTime = new Date(element.video_end_time).getTime();
+        return startTime >= elementStartTime && endTime <= elementEndTime;
+      });
+    
+      return filteredEmbeddingsObjects.map((embedding) => embedding.text).join(" ");
+    };
+
+    const currentElementText = await fetchGroupedVideoEmbeddings(currentElement);
+    const previousElementText = previousElement ? await fetchGroupedVideoEmbeddings(previousElement) : null;
+    const nextElementText = nextElement ? await fetchGroupedVideoEmbeddings(nextElement) : null;
+
     const context = {
       currentElement: {
         type: currentElement.type,
         description: currentElement.description,
         position: `${currentElement.position_start_time} - ${currentElement.position_end_time}`,
         script: currentElement.script,
+        text: currentElementText,
       },
       previousElement: previousElement ? {
         type: previousElement.type,
         description: previousElement.description,
         position: `${previousElement.position_start_time} - ${previousElement.position_end_time}`,
         script: previousElement.script,
+        text: previousElementText,
       } : null,
       nextElement: nextElement ? {
         type: nextElement.type,
         description: nextElement.description,
         position: `${nextElement.position_start_time} - ${nextElement.position_end_time}`,
         script: nextElement.script,
+        text: nextElementText,
       } : null,
     };
+
+    console.log("Context:", JSON.stringify(context, null, 2));
 
     const response = await openai_client.chat.completions.create({
       model: "gpt-4",

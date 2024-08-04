@@ -15,7 +15,7 @@ interface ElementCardProps {
   handleDeleteElement: (elementId: string) => void;
   setOutlineElements: (elements: OutlineElementWithVideoTitle[]) => void;
   outlineElements: OutlineElementWithVideoTitle[];
-  handleGenerateSuggestion: (elementId: string, type: 'instruction' | 'description' | 'sources') => Promise<void>;
+  handleGenerateSuggestion: (elementId: string, type: 'instructions' | 'description' | 'sources') => Promise<void>;
   loadingStates: Record<string, boolean>;
 }
 
@@ -82,7 +82,7 @@ const ElementCard: React.FC<ElementCardProps> = ({
                   setOutlineElements={setOutlineElements}
                   outlineElements={outlineElements}
                   handleGenerateSuggestion={handleGenerateSuggestion}
-                  isLoading={loadingStates[`${element.id}-instruction`]}
+                  isLoading={loadingStates[`${element.id}-instructions`]}
                 />
               </TabsContent>
               <TabsContent value="sources" className="h-full">

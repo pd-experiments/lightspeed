@@ -11,6 +11,8 @@ export default async function handler(
 
   const { id, ...updateFields } = req.body;
 
+  console.log("updateFields:", updateFields);
+
   try {
     const { error } = await supabase
       .from("outline_elements")

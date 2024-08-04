@@ -121,7 +121,7 @@ const ScriptView: React.FC<ScriptViewProps> = ({ outlineElements, handleDeleteEl
     }
   };
 
-  const handleGenerateSuggestion = async (elementId: string, type: 'instruction' | 'description' | 'sources') => {
+  const handleGenerateSuggestion = async (elementId: string, type: 'instructions' | 'description' | 'sources') => {
     try {
       setLoadingStates(prev => ({ ...prev, [`${elementId}-${type}`]: true }));
       const response = await fetch(`/api/outlines/generate-${type}-suggestion`, {

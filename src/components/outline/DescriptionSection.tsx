@@ -8,7 +8,7 @@ interface DescriptionSectionProps {
   element: OutlineElementWithVideoTitle;
   setOutlineElements: (elements: OutlineElementWithVideoTitle[]) => void;
   outlineElements: OutlineElementWithVideoTitle[];
-  handleGenerateSuggestion: (elementId: string, type: 'instruction' | 'description' | 'sources') => Promise<void>;
+  handleGenerateSuggestion: (elementId: string, type: 'instructions' | 'description' | 'sources') => Promise<void>;
   isLoading: boolean;
 }
 
@@ -57,6 +57,7 @@ const DescriptionSection: React.FC<DescriptionSectionProps> = ({
             className="flex-grow resize-none"
             value={element.description || ''}
             onChange={handleDescriptionChange}
+            placeholder="Provide a description of this clip or section here..."
           />
         )}
       </div>

@@ -42,8 +42,8 @@ export default async function handler(
         video_uuid: item.video_uuid,
         text: item.text,
         description: item.description,
-        start_timestamp: item.start_timestamp,
-        end_timestamp: item.end_timestamp,
+        start_timestamp: item.timestamp,
+        end_timestamp: new Date(new Date(item.timestamp).getTime() + item.duration * 1000).toISOString(),
       }));
 
       res.status(200).json(formattedResults);

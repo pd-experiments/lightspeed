@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { data, error } = await supabase.rpc("fetch_random_clips");
+    const { data, error } = await supabase.rpc("fetch_random_clips_grouped_ve");
 
     if (error) {
       throw error;

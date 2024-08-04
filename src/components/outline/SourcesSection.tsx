@@ -8,7 +8,7 @@ interface SourcesSectionProps {
   element: OutlineElementWithVideoTitle;
   setOutlineElements: (elements: OutlineElementWithVideoTitle[]) => void;
   outlineElements: OutlineElementWithVideoTitle[];
-  handleGenerateSuggestion: (elementId: string, type: 'instruction' | 'description' | 'sources') => Promise<void>;
+  handleGenerateSuggestion: (elementId: string, type: 'instructions' | 'description' | 'sources') => Promise<void>;
   isLoading: boolean;
 }
 
@@ -53,6 +53,7 @@ const SourcesSection: React.FC<SourcesSectionProps> = ({
             className="flex-grow resize-none"
             value={element.sources || ''}
             onChange={handleSourcesChange}
+            placeholder="Include sources to reference in your notes here..."
           />
         )}
       </div>

@@ -1,4 +1,5 @@
-'use client';
+"use client";
+
 import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/ui/Navbar';
 import { Tables } from '@/lib/types/schema';
@@ -8,6 +9,7 @@ import { generateFcpxml } from '@/lib/helperUtils/generateFcpxml';
 import { saveAs } from 'file-saver';
 import ScriptView from '@/components/outline/ScriptView';
 import { calculatePosition, calculatePositionForOrdering, calculateNewTime, getTimelineDuration } from '@/lib/helperUtils/outline/utils';
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { OutlineCreator } from '@/components/outline/OutlineCreator';
 import { OutlineSelector } from '@/components/outline/OutlineSelector';
@@ -35,15 +37,18 @@ export default function Lists() {
   const playerRef = useRef<ReactPlayer | null>(null);
   const timelineRef = useRef<HTMLDivElement | null>(null);
   const [description, setDescription] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function fetchOutlines() {
+      setLoading(true);
       const response = await fetch('/api/outlines/get-all-outlines');
       const data = await response.json();
       setOutlines(data.outlines);
       if (data.outlines.length > 0) {
         setSelectedOutlineId(data.outlines[0].id);
       }
+      setLoading(false);
     }
     fetchOutlines();
   }, []);
@@ -51,6 +56,7 @@ export default function Lists() {
   useEffect(() => {
     async function fetchOutlineElements() {
       if (selectedOutlineId) {
+        setLoading(true);
         const response = await fetch(`/api/outlines/get-elements?outline_id=${selectedOutlineId}`);
         const data = await response.json();
         const updatedElements = await Promise.all(data.map(async (element: OutlineElement) => {
@@ -70,6 +76,7 @@ export default function Lists() {
             setCurrentVideo(videoData);
           }
         }
+        setLoading(false);
       }
     }
     fetchOutlineElements();
@@ -210,6 +217,7 @@ export default function Lists() {
               outlines={outlines}
               selectedOutlineId={selectedOutlineId}
               onSelectOutline={setSelectedOutlineId}
+              isLoading={loading}
             />
           </div>
           <div className="mb-3 flex items-center">
@@ -220,29 +228,35 @@ export default function Lists() {
               className="mr-2"
             />
           </div>
-          {currentVideo && currentVideo.video_id && (
+          {loading ? (
+            <Skeleton className="w-full h-64" />
+          ) : (
             <>
-              <VideoPlayer videoId={currentVideo.video_id} playerRef={playerRef} />
-              <OutlineActions
-                onPlay={handlePlay}
-                onExport={handleExportFcpxml}
-                onGenerateAIOrdering={generateAIOutlineOrdering}
+              {currentVideo && currentVideo.video_id && (
+                <>
+                  <VideoPlayer videoId={currentVideo.video_id} playerRef={playerRef} />
+                  <OutlineActions
+                    onPlay={handlePlay}
+                    onExport={handleExportFcpxml}
+                    onGenerateAIOrdering={generateAIOutlineOrdering}
+                  />
+                </>
+              )}
+              <AIOrderingSuggestions
+                aiOrderings={aiOrderings}
+                outlineElements={outlineElements}
+                setOutlineElements={setOutlineElements}
+                calculatePositionForOrdering={calculatePositionForOrdering}
+              />
+              <ScriptView
+                key={selectedOutlineId}
+                outline_id={selectedOutlineId}
+                outlineElements={outlineElements}
+                setOutlineElements={setOutlineElements}
+                handleDeleteElement={handleDeleteElement}
               />
             </>
           )}
-          <AIOrderingSuggestions
-            aiOrderings={aiOrderings}
-            outlineElements={outlineElements}
-            setOutlineElements={setOutlineElements}
-            calculatePositionForOrdering={calculatePositionForOrdering}
-          />
-          <ScriptView
-            key={selectedOutlineId}
-            outline_id={selectedOutlineId}
-            outlineElements={outlineElements}
-            setOutlineElements={setOutlineElements}
-            handleDeleteElement={handleDeleteElement}
-          />
         </div>
       </main>
     </>

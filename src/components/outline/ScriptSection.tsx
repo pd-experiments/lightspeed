@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from "@/components/ui/textarea";
 import { OutlineElementWithVideoTitle } from '@/app/outline/page';
 import TimeInput from '@/components/ui/time-input';
 import { type ScriptElement, isScriptElement } from '@/lib/types/customTypes';
+import { Card, CardContent } from '@/components/ui/card';
+import { Trash2Icon } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ScriptSectionProps {
   element: OutlineElementWithVideoTitle;
@@ -19,7 +22,10 @@ const ScriptSection: React.FC<ScriptSectionProps> = ({
     const [scriptElements, setScriptElements] = useState<ScriptElement[]>([]);
     const [newStart, setNewStart] = useState(0);
     const [newEnd, setNewEnd] = useState(10);
-    
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
+    const [history, setHistory] = useState<ScriptElement[][]>([]);
+
     useEffect(() => {
       const parsedScriptElements = parseScriptElements();
       setScriptElements(parsedScriptElements);
@@ -31,14 +37,28 @@ const ScriptSection: React.FC<ScriptSectionProps> = ({
         const lastElement = parsedScriptElements[parsedScriptElements.length - 1];
         if (isScriptElement(lastElement) && lastElement) {
             setNewStart(lastElement.end);
-            setNewEnd(Math.min(elementEnd, lastElement.end + 10));
+            setNewEnd(Math.min(elementEnd, lastElement.end + 5));
         }
       } else {
         setNewStart(elementStart);
-        setNewEnd(Math.min(elementEnd, elementStart + 10));
+        setNewEnd(Math.min(elementEnd, elementStart + 5));
       }
     }, [element]);
-  
+
+    useEffect(() => {
+      const handleUndo = (event: KeyboardEvent) => {
+        if (event.metaKey && event.key === 'z') {
+          event.preventDefault();
+          undo();
+        }
+      };
+
+      window.addEventListener('keydown', handleUndo);
+      return () => {
+        window.removeEventListener('keydown', handleUndo);
+      };
+    }, [history]);
+
     const parseScriptElements = (): ScriptElement[] => {
       if (element.script) {
         if (typeof element.script === 'string') {
@@ -53,19 +73,20 @@ const ScriptSection: React.FC<ScriptSectionProps> = ({
       }
       return [];
     };
-  
+
     const handleCreateScriptElement = (start: number, end: number) => {
       const newScriptElement = { start, end, text: '' };
       const updatedScriptElements = [...scriptElements, newScriptElement].sort((a, b) => a.start - b.start);
       updateScript(updatedScriptElements);
     };
-  
+
     const handleUpdateScriptElement = (index: number, text: string) => {
       const updatedScriptElements = scriptElements.map((el, i) => (i === index ? { ...el, text } : el));
       updateScript(updatedScriptElements);
     };
-  
+
     const updateScript = async (updatedScriptElements: ScriptElement[]) => {
+      setHistory([...history, scriptElements]);
       setScriptElements(updatedScriptElements);
       setOutlineElements(outlineElements.map(el =>
         el.id === element.id ? { ...el, script: updatedScriptElements } : el
@@ -87,7 +108,54 @@ const ScriptSection: React.FC<ScriptSectionProps> = ({
         console.error("Error updating script:", error);
       }
     };
-  
+
+    const handleGenerateScriptElementSuggestion = async (start: number, end: number, index: number) => {
+        try {
+          setIsGenerating(true);
+          setGeneratingIndex(index);
+          const response = await fetch("/api/outlines/generate-script-element-suggestion", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ outline_id: element.outline_id, element_id: element.id, script_element_start: start, script_element_end: end }),
+          });
+      
+          if (!response.ok) {
+            throw new Error("Failed to generate script element suggestion");
+          }
+      
+          const { suggestion } = await response.json();
+          console.log("Generated Suggestion:", suggestion);
+          console.log("suggestion text:", suggestion.text);
+      
+          if (suggestion && suggestion.text) {
+            const updatedScriptElements = scriptElements.map((el, i) => 
+              i === index ? { ...el, text: suggestion.text } : el
+            );
+            updateScript(updatedScriptElements);
+          } else {
+            console.error("Unexpected suggestion format:", suggestion);
+          }
+        } catch (error) {
+          console.error("Error generating script element suggestion:", error);
+        } finally {
+          setIsGenerating(false);
+          setGeneratingIndex(null);
+        }
+    };
+
+    const undo = useCallback(() => {
+      if (history.length > 0) {
+        const previousState = history[history.length - 1];
+        setHistory(history.slice(0, -1));
+        setScriptElements(previousState);
+        setOutlineElements(outlineElements.map(el =>
+          el.id === element.id ? { ...el, script: previousState } : el
+        ));
+      }
+    }, [history, outlineElements, setOutlineElements, element.id]);
+
     const calculateTotalScriptDuration = () => {
       return scriptElements.reduce((total, element) => total + (element?.end ?? 0) - (element?.start ?? 0), 0);
     };
@@ -98,30 +166,59 @@ const ScriptSection: React.FC<ScriptSectionProps> = ({
     return (
       <div className="flex flex-col h-full p-2">
         <div className="flex-grow overflow-y-auto">
+          <div className="flex items-center space-x-2 p-2">
+            <span className="text-xs text-gray-500">⌘ + Z to undo edits!</span>
+          </div>
           {scriptElements.map((scriptElement, index) => (
-            <div key={index} className="p-2">
-              <div className="flex justify-between items-center py-2">
-                <span className="text-sm font-medium">
-                  {new Date(scriptElement.start * 1000).toISOString().slice(11, 19)} - 
-                  {new Date(scriptElement.end * 1000).toISOString().slice(11, 19)}
-                </span>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    const updatedScriptElements = scriptElements.filter((_, i) => i !== index);
-                    updateScript(updatedScriptElements);
-                  }}
-                >
-                  Delete
-                </Button>
-              </div>
-              <Textarea
-                value={scriptElement.text}
-                onChange={(e) => handleUpdateScriptElement(index, e.target.value)}
-                className="w-full"
-              />
+            <div key={index} className="p-2 flex items-start space-x-2 h-full max-h-24">
+                <div className="flex-shrink-0 w-24 text-xs font-medium text-gray-600 flex flex-col h-full">
+                    <div className="bg-gray-100 py-2 px-2 rounded-t flex-grow flex items-center justify-center">
+                        {new Date(scriptElement.start * 1000).toISOString().slice(11, 19)}
+                    </div>
+                    <div className="bg-gray-100 py-2 px-2 rounded-b flex-grow flex items-center justify-center border-t border-gray-300">
+                        {new Date(scriptElement.end * 1000).toISOString().slice(11, 19)}
+                    </div>
+                </div>
+                {isGenerating && generatingIndex === index ? (
+                  <Skeleton className="h-full w-full" />
+                ) : (
+                  <Textarea
+                      value={scriptElement.text}
+                      onChange={(e) => handleUpdateScriptElement(index, e.target.value)}
+                      className="flex-grow py-2 px-3 h-full ml-2"
+                      placeholder="Ex. 'Hello, I'm John Doe. Today we're going to talk about the importance of..."
+                  />
+                )}
+                <div className="flex flex-col items-center space-y-2 h-full">
+                    <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() => {
+                            const updatedScriptElements = scriptElements.filter((_, i) => i !== index);
+                            updateScript(updatedScriptElements);
+                        }}
+                        className=" bg-red-100 hover:bg-red-200 w-full"
+                    >
+                        <Trash2Icon className="h-4 w-4 text-red-500" />
+                    </Button>
+                    <Button
+                        size="icon"
+                        variant="default"
+                        onClick={() => handleGenerateScriptElementSuggestion(scriptElement.start, scriptElement.end, index)}
+                        className="w-full p-2"
+                    >
+                        Suggest
+                    </Button>
+                </div>
             </div>
           ))}
+        {scriptElements.length === 0 && (
+            <Card className="p-4 h-full">
+                <CardContent className="flex items-center justify-center h-full py-3">
+                <p className="text-base text-gray-500">There are no script elements for this section. Start creating your script!</p>
+                </CardContent>
+            </Card>
+        )}
         </div>
         <div className="flex items-center py-2">
           <TimeInput
@@ -153,7 +250,7 @@ const ScriptSection: React.FC<ScriptSectionProps> = ({
                 handleCreateScriptElement(newStart, newEnd);
                 const lastElement = scriptElements[scriptElements.length - 1];
                 setNewStart(lastElement ? lastElement.end : newStart);
-                setNewEnd(Math.min(newEnd + 10, new Date(element.position_end_time ?? '').getTime() / 1000));
+                setNewEnd(Math.min(newEnd + 5, new Date(element.position_end_time ?? '').getTime() / 1000));
               }
             }}
             className="ml-2 w-full"

@@ -56,6 +56,8 @@ export default async function handler(
 
     const suggestion = response.choices[0].message.content;
 
+    console.log("suggestion:", suggestion);
+
     res.status(200).json({ suggestion });
   } catch (error) {
     console.error("Error generating instruction suggestion:", error);

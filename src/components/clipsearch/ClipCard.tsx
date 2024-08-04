@@ -9,9 +9,10 @@ interface ClipCardProps {
   showMore: boolean;
   onShowMore: () => void;
   onAddToOutline: () => void;
+  disabled?: boolean;
 }
 
-const ClipCard: React.FC<ClipCardProps> = ({ item, showMore, onShowMore, onAddToOutline }) => {
+const ClipCard: React.FC<ClipCardProps> = ({ item, showMore, onShowMore, onAddToOutline, disabled = false }) => {
   return (
     <Card className="mb-4">
       <CardHeader>
@@ -54,18 +55,20 @@ const ClipCard: React.FC<ClipCardProps> = ({ item, showMore, onShowMore, onAddTo
               </>
             ) : (
               <>
-                {item.description.slice(0, 200)}...
-                <button
-                  onClick={onShowMore}
+                {item.description.slice(0, 250)}...
+                {item.description.length > 250 && (
+                  <button
+                    onClick={onShowMore}
                   className="text-blue-600 hover:underline ml-2"
-                >
-                  Show more
-                </button>
+                  >
+                    Show more
+                  </button>
+                )}
               </>
             )}
           </CardDescription>
         </div>
-        <Button className="w-full" onClick={onAddToOutline}>
+        <Button size="sm" className="w-full" onClick={onAddToOutline} disabled={disabled}>
           Add to Outline
         </Button>
       </CardContent>

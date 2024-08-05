@@ -7,6 +7,7 @@ import { type ScriptElement, isScriptElement } from '@/lib/types/customTypes';
 import { Card, CardContent } from '@/components/ui/card';
 import { Trash2Icon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 
 interface ScriptSectionProps {
   element: OutlineElementWithVideoTitle;
@@ -166,8 +167,11 @@ const ScriptSection: React.FC<ScriptSectionProps> = ({
     return (
       <div className="flex flex-col h-full p-2">
         <div className="flex-grow overflow-y-auto">
-          <div className="flex items-center space-x-2 p-2">
-            <span className="text-xs text-gray-500">⌘ + Z to undo edits!</span>
+          <div className="flex justify-between items-center mb-2">
+            <label className="text-sm font-medium text-gray-700">⌘ + Z to undo edits!</label>
+            <Badge variant="destructive" className="mb-2">
+              Request Approval
+            </Badge>
           </div>
           {scriptElements.map((scriptElement, index) => (
             <div key={index} className="p-2 flex items-start space-x-2 h-full max-h-24">

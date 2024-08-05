@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, BookOpenIcon, VideoIcon, CloudLightningIcon } from 'lucide-react';
+import { Search, VideoIcon, CloudLightningIcon, FileStackIcon, PencilRuler, CloudCog, LucideSwitchCamera } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
@@ -18,7 +18,12 @@ export default function Navbar() {
         <div className="ml-8 flex items-center">
           <NavItem href="/directory" icon={<VideoIcon className="w-4 h-4 mr-2" />} text="Directory" isActive={pathname === '/directory'} />
           <NavItem href="/clipsearch" icon={<Search className="w-4 h-4 mr-2" />} text="Clip Search" isActive={pathname === '/clipsearch'} />
-          <NavItem href="/outline" icon={<BookOpenIcon className="w-4 h-4 mr-2" />} text="Outline" isActive={pathname === '/outline'} />
+          <NavItem href="/outline" icon={<PencilRuler className="w-4 h-4 mr-2" />} text="Outline" isActive={pathname === '/outline'} />
+
+          {/* throwing some ideas here */}
+          <NavItem href="/" icon={<FileStackIcon className="w-4 h-4 mr-2" />} text="Pipeline (TBD)" isActive={pathname === '/'} />
+          <NavItem href="/" icon={<CloudCog className="w-4 h-4 mr-2" />} text="Airtime (TBD)" isActive={pathname === '/'} />
+          <NavItem href="/" icon={<LucideSwitchCamera className="w-4 h-4 mr-2" />} text="Testing (TBD)" isActive={pathname === '/'} />
         </div>
       </div>
     </nav>

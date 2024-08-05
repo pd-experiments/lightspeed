@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from "@/components/ui/textarea";
-import { OutlineElementWithVideoTitle } from '@/app/outline/page';
+import { OutlineElementWithVideoTitle } from '@/app/outline/[id]/page';
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface SourcesSectionProps {

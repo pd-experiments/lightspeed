@@ -50,27 +50,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const previousElementText = previousElement ? await fetchGroupedVideoEmbeddings(previousElement) : null;
     const nextElementText = nextElement ? await fetchGroupedVideoEmbeddings(nextElement) : null;
 
+    const outlineDuration = calculateOutlineDuration(outlineElements);
+
     const context = {
       currentElement: {
         type: currentElement.type,
         description: currentElement.description,
         position: `${currentElement.position_start_time} - ${currentElement.position_end_time}`,
         script: currentElement.script,
-        text: currentElementText,
+        audio_in_the_clip: currentElementText,
       },
       previousElement: previousElement ? {
         type: previousElement.type,
         description: previousElement.description,
         position: `${previousElement.position_start_time} - ${previousElement.position_end_time}`,
         script: previousElement.script,
-        text: previousElementText,
+        audio_in_the_clip: previousElementText,
       } : null,
       nextElement: nextElement ? {
         type: nextElement.type,
         description: nextElement.description,
         position: `${nextElement.position_start_time} - ${nextElement.position_end_time}`,
         script: nextElement.script,
-        text: nextElementText,
+        audio_in_the_clip: nextElementText,
       } : null,
     };
 
@@ -79,8 +81,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const response = await openai_client.chat.completions.create({
       model: "gpt-4",
       messages: [
-        { role: "system", content: "You are an assistant helping to create script elements for video editing." },
-        { role: "user", content: `Given the following context for a political advertisement:\n${JSON.stringify(context, null, 2)}\n\nGenerate a suggestion for a new script element for the time range ${script_element_start} - ${script_element_end}. Consider the flow and context of the entire outline.` }
+        { role: "system", content: "You are an assistant helping to create script elements for producing political advertisements." },
+        { role: "user", content: `Given the following context for a ${outlineDuration} second political advertisement:\n${JSON.stringify(context, null, 2)}\n\nGenerate a suggestion for a new script element for the ${script_element_start} - ${script_element_end} time range. Consider the flow and context of the entire outline. These are not instructions for an editor, but rather dialogue for a potential narrator, AI voiceover, or multiple speakers. This is not a screenplay, only produce dialogue, be unique in relation to the existing script elements.` }
       ],
       max_tokens: 150
     });
@@ -95,4 +97,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error("Error generating script element suggestion:", error);
     res.status(500).json({ error: "Failed to generate script element suggestion" });
   }
+}
+
+function calculateOutlineDuration(outlineElements: any[]): number {
+  if (outlineElements.length === 0) return 0;
+
+  const startTime = new Date(outlineElements[0].position_start_time).getTime();
+  const endTime = new Date(outlineElements[outlineElements.length - 1].position_end_time).getTime();
+
+  return Math.round((endTime - startTime) / 1000);
 }

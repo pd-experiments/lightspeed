@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tables } from '@/lib/types/schema';
 import { Clock, Calendar, Layers, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 type Outline = Tables<'outline'>;
 
@@ -59,6 +60,9 @@ export function OutlineCard({ outline, elementCount, totalDuration, onDelete }: 
         </div>
       </CardHeader>
       <CardContent>
+        <Badge variant="destructive" className="mb-3">
+          Request Approval
+        </Badge>
         <p className="text-sm text-gray-600 mb-4 line-clamp-2">{outline.description}</p>
         <div className="flex flex-col space-y-2">
           <div className="flex items-center text-sm text-gray-700">

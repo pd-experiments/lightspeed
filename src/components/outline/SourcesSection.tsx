@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from "@/components/ui/textarea";
 import { OutlineElementWithVideoTitle } from '@/app/outline/[id]/page';
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 interface SourcesSectionProps {
   element: OutlineElementWithVideoTitle;
@@ -44,6 +45,9 @@ const SourcesSection: React.FC<SourcesSectionProps> = ({
     <div className="flex flex-col h-full p-2">
       <div className="flex justify-between items-center mb-2">
         <label className="text-sm font-medium text-gray-700">Sources</label>
+        <Badge variant="destructive" className="mb-2">
+          Request Approval
+        </Badge>
       </div>
       <div className="flex-grow flex flex-col">
         {isLoading ? (

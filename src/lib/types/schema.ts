@@ -247,6 +247,30 @@ export type Database = {
           },
         ]
       }
+      todos: {
+        Row: {
+          created_at: string
+          id: string
+          status: Database["public"]["Enums"]["todoStatusType"]
+          text: string
+          user: Database["public"]["Enums"]["simpleUserType"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["todoStatusType"]
+          text: string
+          user: Database["public"]["Enums"]["simpleUserType"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["todoStatusType"]
+          text?: string
+          user?: Database["public"]["Enums"]["simpleUserType"]
+        }
+        Relationships: []
+      }
       video_embeddings: {
         Row: {
           duration: string
@@ -334,6 +358,18 @@ export type Database = {
             Returns: unknown
           }
       fetch_random_clips: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          video_uuid: string
+          video_id: string
+          title: string
+          description: string
+          start_timestamp: string
+          end_timestamp: string
+          text: string
+        }[]
+      }
+      fetch_random_clips_grouped_ve: {
         Args: Record<PropertyKey, never>
         Returns: {
           video_uuid: string
@@ -435,6 +471,33 @@ export type Database = {
           "": unknown
         }
         Returns: unknown
+      }
+      json_matches_schema: {
+        Args: {
+          schema: Json
+          instance: Json
+        }
+        Returns: boolean
+      }
+      jsonb_matches_schema: {
+        Args: {
+          schema: Json
+          instance: Json
+        }
+        Returns: boolean
+      }
+      jsonschema_is_valid: {
+        Args: {
+          schema: Json
+        }
+        Returns: boolean
+      }
+      jsonschema_validation_errors: {
+        Args: {
+          schema: Json
+          instance: Json
+        }
+        Returns: string[]
       }
       l2_norm:
         | {
@@ -564,6 +627,8 @@ export type Database = {
     }
     Enums: {
       outlineElementType: "VIDEO" | "TRANSITION"
+      simpleUserType: "PRANAV" | "DINESH"
+      todoStatusType: "TODO" | "IN_PROGRESS" | "DONE"
     }
     CompositeTypes: {
       [_ in never]: never

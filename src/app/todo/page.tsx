@@ -142,8 +142,8 @@ export default function TodoPage() {
                               <div className="text-sm text-gray-500">
                                 Created: {new Date(todo.created_at).toLocaleString()}
                               </div>
-                              <div className="text-sm font-medium text-gray-800 mb-2">
-                                Assigned to: <Badge>{todo.user}</Badge>
+                              <div className={`text-sm font-medium text-gray-800 mb-2`}>
+                                Assigned to: <Badge className={`${todo.user === 'PRANAV' ? 'bg-pink-400' : 'bg-orange-500'}`}>{todo.user}</Badge>
                               </div>
                             </div>
                             <div className="flex items-center space-x-2 mt-4">

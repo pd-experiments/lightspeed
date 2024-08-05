@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'next/navigation';
 import Navbar from '@/components/ui/Navbar';
 import { Tables } from '@/lib/types/schema';
 import ReactPlayer from 'react-player';
-import { Input } from '@/components/ui/input';
 import { generateFcpxml } from '@/lib/helperUtils/generateFcpxml';
 import { saveAs } from 'file-saver';
 import ScriptView from '@/components/outline/ScriptView';

@@ -1,3 +1,5 @@
+'use client';
+
 import { Search, BookOpenIcon, VideoIcon, CloudLightningIcon } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';

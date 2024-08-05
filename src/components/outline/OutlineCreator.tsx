@@ -1,24 +1,44 @@
+'use client';
+
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
-interface OutlineCreatorProps {
-  onCreateOutline: (title: string, description: string) => void;
-}
-
-export function OutlineCreator({ onCreateOutline }: OutlineCreatorProps) {
+export function OutlineCreator() {
+  const router = useRouter();
   const [newOutlineTitle, setNewOutlineTitle] = useState<string>('');
   const [newOutlineDescription, setNewOutlineDescription] = useState<string>('');
 
-  const handleCreateOutline = () => {
-    if (!newOutlineTitle.trim()) {
-      alert('Please enter a title for the new outline.');
-      return;
+  const handleCreateOutline = async (title: string) => {
+    const newOutline = {
+      title,
+      created_at: new Date(),
+      updated_at: new Date(),
+      description: null,
+    };
+
+    try {
+      const response = await fetch('/api/outlines/create-outline', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ outline: newOutline }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create outline');
+      }
+
+      const data = await response.json();
+      alert('Outline created successfully.');
+      router.refresh();
+    } catch (error) {
+      console.error('Error creating outline:', error);
+      alert('Error creating outline.');
     }
-    onCreateOutline(newOutlineTitle, newOutlineDescription);
-    setNewOutlineTitle('');
-    setNewOutlineDescription('');
   };
 
   return (
@@ -54,7 +74,7 @@ export function OutlineCreator({ onCreateOutline }: OutlineCreatorProps) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setNewOutlineTitle(''); setNewOutlineDescription(''); }}>Cancel</Button>
-            <Button onClick={handleCreateOutline}>Submit</Button>
+            <Button onClick={() => handleCreateOutline(newOutlineTitle)}>Submit</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

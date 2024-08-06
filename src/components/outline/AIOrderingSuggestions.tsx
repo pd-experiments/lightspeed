@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { OutlineElementWithVideoTitle, OutlineElementSuggestions } from '@/app/outline/page';
+import { OutlineElementWithVideoTitle, OutlineElementSuggestions } from '@/app/outline/[id]/page';
 
 interface AIOrderingSuggestionsProps {
   aiOrderings: OutlineElementSuggestions[];

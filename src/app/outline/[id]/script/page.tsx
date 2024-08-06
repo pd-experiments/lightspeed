@@ -135,7 +135,7 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
             ) : (
                 'Generate Full Script'
             )} */}
-            {scriptGenerationProgress > 0 ? (
+            {scriptGenerationProgress > 0 && scriptGenerationProgress < 100 ? (
                 <div className="flex items-center justify-center">
                 <Spinner className="mr-2 h-4 w-4" />
                 <span className="text-blue-500">Generating...</span>

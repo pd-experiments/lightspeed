@@ -1,4 +1,7 @@
-export function calculatePosition(start: string, end: string, outlineElements: any[]) {
+import { Tables } from '@/lib/types/schema';
+type OutlineElement = Tables<'outline_elements'>;
+
+  export function calculatePosition(start: string, end: string, outlineElements: any[]) {
     const startTime = new Date(start).getTime();
     const endTime = new Date(end).getTime();
     const firstElement = outlineElements[0];
@@ -41,12 +44,16 @@ export function calculatePosition(start: string, end: string, outlineElements: a
     return newTime.toISOString();
   }
   
-  export function getTimelineDuration(outlineElements: any[]) {
-    if (outlineElements.length === 0) return { start: new Date(), end: new Date() };
-    const validElements = outlineElements.filter(element => element.position_start_time && element.position_end_time);
-    const startTimes = validElements.map(element => new Date(element.position_start_time!).getTime());
-    const endTimes = validElements.map(element => new Date(element.position_end_time!).getTime());
-    const earliestStart = new Date(Math.min(...startTimes));
-    const latestEnd = new Date(Math.max(...endTimes));
-    return { start: earliestStart, end: latestEnd };
+  export function calculateOutlineDuration(outlineElements: OutlineElement[]): number {
+    if (outlineElements.length === 0) return 0;
+    const startTime = outlineElements[0].position_start_time ? new Date(outlineElements[0].position_start_time ?? 0).getTime() : 0;
+    const endTime = outlineElements[outlineElements.length - 1].position_end_time ? new Date(outlineElements[outlineElements.length - 1].position_end_time ?? 0).getTime() : 0;
+    return Math.round((endTime - startTime) / 1000);
   }
+
+  export function formatDuration(duration: number) {
+    const hours = Math.floor(duration / 3600);
+    const minutes = Math.floor((duration % 3600) / 60);
+    const seconds = Math.floor(duration % 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };

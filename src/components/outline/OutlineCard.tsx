@@ -1,9 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tables } from '@/lib/types/schema';
-import { Clock, Calendar, Layers, Trash2 } from 'lucide-react';
+import { Clock, Calendar, Layers, Trash2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { formatDuration } from '@/lib/helperUtils/outline/utils';
 
 type Outline = Tables<'outline'>;
 
@@ -12,16 +13,10 @@ interface OutlineCardProps {
   elementCount: number;
   totalDuration: number;
   onDelete: () => void;
+  scriptGenerated: boolean;
 }
 
-export function OutlineCard({ outline, elementCount, totalDuration, onDelete }: OutlineCardProps) {
-  const formatDuration = (duration: number) => {
-    const hours = Math.floor(duration / 3600);
-    const minutes = Math.floor((duration % 3600) / 60);
-    const seconds = Math.floor(duration % 60);
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
-
+export function OutlineCard({ outline, elementCount, totalDuration, onDelete, scriptGenerated }: OutlineCardProps) {
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -77,6 +72,12 @@ export function OutlineCard({ outline, elementCount, totalDuration, onDelete }: 
             <Calendar className="w-4 h-4 mr-2 text-purple-500" />
             <span>Updated: {new Date(outline.updated_at).toLocaleDateString()}</span>
           </div>
+          {scriptGenerated && (
+            <div className="flex items-center text-sm text-gray-700">
+              <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+              <span>Script Generated</span>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

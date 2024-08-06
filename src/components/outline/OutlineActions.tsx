@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import Link from 'next/link';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface OutlineActionsProps {
   onPlay: () => void;
@@ -27,7 +28,7 @@ export function OutlineActions({ onPlay, onExport, onGenerateAIOrdering, onGener
           className="w-full"
           disabled={scriptGenerationProgress > 0 && scriptGenerationProgress < 100}
         >
-          {scriptGenerationProgress > 0 ? (
+          {/* {scriptGenerationProgress > 0 ? (
             scriptGenerationProgress < 100 ? (
             <div className="flex items-center justify-center">
               <CircularProgressbar
@@ -46,6 +47,14 @@ export function OutlineActions({ onPlay, onExport, onGenerateAIOrdering, onGener
             )
           ) : (
             'Generate Full Script'
+          )} */}
+          {scriptGenerationProgress > 0 ? (
+            <div className="flex items-center justify-center">
+              <Spinner className="mr-2 h-4 w-4" />
+              <span className="text-blue-500">Generating...</span>
+            </div>
+          ) : (
+            scriptGenerationProgress === 100 ? <span className="text-blue-500">Regenerate Full Script</span> : <span className="text-blue-500">Generate Full Script</span>
           )}
         </Button>
       </div>

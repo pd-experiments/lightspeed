@@ -19,12 +19,12 @@ export default function Navbar() {
           <NavItem href="/directory" icon={<VideoIcon className="w-4 h-4 mr-2" />} text="Directory" isActive={pathname === '/directory'} />
           <NavItem href="/clipsearch" icon={<Search className="w-4 h-4 mr-2" />} text="Clip Search" isActive={pathname === '/clipsearch'} />
           <NavItem href="/outline" icon={<PencilRuler className="w-4 h-4 mr-2" />} text="Outline" isActive={pathname === '/outline'} />
-          <NavItem href="/todo" icon={<CheckCircleIcon className="w-4 h-4 mr-2" />} text="Todo (DEVMODE)" isActive={pathname === '/todo'} color="bg-blue-200" />
 
           {/* throwing some ideas here */}
-          <NavItem href="/" icon={<FileStackIcon className="w-4 h-4 mr-2" />} text="Pipeline (TBD)" isActive={pathname === '/'} />
+          {/* <NavItem href="/" icon={<FileStackIcon className="w-4 h-4 mr-2" />} text="Pipeline (TBD)" isActive={pathname === '/'} />
           <NavItem href="/" icon={<CloudCog className="w-4 h-4 mr-2" />} text="Airtime (TBD)" isActive={pathname === '/'} />
-          <NavItem href="/" icon={<LucideSwitchCamera className="w-4 h-4 mr-2" />} text="Testing (TBD)" isActive={pathname === '/'} />
+          <NavItem href="/" icon={<LucideSwitchCamera className="w-4 h-4 mr-2" />} text="Testing (TBD)" isActive={pathname === '/'} /> */}
+          <NavItem href="/todo" icon={<CheckCircleIcon className="w-4 h-4 mr-2" />} text="Todo (DEVMODE)" isActive={pathname === '/todo'} />
         </div>
       </div>
     </nav>

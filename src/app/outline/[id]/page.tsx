@@ -7,14 +7,16 @@ import ReactPlayer from 'react-player';
 import { generateFcpxml } from '@/lib/helperUtils/generateFcpxml';
 import { saveAs } from 'file-saver';
 import ScriptView from '@/components/outline/ScriptView';
-import { calculatePosition, calculatePositionForOrdering, calculateNewTime, getTimelineDuration } from '@/lib/helperUtils/outline/utils';
+import { calculatePosition, calculatePositionForOrdering, calculateNewTime, calculateOutlineDuration } from '@/lib/helperUtils/outline/utils';
 import { Skeleton } from "@/components/ui/skeleton";
 import { VideoPlayer } from '@/components/ui/SimpleVideoPlayer';
 import { AIOrderingSuggestions } from '@/components/outline/AIOrderingSuggestions';
 import { OutlineActions } from '@/components/outline/OutlineActions';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Clock, Calendar, Layers, ChevronLeft } from 'lucide-react';
+import { formatDuration } from '@/lib/helperUtils/outline/utils';
 
 type Outline = Tables<'outline'>;
 type OutlineElement = Tables<'outline_elements'>;
@@ -35,6 +37,8 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState<boolean>(true);
   const [aiOrderings, setAiOrderings] = useState<OutlineElementSuggestions[]>([]);
   const [scriptGenerationProgress, setScriptGenerationProgress] = useState<number>(0);
+  const [elementCount, setElementCount] = useState<number>(0);
+  const [totalDuration, setTotalDuration] = useState<number>(0);
   const playerRef = useRef<ReactPlayer>(null);
 
   useEffect(() => {
@@ -70,6 +74,8 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
         const progressData = await progressResponse.json();
         setScriptGenerationProgress(progressData.progress);
 
+        setElementCount(updatedElements.length);
+        setTotalDuration(calculateOutlineDuration(updatedElements));
       } catch (error) {
         console.error('Error fetching outline data:', error);
       } finally {
@@ -159,7 +165,23 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
           {loading ? (
             <Skeleton className="w-full h-16 mb-6" />
           ) : (
-            <h1 className="text-3xl font-bold mb-6">{outline?.title}</h1>
+            <div className="flex items-center mb-6">
+              <h1 className="text-3xl font-bold mr-4">{outline?.title}</h1>
+              <div className="flex space-x-2">
+                <Badge variant="secondary" className="flex items-center">
+                  <Layers className="w-4 h-4 mr-1" />
+                  <span>{elementCount} Elements</span>
+                </Badge>
+                <Badge variant="secondary" className="flex items-center">
+                  <Clock className="w-4 h-4 mr-1" />
+                  <span>{formatDuration(totalDuration)}</span>
+                </Badge>
+                <Badge variant="secondary" className="flex items-center">
+                  <Calendar className="w-4 h-4 mr-1" />
+                  <span>Updated: {new Date(outline?.updated_at ?? '').toLocaleDateString()}</span>
+                </Badge>
+              </div>
+            </div>
           )}
           {loading ? (
             <Skeleton className="w-full h-64" />

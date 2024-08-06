@@ -6,6 +6,7 @@ import { Tables } from '@/lib/types/schema';
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { Skeleton } from "@/components/ui/skeleton";
+import { calculateOutlineDuration } from '@/lib/helperUtils/outline/utils';
 
 type Outline = Tables<'outline'>;
 type OutlineElement = Tables<'outline_elements'>;
@@ -39,13 +40,6 @@ export default function OutlineList() {
     fetchOutlines();
   }, []);
 
-  function calculateOutlineDuration(outlineElements: OutlineElement[]): number {
-    if (outlineElements.length === 0) return 0;
-    const startTime = outlineElements[0].position_start_time ? new Date(outlineElements[0].position_start_time ?? 0).getTime() : 0;
-    const endTime = outlineElements[outlineElements.length - 1].position_end_time ? new Date(outlineElements[outlineElements.length - 1].position_end_time ?? 0).getTime() : 0;
-    return Math.round((endTime - startTime) / 1000);
-  }
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
       {loading ? (
@@ -76,6 +70,7 @@ export default function OutlineList() {
               elementCount={outline.elementCount} 
               totalDuration={outline.totalDuration} 
               onDelete={() => setOutlines(outlines.filter(o => o.id !== outline.id))}
+              scriptGenerated={outline.script_generation_progress === 100}
             />
           </Link>
         ))

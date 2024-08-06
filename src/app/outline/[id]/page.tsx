@@ -34,18 +34,17 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
   const [currentVideo, setCurrentVideo] = useState<YouTubeVideo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [aiOrderings, setAiOrderings] = useState<OutlineElementSuggestions[]>([]);
+  const [scriptGenerationProgress, setScriptGenerationProgress] = useState<number>(0);
   const playerRef = useRef<ReactPlayer>(null);
 
   useEffect(() => {
     async function fetchOutlineData() {
       setLoading(true);
       try {
-        // Fetch outline details
         const outlineResponse = await fetch(`/api/outlines/get-outline?outline_id=${outlineId}`);
         const outlineData = await outlineResponse.json();
         setOutline(outlineData);
 
-        // Fetch outline elements
         const elementsResponse = await fetch(`/api/outlines/get-elements?outline_id=${outlineId}`);
         const elementsData = await elementsResponse.json();
         const updatedElements = await Promise.all(elementsData.map(async (element: OutlineElement) => {
@@ -58,7 +57,6 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
         }));
         setOutlineElements(updatedElements);
 
-        // Set current video
         if (updatedElements.length > 0) {
           const firstVideoElement = updatedElements.find(el => el.type !== 'TRANSITION');
           if (firstVideoElement) {
@@ -67,6 +65,11 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
             setCurrentVideo(videoData);
           }
         }
+
+        const progressResponse = await fetch(`/api/outlines/get-script-progress?outline_id=${outlineId}`);
+        const progressData = await progressResponse.json();
+        setScriptGenerationProgress(progressData.progress);
+
       } catch (error) {
         console.error('Error fetching outline data:', error);
       } finally {
@@ -113,15 +116,42 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
     }
   };
 
+  const handleGenerateFullScript = async (outlineId: string) => {
+    try {
+      setScriptGenerationProgress(1);
+      const response = await fetch('/api/outlines/generate-full-script', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ outline_id: outlineId }),
+      });
+      const data = await response.json();
+      console.log('Full script:', data.fullScript);
+      alert('Full script generated successfully! Check the console for details.');
+    } catch (error) {
+      console.error('Error generating full script:', error);
+      alert('Failed to generate full script. Please try again.');
+    } finally {
+      setScriptGenerationProgress(0);
+    }
+  };
+
   return (
     <>
       <Navbar />
       <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="w-full max-w-7xl">
-          <Button variant="link" className="mb-4 p-0 h-auto font-normal">
+        <div className="w-full max-w-7xl flex justify-between mb-4">
+          <Button variant="link" className="p-0 h-auto font-normal">
             <Link href="/outline" className="flex items-center">
               <ChevronLeft className="mr-1 h-4 w-4" />
               <span>Back to Outlines</span>
+            </Link>
+          </Button>
+          <Button variant="link" className="p-0 h-auto font-normal">
+            <Link href={`/outline/${outlineId}/script?title=${encodeURIComponent(outline?.title || '')}`} className="flex items-center">
+              <span>View Script</span>
+              <ChevronLeft className="ml-1 h-4 w-4 transform rotate-180" />
             </Link>
           </Button>
         </div>
@@ -142,6 +172,8 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
                     onPlay={handlePlay}
                     onExport={handleExportFcpxml}
                     onGenerateAIOrdering={generateAIOutlineOrdering}
+                    onGenerateFullScript={() => handleGenerateFullScript(outlineId)}
+                    scriptGenerationProgress={scriptGenerationProgress}
                   />
                 </>
               )}

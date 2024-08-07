@@ -84,6 +84,19 @@ export default function TodoPage() {
     }
   }
 
+  async function updateTodoUser(id: string, newUser: 'PRANAV' | 'DINESH') {
+    const { error } = await supabase
+      .from('todos')
+      .update({ user: newUser })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating todo user:', error);
+    } else {
+      setTodos(todos.map(todo => todo.id === id ? { ...todo, user: newUser } : todo));
+    }
+  }
+
   const statusGroups = {
     TODO: todos.filter(todo => todo.status === 'TODO'),
     IN_PROGRESS: todos.filter(todo => todo.status === 'IN_PROGRESS'),
@@ -142,8 +155,20 @@ export default function TodoPage() {
                               <div className="text-sm text-gray-500">
                                 Created: {new Date(todo.created_at).toLocaleString()}
                               </div>
-                              <div className={`text-sm font-medium text-gray-800 mb-2`}>
-                                Assigned to: <Badge className={`${todo.user === 'PRANAV' ? 'bg-pink-400' : 'bg-orange-500'}`}>{todo.user}</Badge>
+                              <div className="text-sm font-medium text-gray-800 mb-2">
+                                Assigned to:
+                                <Badge
+                                  className={`cursor-pointer ml-2 ${todo.user === 'PRANAV' ? 'bg-pink-400' : 'bg-gray-200 text-gray-500'}`}
+                                  onClick={() => updateTodoUser(todo.id, 'PRANAV')}
+                                >
+                                  PRANAV
+                                </Badge>
+                                <Badge
+                                  className={`cursor-pointer ml-2 ${todo.user === 'DINESH' ? 'bg-orange-500' : 'bg-gray-200 text-gray-500'}`}
+                                  onClick={() => updateTodoUser(todo.id, 'DINESH')}
+                                >
+                                  DINESH
+                                </Badge>
                               </div>
                             </div>
                             <div className="flex items-center space-x-2 mt-4">

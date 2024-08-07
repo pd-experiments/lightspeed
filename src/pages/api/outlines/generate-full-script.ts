@@ -30,18 +30,18 @@ async function generateScriptChunk(context: any[], isFirstChunk: boolean, isLast
 
     const systemPrompt = "You are an assistant helping to create a full video script for a political advertisement. Your task is to generate a professional, well-formatted script that can be used by political campaigns for making political ads.";
     const userPrompt = `Given the following outline context for a political advertisement:\n${JSON.stringify(context, null, 2)}\n\n
-        Generate a part of the video script that incorporates these elements. The script should include:
-        1. Narration or dialogue with speaker labels
-        2. Visual descriptions in parentheses
-        3. Transitions between scenes
-        4. Any text overlays or graphics in brackets
-        5. Background music or sound effect suggestions in all caps
+        Generate a part of the video script that incorporates these elements. The script should be returned as a JSON array of objects, where each object represents a script element with the following properties:
+        - type: string (e.g., "NARRATION", "VISUAL", "TRANSITION", "TEXT_OVERLAY", "SOUND_EFFECT", "EXISTING_SCRIPT", "SOUNDBITE")
+        - content: string (the actual content of the script element)
+        - speaker: string (if applicable, for narration or dialogue)
+        - id: string (if applicable, for existing script or soundbite, this should be id of the associated video in the youtube table)
+        - timestamp: string (if applicable, for soundbite)
+        - duration: string (if applicable, for soundbite)
 
         IMPORTANT: 
-        - When using content from video clips, clearly label it as [SOUNDBITE: "exact text from audio_text"] in the script.
-        - When incorporating existing script content, label it as [EXISTING SCRIPT: "exact text from existing_script"].
-        - Don't truncate these elements.
-        - For any new content you generate, do not use any special labels.
+        - When using content from video clips, include the id, timestamp, and duration.
+        - Don't truncate the text in the existing script elements that you use.
+        - For any new content you generate, use appropriate types without video_id, timestamp, or duration.
 
         NOTE:
         - You should not only use the audio_text or existing script text, you should also add to the script, transition ideas, etc.
@@ -64,7 +64,8 @@ async function generateScriptChunk(context: any[], isFirstChunk: boolean, isLast
     });
 
     console.log("Script chunk generated successfully");
-    return response.choices[0].message.content;
+    const content = response.choices[0].message.content;
+    return content ? JSON.parse(content) : null;
 }
 
 export default async function handler(
@@ -97,7 +98,7 @@ export default async function handler(
         console.log("Fetching outline elements from Supabase");
         const { data: outlineElements, error } = await supabase
         .from("outline_elements")
-        .select("*, youtube(title)")
+        .select("*, youtube(title, id)")
         .eq("outline_id", outline_id)
         .order("position_start_time", { ascending: true });
 
@@ -115,6 +116,7 @@ export default async function handler(
                 description: el.description,
                 position: `${el.position_start_time} - ${el.position_end_time}`,
                 video_title: el.youtube?.title,
+                id: el.youtube?.id,
                 existing_script: el.script || null,
                 audio_text: soundbites || null,
             };
@@ -145,7 +147,7 @@ export default async function handler(
         }
 
         console.log("All chunks processed, joining full script");
-        const fullScript = scriptChunks.join("\n\n");
+        const fullScript = scriptChunks.flat();
 
         console.log("Updating outline with full script in Supabase");
         await supabase

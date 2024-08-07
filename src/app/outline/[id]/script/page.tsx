@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, PencilIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Calendar, Layers } from 'lucide-react';
@@ -14,7 +14,8 @@ import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { Spinner } from '@/components/ui/Spinner';
 import { FaYoutube } from 'react-icons/fa';
-import { Mic, Eye, Type, Music, Film, MonitorCheck } from 'lucide-react';
+import { Mic, Eye, Type, Music, Film, MonitorCheck, Download } from 'lucide-react';
+import _ from 'lodash';
 
 export default function ScriptPage({ params, searchParams }: { params: { id: string }, searchParams: { title: string } }) {
   const outlineId = params?.id as string;
@@ -179,10 +180,13 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
         case 'SOUNDBITE':
           const info = videoInfo[item.id];
           const startTime = new Date(item.timestamp);
-          const endTime = new Date(startTime.getTime() + parseFloat(item.duration) * 1000);
+          const endTime = new Date(item.duration);
           
           const formatTime = (time: Date) => {
-            return time.toISOString().substr(11, 8);
+            if (!(time instanceof Date) || isNaN(time.getTime())) {
+              return 'Invalid Time';
+            }
+            return time.toISOString().slice(11, 19);
           };
         
           return (
@@ -215,6 +219,29 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
     });
   };
 
+  const handleDownloadScript = () => {
+    const scriptData = {
+      title: outlineTitle,
+      id: outlineId,
+      elementCount,
+      totalDuration,
+      updatedAt: outline?.updated_at,
+      version: outline?.version,
+      script: fullScript
+    };
+
+    const jsonString = JSON.stringify(scriptData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${outlineTitle.replace(/\s+/g, '_')}_script.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <>
       <Navbar />
@@ -227,58 +254,73 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
             </Link>
           </Button>
           <div className="flex items-center mb-6">
-            <h1 className="text-3xl font-bold mr-4">Full Script: {outlineTitle}</h1>
+            <h1 className="text-3xl font-bold mr-4">{_.startCase(outlineTitle)} Script</h1>
             <div className="flex space-x-2">
                 <Badge variant="secondary" className="flex items-center">
-                <Layers className="w-4 h-4 mr-1" />
-                <span>{elementCount} Elements</span>
+                  <Layers className="w-4 h-4 mr-1" />
+                  <span>{elementCount} Elements</span>
                 </Badge>
                 <Badge variant="secondary" className="flex items-center">
-                <Clock className="w-4 h-4 mr-1" />
-                <span>{formatDuration(totalDuration)}</span>
+                  <Clock className="w-4 h-4 mr-1" />
+                  <span>{formatDuration(totalDuration)}</span>
                 </Badge>
                 <Badge variant="secondary" className="flex items-center">
-                <Calendar className="w-4 h-4 mr-1" />
-                <span>Updated: {outline ? new Date(outline.updated_at).toLocaleDateString() : ''}</span>
+                  <Calendar className="w-4 h-4 mr-1" />
+                  <span>Updated: {outline ? new Date(outline.updated_at).toLocaleDateString() : ''}</span>
+                </Badge>
+                <Badge variant="default" className="flex items-center">
+                  <PencilIcon className="w-4 h-4 mr-1" />
+                  <span>Version: {outline?.version ?? "1.0"}</span>
                 </Badge>
             </div>
           </div>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={handleGenerateFullScript} 
-            className="mb-4"
-            disabled={scriptGenerationProgress > 0 && scriptGenerationProgress < 100}
-          >
-            {/* {scriptGenerationProgress > 0 ? (
-                scriptGenerationProgress < 100 ? (
-                <div className="flex items-center justify-center">
-                    <CircularProgressbar
-                    value={scriptGenerationProgress}
-                    text={`${scriptGenerationProgress}%`}
-                    styles={{
-                        root: { width: '24px', height: '24px', marginRight: '8px' },
-                        path: { stroke: 'currentColor' },
-                        text: { fill: 'currentColor', fontSize: '24px' },
-                    }}
-                    />
-                    <span className="text-blue-500">Generating...</span>
-                </div>
-                ) : (
-                <span className="text-blue-500">Regenerate Full Script</span>
-                )
-            ) : (
-                'Generate Full Script'
-            )} */}
-            {scriptGenerationProgress > 0 && scriptGenerationProgress < 100 ? (
-                <div className="flex items-center justify-center">
-                <Spinner className="mr-2 h-4 w-4" />
-                <span className="text-blue-500">Generating...</span>
-                </div>
-            ) : (
-                scriptGenerationProgress === 100 ? <span className="text-blue-500">Regenerate Full Script</span> : <span className="text-blue-500">Generate Full Script</span>
-            )}
-          </Button>
+          <div className="flex items-center justify-between mb-4 space-x-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handleGenerateFullScript} 
+              className="mb-4 w-full"
+              disabled={scriptGenerationProgress > 0 && scriptGenerationProgress < 100}
+            >
+              {/* {scriptGenerationProgress > 0 ? (
+                  scriptGenerationProgress < 100 ? (
+                  <div className="flex items-center justify-center">
+                      <CircularProgressbar
+                      value={scriptGenerationProgress}
+                      text={`${scriptGenerationProgress}%`}
+                      styles={{
+                          root: { width: '24px', height: '24px', marginRight: '8px' },
+                          path: { stroke: 'currentColor' },
+                          text: { fill: 'currentColor', fontSize: '24px' },
+                      }}
+                      />
+                      <span className="text-blue-500">Generating...</span>
+                  </div>
+                  ) : (
+                  <span className="text-blue-500">Regenerate Full Script</span>
+                  )
+              ) : (
+                  'Generate Full Script'
+              )} */}
+              {scriptGenerationProgress > 0 && scriptGenerationProgress < 100 ? (
+                  <div className="flex items-center justify-center">
+                  <Spinner className="mr-2 h-4 w-4" />
+                  <span className="text-blue-500">Generating...</span>
+                  </div>
+              ) : (
+                  scriptGenerationProgress === 100 ? <span className="text-blue-500">Regenerate Full Script</span> : <span className="text-blue-500">Generate Full Script</span>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mb-4 w-full"
+              onClick={handleDownloadScript}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download Script JSON
+            </Button>
+          </div>
           {loading ? (
             <p>Loading...</p>
           ) : (

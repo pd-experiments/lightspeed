@@ -39,12 +39,13 @@ async function generateScriptChunk(context: any[], isFirstChunk: boolean, isLast
         - duration: string (if applicable, for soundbite)
 
         IMPORTANT: 
-        - When using content from video clips, include the id, timestamp, and duration.
+        - When using content from video clips, include the id, timestamp (in timestamptz format), and duration (in timestamptz format).
         - Don't truncate the text in the existing script elements that you use.
         - For any new content you generate, use appropriate types without video_id, timestamp, or duration.
 
         NOTE:
         - You should not only use the audio_text or existing script text, you should also add to the script, transition ideas, etc.
+        - try to include all the different types of elements in the script in a way that makes sense.
 
         Ensure the script flows naturally and effectively conveys the political message, integrating the labeled content seamlessly.
 

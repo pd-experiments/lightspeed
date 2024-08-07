@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Calendar, Layers, ChevronLeft } from 'lucide-react';
 import { formatDuration } from '@/lib/helperUtils/outline/utils';
+import _ from 'lodash';
 
 type Outline = Tables<'outline'>;
 type OutlineElement = Tables<'outline_elements'>;
@@ -166,7 +167,7 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
             <Skeleton className="w-full h-16 mb-6" />
           ) : (
             <div className="flex items-center mb-6">
-              <h1 className="text-3xl font-bold mr-4">{outline?.title}</h1>
+              <h1 className="text-3xl font-bold mr-4">{_.startCase(outline?.title || '')}</h1>
               <div className="flex space-x-2">
                 <Badge variant="secondary" className="flex items-center">
                   <Layers className="w-4 h-4 mr-1" />

@@ -25,6 +25,7 @@ supabase = create_client(supabase_url, supabase_key)
 class ComplianceResponse(BaseModel):
     title: str
     cleaned_text: str
+    type: str
 
 def fetch_compliance_text(url):
     try:

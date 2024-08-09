@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,11 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type ComplianceUploadDialogProps = {
   onUpload: (url: string, isPdf?: boolean, fileName?: string) => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
-export function ComplianceUploadDialog({ onUpload }: ComplianceUploadDialogProps) {  
+export function ComplianceUploadDialog({ onUpload, open, setOpen }: ComplianceUploadDialogProps) {
   const [url, setUrl] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('url');
 
   const handleUrlUpload = async () => {
     try {
@@ -27,6 +30,7 @@ export function ComplianceUploadDialog({ onUpload }: ComplianceUploadDialogProps
       if (response.ok) {
         console.log('URL uploaded successfully');
         onUpload(url);
+        setOpen(false);
       } else {
         throw new Error('Failed to upload URL');
       }
@@ -34,7 +38,7 @@ export function ComplianceUploadDialog({ onUpload }: ComplianceUploadDialogProps
       console.error('Error uploading URL:', error);
     }
   };
-
+  
   const handleFileUpload = async () => {
     if (!file) return;
   
@@ -51,6 +55,7 @@ export function ComplianceUploadDialog({ onUpload }: ComplianceUploadDialogProps
         const data = await response.json();
         console.log('PDF uploaded successfully');
         onUpload(data.url, true, file.name);
+        setOpen(false);
       } else {
         throw new Error('Failed to upload PDF');
       }
@@ -69,7 +74,7 @@ export function ComplianceUploadDialog({ onUpload }: ComplianceUploadDialogProps
           <DialogTitle>Upload Compliance Document</DialogTitle>
           <DialogDescription>Enter a URL or upload a PDF file.</DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue="url">
+        <Tabs defaultValue="url" value={activeTab} onValueChange={(value: string) => setActiveTab(value)}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="url">URL</TabsTrigger>
             <TabsTrigger value="pdf">PDF</TabsTrigger>
@@ -86,10 +91,6 @@ export function ComplianceUploadDialog({ onUpload }: ComplianceUploadDialogProps
                 />
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setUrl('')}>Cancel</Button>
-              <Button onClick={handleUrlUpload}>Upload URL</Button>
-            </DialogFooter>
           </TabsContent>
           <TabsContent value="pdf">
             <div className="grid gap-4 py-4">
@@ -103,12 +104,21 @@ export function ComplianceUploadDialog({ onUpload }: ComplianceUploadDialogProps
                 />
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setFile(null)}>Cancel</Button>
-              <Button onClick={handleFileUpload} disabled={!file}>Upload PDF</Button>
-            </DialogFooter>
           </TabsContent>
         </Tabs>
+        <DialogFooter className="sm:justify-end">
+          <DialogClose asChild>
+            <div className="flex flex-row gap-2 justify-end">
+              <Button type="submit" variant="outline" onClick={() => setUrl('')}>Cancel</Button>
+              {activeTab === 'url' && (
+                <Button type="submit" variant="default" onClick={handleUrlUpload}>Upload URL</Button>
+              )}
+              {activeTab === 'pdf' && (
+                <Button type="submit" variant="default" onClick={handleFileUpload}>Upload PDF</Button>
+              )}
+            </div>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

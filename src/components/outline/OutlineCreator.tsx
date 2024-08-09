@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -64,9 +64,13 @@ export function OutlineCreator() {
     <div className="mb-6 flex justify-end items-center">
       <Dialog>
         <DialogTrigger asChild>
-          <Button size="sm">Create Outline</Button>
+            <Button size="sm">Create Outline</Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Upload Compliance Document</DialogTitle>
+            <DialogDescription>Enter a URL or upload a PDF file.</DialogDescription>
+          </DialogHeader>
           <DialogHeader>
             <DialogTitle>Create Outline</DialogTitle>
             <DialogDescription>Assemble your new outline in just a few clicks.</DialogDescription>
@@ -106,9 +110,13 @@ export function OutlineCreator() {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setNewOutlineTitle(''); setNewOutlineDescription(''); }}>Cancel</Button>
-            <Button onClick={() => handleCreateOutline(newOutlineTitle)}>Submit</Button>
+          <DialogFooter className="sm:justify-end">
+            <DialogClose asChild>
+              <div className="flex flex-row gap-2 justify-end">
+                <Button variant="outline" onClick={() => { setNewOutlineTitle(''); setNewOutlineDescription(''); }}>Cancel</Button>
+                <Button onClick={() => handleCreateOutline(newOutlineTitle)}>Submit</Button>
+              </div>
+            </DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>

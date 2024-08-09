@@ -11,6 +11,7 @@ type ComplianceDoc = Database['public']['Tables']['compliance_docs']['Row'];
 export default function ComplianceDocList() {
   const [complianceDocs, setComplianceDocs] = useState<ComplianceDoc[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [open, setOpen] = useState(false);
   const [loadingItem, setLoadingItem] = useState<{ type: 'url' | 'pdf', value: string } | null>(null);
   const [dots, setDots] = useState<string>('');
 
@@ -43,9 +44,14 @@ export default function ComplianceDocList() {
   return (
     <>
       <div className="flex justify-between items-center mb-6">
-        <ComplianceUploadDialog onUpload={(value, isPdf, fileName) => {
-          setLoadingItem(isPdf ? { type: 'pdf', value: fileName || '' } : { type: 'url', value });
-        }} />
+        <ComplianceUploadDialog 
+          onUpload={(value, isPdf, fileName) => {
+            setLoadingItem(isPdf ? { type: 'pdf', value: fileName || '' } : { type: 'url', value });
+            setOpen(false);
+          }}
+          open={open}
+          setOpen={setOpen}
+        />
         {loadingItem && (
           <div className="flex items-center justify-center">
             <p className="text-base text-blue-500">

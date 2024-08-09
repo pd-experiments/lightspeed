@@ -155,7 +155,7 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
     <>
       <Navbar />
       <main className="min-h-screen items-center justify-between p-24">
-        <div className="w-full max-w-7xl flex justify-between mb-4">
+        <div className="w-full flex justify-between mb-4">
           <Button variant="link" className="p-0 h-auto font-normal">
             <Link href="/outline" className="flex items-center">
               <ChevronLeft className="mr-1 h-4 w-4" />
@@ -169,7 +169,7 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
             </Link>
           </Button>
         </div>
-        <div className="w-full max-w-7xl mt-8">
+        <div className="w-full mt-8">
           {loading ? (
             <Skeleton className="w-full h-16 mb-6" />
           ) : (

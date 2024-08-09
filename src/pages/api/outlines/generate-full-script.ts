@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
 import { openai_client } from "@/lib/openai-client";
+import { OutlineStatusEnum } from "@/lib/types/customTypes";
 
 const CHUNK_SIZE = 5;
 
@@ -89,6 +90,11 @@ export default async function handler(
             throw new Error("API URL is not configured");
         }
 
+        await supabase
+        .from("outline")
+        .update({ status: OutlineStatusEnum.GENERATING })
+        .eq("id", outline_id);
+
         //reset progress before regenerating
         await fetch(`${apiUrl}/api/outlines/update-script-progress`, {
             method: 'POST',
@@ -155,13 +161,18 @@ export default async function handler(
             .from("outline")
             .update({ 
                 full_script: fullScript, 
-                script_generation_progress: 100 
+                script_generation_progress: 100,
+                status: OutlineStatusEnum.SCRIPT_FINALIZED
             })
             .eq("id", outline_id);
 
         console.log("Full script generation completed successfully");
         res.status(200).json({ fullScript });
     } catch (error) {
+        await supabase
+        .from("outline")
+        .update({ status: OutlineStatusEnum.EDITING })
+        .eq("id", outline_id);
         console.error("Error generating full script:", error);
         res.status(500).json({ error: "Failed to generate full script" });
     }

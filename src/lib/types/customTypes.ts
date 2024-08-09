@@ -1,3 +1,6 @@
+import { Database } from "@/lib/types/schema";
+type OutlineStatus = Database["public"]["Tables"]["outline"]["Row"]["status"];
+
 export type ClipSearchResult = { // clip search results 
     id: string;
     title: string;
@@ -27,3 +30,12 @@ export const isScriptElement = (item: any): item is ScriptElement => {
       typeof item.end === 'number' &&
       typeof item.text === 'string';
 };
+
+export const OutlineStatusEnum: { [key: string]: OutlineStatus } = {
+    INITIALIZED: "INITIALIZED",
+    EDITING: "EDITING",
+    GENERATING: "GENERATING",
+    SCRIPT_FINALIZED: "SCRIPT_FINALIZED",
+    COMPLIANCE_CHECK: "COMPLIANCE_CHECK"
+  };
+  

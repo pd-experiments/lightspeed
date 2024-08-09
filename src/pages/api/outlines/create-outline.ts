@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import { Database } from "@/lib/types/schema";
+import { OutlineStatusEnum } from "@/lib/types/customTypes";
 
 type Outline = Database["public"]["Tables"]["outline"]["Row"];
 
@@ -19,10 +20,10 @@ export default async function handler(
     id: uuidv4(),
     created_at: new Date(),
     updated_at: new Date(),
+    status: OutlineStatusEnum.INITIALIZED,
   };
 
   try {
-    // Fetch all outline elements for the given outline ID
     const { error } = await supabase.from("outline").insert([outline]);
     if (error) {
       throw error;

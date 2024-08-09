@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '@/lib/supabaseClient';
 import { openai_client } from '@/lib/openai-client';
+import { OutlineStatusEnum } from '@/lib/types/customTypes';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -77,6 +78,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .select();
 
     if (updateError) throw updateError;
+
+    await supabase
+      .from("outline")
+      .update({ status: OutlineStatusEnum.COMPLIANCE_CHECK })
+      .eq("id", outline_id);
 
     res.status(200).json({ complianceReport, updatedOutline });
   } catch (error) {

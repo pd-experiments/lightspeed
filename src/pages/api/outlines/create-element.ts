@@ -4,7 +4,6 @@ import { Database } from "@/lib/types/schema";
 
 type OutlineElement = Database["public"]["Tables"]["outline_elements"]["Row"];
 
-// Get all outlines
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -17,11 +16,26 @@ export default async function handler(
   console.log(element);
 
   try {
-    // Fetch all outline elements for the given outline ID
-    const { error } = await supabase.from("outline_elements").insert(element);
-    if (error) {
-      throw error;
+    const { data: outlineData, error: outlineError } = await supabase
+      .from("outlines")
+      .select("status")
+      .eq("id", element.outline_id)
+      .single();
+
+    if (outlineError) throw outlineError;
+
+    const { error: insertError } = await supabase.from("outline_elements").insert(element);
+    if (insertError) throw insertError;
+
+    if (outlineData.status === "INITIALIZED") {
+      const { error: updateError } = await supabase
+        .from("outlines")
+        .update({ status: "EDITING" })
+        .eq("id", element.outline_id);
+
+      if (updateError) throw updateError;
     }
+
     return res.status(200).json({ message: "Element added successfully" });
   } catch (error) {
     console.error("Error creating element for outline:", error);

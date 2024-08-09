@@ -68,21 +68,21 @@ export default function ComplianceDocList() {
             <p>No compliance documents found.</p>
         ) : (
             complianceDocs.map((doc) => (
-            <Card key={doc.id}>
+              <Card key={doc.id} className="transition-transform hover:scale-105">
                 <CardContent className="p-4">
-                <h3 className="text-lg font-semibold mb-2">{doc.title}</h3>
-                <p className="text-sm text-gray-600 mb-2">{doc.text?.substring(0, 200)}...</p>
-                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold mb-2">{doc.title}</h3>
+                  <p className="text-sm text-gray-600 mb-2">{doc.text?.substring(0, 200)}...</p>
+                  <div className="flex justify-between items-center">
                     <div className="flex space-x-2">
-                    <Badge>{doc.type}</Badge>
-                    <Badge variant="secondary" className="shadow-md hover:shadow-lg" onClick={() => {
+                      <Badge>{doc.type}</Badge>
+                      <Badge variant="secondary" className="shadow-md hover:shadow-lg cursor-pointer" onClick={() => {
                         window.open(doc.url ?? '', '_blank');
-                    }}><Link className="w-4 h-4 mr-1"/> View Document</Badge>
+                      }}><Link className="w-4 h-4 mr-1"/> View Document</Badge>
                     </div>
                     <span className="text-xs text-gray-500">{new Date(doc.created_at || '').toLocaleDateString()}</span>
-                </div>
+                  </div>
                 </CardContent>
-            </Card>
+              </Card>
             ))
         )}
       </div>

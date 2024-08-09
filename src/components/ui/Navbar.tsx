@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, VideoIcon, CloudLightningIcon, FileStackIcon, PencilRuler, CloudCog, LucideSwitchCamera, CheckCircleIcon } from 'lucide-react';
+import { Search, VideoIcon, CloudLightningIcon, FileStackIcon, PencilRuler, CloudCog, LucideSwitchCamera, CheckCircleIcon, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
@@ -19,6 +19,7 @@ export default function Navbar() {
           <NavItem href="/directory" icon={<VideoIcon className="w-4 h-4 mr-2" />} text="Directory" isActive={pathname === '/directory'} />
           <NavItem href="/clipsearch" icon={<Search className="w-4 h-4 mr-2" />} text="Clip Search" isActive={pathname === '/clipsearch'} />
           <NavItem href="/outline" icon={<PencilRuler className="w-4 h-4 mr-2" />} text="Outline" isActive={pathname === '/outline'} />
+          <NavItem href="/compliance" icon={<FileText className="w-4 h-4 mr-2" />} text="Compliance" isActive={pathname === '/compliance'} />
 
           {/* throwing some ideas here */}
           {/* <NavItem href="/" icon={<FileStackIcon className="w-4 h-4 mr-2" />} text="Pipeline (TBD)" isActive={pathname === '/'} />

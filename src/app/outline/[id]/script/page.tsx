@@ -14,15 +14,13 @@ import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { Spinner } from '@/components/ui/Spinner';
 import { FaYoutube } from 'react-icons/fa';
-import { Mic, Eye, Type, Music, Film, MonitorCheck, Download, FileText } from 'lucide-react';
+import { Mic, Eye, Type, Music, Film, MonitorCheck, Download, FileText, ChevronDown} from 'lucide-react';
 import _ from 'lodash';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 
 export default function ScriptPage({ params, searchParams }: { params: { id: string }, searchParams: { title: string } }) {
   const outlineId = params?.id as string;
@@ -39,6 +37,7 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
   const [complianceReport, setComplianceReport] = useState<string>('');
   const [checkingCompliance, setCheckingCompliance] = useState(false);
   const [complianceDocTitle, setComplianceDocTitle] = useState<string>('');
+  const [isOpen, setIsOpen] = useState(false);
 
   const fetchVideoInfo = async (ids: string[]) => {
     const { data, error } = await supabase
@@ -57,7 +56,7 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
     });
     setVideoInfo(newVideoInfo);
   };
-  
+
   useEffect(() => {
     async function fetchOutlineData() {
       setLoading(true);
@@ -277,6 +276,25 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
     }
   };
 
+  const handleDownloadComplianceReport = () => {
+    const complianceReportData = {
+      title: outlineTitle,
+      id: outlineId,
+      complianceReport: complianceReport
+    };
+
+    const jsonString = JSON.stringify(complianceReportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${outlineTitle.replace(/\s+/g, '_')}_compliance_report.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   type ComplianceAspect = {
     header: string;
     issue?: string;
@@ -297,8 +315,8 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
         <>
           {Array.isArray(parsedReport.aspects) ? (
             parsedReport.aspects.map((aspect: ComplianceAspect, index: number) => (
-              <div key={index} className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800">{aspect.header}</h3>
+              <div key={index} className="mb-6 p-4 bg-gray-50 rounded-lg text-sm">
+                <h3 className="text-base font-semibold text-gray-800">{aspect.header}</h3>
                 <div className="mt-2 space-y-2">
                   {aspect.issue && (
                     <div>
@@ -332,8 +350,8 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
           )}
           {parsedReport.overallAssessment && (
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h3 className="text-lg font-semibold text-blue-800">Overall Compliance Assessment</h3>
-              <p className="mt-2 text-blue-700">{parsedReport.overallAssessment}</p>
+              <h3 className="text-base font-semibold text-blue-800">Overall Compliance Assessment</h3>
+              <p className="mt-2 text-blue-700 text-sm">{parsedReport.overallAssessment}</p>
             </div>
           )}
         </>
@@ -413,29 +431,52 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
               <Download className="mr-2 h-4 w-4" />
               Download
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleCheckCompliance}
-              className= "w-full"
-              disabled={checkingCompliance || !outline?.compliance_doc}
-            >
-              {checkingCompliance ? (
-                <div className="flex items-center justify-center">
-                  <Spinner className="mr-2 h-4 w-4" />
-                  <span className="text-blue-500">Checking Compliance...</span>
-                </div>
-              ) : (
-                <span className="text-blue-500">Check Compliance</span>
-              )}
-            </Button>
           </div>
-          {complianceReport && (
-            <div className="my-4 p-4 bg-white border border-gray-200 rounded-lg shadow">
-              <h2 className="text-xl font-bold mb-4">Compliance Report</h2>
-              <div className="space-y-4">{renderComplianceReport(complianceReport)}</div>
+          <Collapsible
+            open={isOpen}
+            onOpenChange={setIsOpen}
+            className="my-4 p-4 bg-white border border-gray-200 rounded-lg shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-xl font-bold">Compliance Report</h2>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={handleCheckCompliance}
+                  className="px-2 py-1 text-xs h-auto bg-blue-500 text-white hover:bg-blue-600"
+                  disabled={checkingCompliance || !outline?.compliance_doc}
+                >
+                  {checkingCompliance ? (
+                    <Spinner className="h-3 w-3" />
+                  ) : (
+                    <span>{complianceReport ? 'Recheck Compliance' : 'Check Compliance'}</span>
+                  )}
+                </Button>
+                {complianceReport && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleDownloadComplianceReport}
+                    className="px-2 py-1 text-xs h-auto"
+                    disabled={checkingCompliance || !outline?.compliance_doc}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    <span>Download</span>
+                  </Button>
+                )}
+              </div>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-9 p-0">
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} />
+                  <span className="sr-only">Toggle</span>
+                </Button>
+              </CollapsibleTrigger>
             </div>
-          )}
+            <CollapsibleContent className="mt-4 space-y-4">
+              {complianceReport && renderComplianceReport(complianceReport)}
+            </CollapsibleContent>
+          </Collapsible>
           {loading ? (
             <p>Loading...</p>
           ) : (

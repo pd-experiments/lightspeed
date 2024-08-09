@@ -180,7 +180,8 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
         case 'SOUNDBITE':
           const info = videoInfo[item.id];
           const startTime = new Date(item.timestamp);
-          const endTime = new Date(item.duration);
+          const endTime = new Date(startTime);
+          endTime.setSeconds(startTime.getSeconds() + new Date(item.duration).getSeconds());
           
           const formatTime = (time: Date) => {
             if (!(time instanceof Date) || isNaN(time.getTime())) {

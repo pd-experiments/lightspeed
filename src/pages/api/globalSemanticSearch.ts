@@ -26,7 +26,7 @@ export default async function handler(
       {
         query_embedding: embedding,
         match_threshold: 0.5,
-        match_count: 10,
+        match_count: 25,
       }
     );
 
@@ -35,16 +35,18 @@ export default async function handler(
     }
 
     if (searchResults && searchResults.length > 0) {
-      const formattedResults: ClipSearchResult[] = searchResults.map((item: any) => ({
-        id: item.video_uuid,
-        title: item.title,
-        video_id: item.video_id,
-        video_uuid: item.video_uuid,
-        text: item.text,
-        description: item.description,
-        start_timestamp: item.timestamp,
-        end_timestamp: new Date(new Date(item.timestamp).getTime() + item.duration * 1000).toISOString(),
-      }));
+      const formattedResults: ClipSearchResult[] = searchResults.map((item: any) => {
+        return {
+          id: item.video_uuid,
+          title: item.title,
+          video_id: item.video_id,
+          video_uuid: item.video_uuid,
+          text: item.text,
+          description: item.description,
+          start_timestamp: item.start_timestamp,
+          end_timestamp: item.end_timestamp,
+        };
+      });
 
       res.status(200).json(formattedResults);
     } else {

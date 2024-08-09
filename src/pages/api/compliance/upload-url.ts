@@ -12,17 +12,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { url } = req.body;
 
-    // Execute the Python script
     const { stdout, stderr } = await execAsync(`python scripts/compliance_extraction.py "${url}"`);
 
-    if (stderr) {
-      console.error('Error executing Python script:', stderr);
+    if (stdout.includes("Compliance document stored successfully.")) {
+      return res.status(200).json({ success: true, message: 'URL processed successfully' });
+    } else {
+      console.error('Error processing URL:', stdout, stderr);
       return res.status(500).json({ success: false, error: 'Failed to process URL' });
     }
-
-    console.log('Python script output:', stdout);
-
-    return res.status(200).json({ success: true, message: 'URL processed successfully' });
   } catch (error) {
     console.error('Error processing URL:', error);
     return res.status(500).json({ success: false, error: 'Failed to process URL' });

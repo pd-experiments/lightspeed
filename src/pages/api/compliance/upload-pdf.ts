@@ -46,19 +46,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from('compliance-docs')
       .getPublicUrl(data.path);
     
-      // Ensure the file is accessible before running the Python script
       await new Promise(resolve => setTimeout(resolve, 1000));
     
       const { stdout, stderr } = await execAsync(`python scripts/compliance_pdf_extraction.py "${publicUrl}"`);
 
-      if (stderr) {
-        console.error('Error executing Python script:', stderr);
-        return res.status(500).json({ success: false, error: 'Failed to process PDF' });
+      if (stdout.includes("Compliance document stored successfully.")) {
+        return res.status(200).json({ success: true, message: 'URL processed successfully' });
+      } else {
+        console.error('Error processing URL:', stdout, stderr);
+        return res.status(500).json({ success: false, error: 'Failed to process URL' });
       }
-
-      console.log('Python script output:', stdout);
-
-      return res.status(200).json({ success: true, message: 'PDF processed successfully', url: publicUrl });
     } catch (error) {
       console.error('Error processing PDF:', error);
       return res.status(500).json({ success: false, error: 'Failed to process PDF' });

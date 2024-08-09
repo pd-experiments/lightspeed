@@ -40,7 +40,7 @@ export function OutlineCard({ outline, elementCount, totalDuration, onDelete, sc
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50">
+    <Card className="hover:shadow-lg mb-3 transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center w-full">
           <CardTitle className="text-xl font-bold text-gray-800">{outline.title}</CardTitle>

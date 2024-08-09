@@ -38,7 +38,8 @@
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^10.0.0",
     "youtube-transcript": "^1.2.1",
-    "ytdl-core": "^4.11.5"
+    "ytdl-core": "^4.11.5",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/formidable": "^3.4.5",

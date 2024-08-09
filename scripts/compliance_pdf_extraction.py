@@ -37,7 +37,7 @@ def clean_and_process_text(raw_text):
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "You are a text cleaning assistant. Your response should be a valid JSON object with three fields: 'title', 'cleaned_text', and 'type' (which should be FEDERAL, STATE, or LOCAL)."},
+            {"role": "system", "content": "You are a text cleaning assistant. Provide your response as a JSON object with three fields: 'title', 'cleaned_text', and 'type' (which should be FEDERAL, STATE, or LOCAL)."},
             {"role": "user", "content": f"Clean the following text by removing duplicate lines and unnecessary whitespace:\n\n{raw_text}"}
         ]
     )
@@ -66,14 +66,18 @@ def store_compliance_text(data, file_name):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Extract and store compliance text from a PDF.')
-    parser.add_argument('file_path', type=str, help='The path to the PDF file')
+    parser.add_argument('file_path', type=str, help='The URL of the PDF file')
     args = parser.parse_args()
 
-    raw_text = extract_text_from_pdf(args.file_path)        
-    processed_data_str = clean_and_process_text(raw_text)
     try:
+        raw_text = extract_text_from_pdf(args.file_path)
+        processed_data_str = clean_and_process_text(raw_text)
         processed_data = json.loads(processed_data_str)
         store_compliance_text(processed_data, os.path.basename(args.file_path))
-    except json.JSONDecodeError:
-        print("Error: Failed to parse the processed data as JSON")
+    except json.JSONDecodeError as e:
+        print(f"Error: Failed to parse the processed data as JSON: {e}")
+        print(f"Received data: {processed_data_str}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"An error occurred: {e}")
         sys.exit(1)

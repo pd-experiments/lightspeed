@@ -190,6 +190,7 @@ export type Database = {
           full_script: Json | null
           id: string
           script_generation_progress: number | null
+          status: Database["public"]["Enums"]["outlineStatus"] | null
           title: string | null
           updated_at: string
         }
@@ -201,6 +202,7 @@ export type Database = {
           full_script?: Json | null
           id?: string
           script_generation_progress?: number | null
+          status?: Database["public"]["Enums"]["outlineStatus"] | null
           title?: string | null
           updated_at?: string
         }
@@ -212,6 +214,7 @@ export type Database = {
           full_script?: Json | null
           id?: string
           script_generation_progress?: number | null
+          status?: Database["public"]["Enums"]["outlineStatus"] | null
           title?: string | null
           updated_at?: string
         }
@@ -678,6 +681,12 @@ export type Database = {
     Enums: {
       govtType: "FEDERAL" | "STATE" | "LOCAL"
       outlineElementType: "VIDEO" | "TRANSITION"
+      outlineStatus:
+        | "INITIALIZED"
+        | "EDITING"
+        | "GENERATING"
+        | "SCRIPT_FINALIZED"
+        | "COMPLIANCE_CHECK"
       simpleUserType: "PRANAV" | "DINESH"
       todoStatusType: "TODO" | "IN_PROGRESS" | "DONE"
     }

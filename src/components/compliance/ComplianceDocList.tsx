@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Database } from '@/lib/types/schema';
+import { Link } from 'lucide-react';
 
 type ComplianceDoc = Database['public']['Tables']['compliance_docs']['Row'];
 
@@ -38,9 +39,14 @@ export default function ComplianceDocList() {
           <Card key={doc.id}>
             <CardContent className="p-4">
               <h3 className="text-lg font-semibold mb-2">{doc.title}</h3>
-              <p className="text-sm text-gray-600 mb-2">{doc.text?.substring(0, 100)}...</p>
+              <p className="text-sm text-gray-600 mb-2">{doc.text?.substring(0, 200)}...</p>
               <div className="flex justify-between items-center">
-                <Badge>{doc.type}</Badge>
+                <div className="flex space-x-2">
+                  <Badge>{doc.type}</Badge>
+                  <Badge variant="secondary" className="shadow-md hover:shadow-lg" onClick={() => {
+                    window.open(doc.url ?? '', '_blank');
+                  }}><Link className="w-4 h-4 mr-1"/> View Document</Badge>
+                </div>
                 <span className="text-xs text-gray-500">{new Date(doc.created_at || '').toLocaleDateString()}</span>
               </div>
             </CardContent>

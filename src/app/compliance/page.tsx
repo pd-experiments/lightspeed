@@ -15,10 +15,10 @@ export default function ComplianceReports() {
         <div className="w-full max-w-7xl">
           <h1 className="text-3xl font-bold mb-6">Compliance Management</h1>
           <p className="text-base text-gray-700 mb-6">View and manage compliance documents and generated reports for political video productions.</p>
-          <Tabs defaultValue="reports" className="w-full">
+          <Tabs defaultValue="docs" className="w-full">
             <TabsList className="mb-2">
-              <TabsTrigger value="reports">Compliance Reports</TabsTrigger>
-              <TabsTrigger value="docs">Compliance Documents</TabsTrigger>
+              <TabsTrigger value="docs">Reference Documents</TabsTrigger>
+              <TabsTrigger value="reports">Generated Reports</TabsTrigger>
             </TabsList>
             <TabsContent value="reports">
               <Suspense fallback={<ComplianceReportsSkeleton />}>

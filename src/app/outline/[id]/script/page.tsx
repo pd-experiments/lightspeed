@@ -28,6 +28,9 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
   const [outline, setOutline] = useState<any>(null);
   const [scriptGenerationProgress, setScriptGenerationProgress] = useState<number>(0);
   const [videoInfo, setVideoInfo] = useState<Record<string, { title: string, id: string, video_id: string }>>({});
+
+  const [complianceReport, setComplianceReport] = useState('');
+  const [checkingCompliance, setCheckingCompliance] = useState(false);
   
   const fetchVideoInfo = async (ids: string[]) => {
     const { data, error } = await supabase
@@ -243,6 +246,23 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
     URL.revokeObjectURL(url);
   };
 
+  const handleCheckCompliance = async () => {
+    setCheckingCompliance(true);
+    try {
+      const response = await fetch('/api/outlines/script-compliance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ outline_id: outlineId })
+      });
+      const data = await response.json();
+      setComplianceReport(data.complianceReport);
+    } catch (error) {
+      console.error('Error checking compliance:', error);
+    } finally {
+      setCheckingCompliance(false);
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -257,71 +277,48 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
           <div className="flex items-center mb-6">
             <h1 className="text-3xl font-bold mr-4">{_.startCase(outlineTitle)} Script</h1>
             <div className="flex space-x-2">
-                <Badge variant="secondary" className="flex items-center">
-                  <Layers className="w-4 h-4 mr-1" />
-                  <span>{elementCount} Elements</span>
-                </Badge>
-                <Badge variant="secondary" className="flex items-center">
-                  <Clock className="w-4 h-4 mr-1" />
-                  <span>{formatDuration(totalDuration)}</span>
-                </Badge>
-                <Badge variant="secondary" className="flex items-center">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  <span>Updated: {outline ? new Date(outline.updated_at).toLocaleDateString() : ''}</span>
-                </Badge>
-                <Badge variant="default" className="flex items-center">
-                  <PencilIcon className="w-4 h-4 mr-1" />
-                  <span>Version: {outline?.version ?? "1.0"}</span>
-                </Badge>
+              <Badge variant="secondary" className="flex items-center">
+                <Layers className="w-4 h-4 mr-1" />
+                <span>{elementCount} Elements</span>
+              </Badge>
+              <Badge variant="secondary" className="flex items-center">
+                <Clock className="w-4 h-4 mr-1" />
+                <span>{formatDuration(totalDuration)}</span>
+              </Badge>
+              <Badge variant="secondary" className="flex items-center">
+                <Calendar className="w-4 h-4 mr-1" />
+                <span>Updated: {outline ? new Date(outline.updated_at).toLocaleDateString() : ''}</span>
+              </Badge>
+              <Badge variant="default" className="flex items-center">
+                <PencilIcon className="w-4 h-4 mr-1" />
+                <span>Version: {outline?.version ?? "1.0"}</span>
+              </Badge>
             </div>
           </div>
           <div className="flex items-center justify-between mb-4 space-x-2">
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={handleGenerateFullScript} 
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCheckCompliance}
               className="mb-4 w-full"
-              disabled={scriptGenerationProgress > 0 && scriptGenerationProgress < 100}
+              disabled={checkingCompliance}
             >
-              {/* {scriptGenerationProgress > 0 ? (
-                  scriptGenerationProgress < 100 ? (
-                  <div className="flex items-center justify-center">
-                      <CircularProgressbar
-                      value={scriptGenerationProgress}
-                      text={`${scriptGenerationProgress}%`}
-                      styles={{
-                          root: { width: '24px', height: '24px', marginRight: '8px' },
-                          path: { stroke: 'currentColor' },
-                          text: { fill: 'currentColor', fontSize: '24px' },
-                      }}
-                      />
-                      <span className="text-blue-500">Generating...</span>
-                  </div>
-                  ) : (
-                  <span className="text-blue-500">Regenerate Full Script</span>
-                  )
-              ) : (
-                  'Generate Full Script'
-              )} */}
-              {scriptGenerationProgress > 0 && scriptGenerationProgress < 100 ? (
-                  <div className="flex items-center justify-center">
+              {checkingCompliance ? (
+                <div className="flex items-center justify-center">
                   <Spinner className="mr-2 h-4 w-4" />
-                  <span className="text-blue-500">Generating...</span>
-                  </div>
+                  <span className="text-blue-500">Checking Compliance...</span>
+                </div>
               ) : (
-                  scriptGenerationProgress === 100 ? <span className="text-blue-500">Regenerate Full Script</span> : <span className="text-blue-500">Generate Full Script</span>
+                <span className="text-blue-500">Check Compliance</span>
               )}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mb-4 w-full"
-              onClick={handleDownloadScript}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download Script JSON
-            </Button>
           </div>
+          {complianceReport && (
+            <div className="my-4 p-4 bg-white border border-gray-200 rounded-lg shadow">
+              <h2 className="text-xl font-bold mb-4">Compliance Report</h2>
+              <pre className="whitespace-pre-wrap">{complianceReport}</pre>
+            </div>
+          )}
           {loading ? (
             <p>Loading...</p>
           ) : (

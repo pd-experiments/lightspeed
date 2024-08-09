@@ -118,7 +118,7 @@ if __name__ == "__main__":
     ).execute()
 
     # Get all video embeddings, aggregated by video_uuid
-    soundbytes: list[dict[str, Any]] = (
+    soundbytes: 'list[dict[str, Any]]' = (
         supabase_client.rpc("get_grouped_video_embeddings").execute().data
     )
 

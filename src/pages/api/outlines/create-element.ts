@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
 import { Database } from "@/lib/types/schema";
+import { OutlineStatusEnum } from "@/lib/types/customTypes";
 
 type OutlineElement = Database["public"]["Tables"]["outline_elements"]["Row"];
 
@@ -17,7 +18,7 @@ export default async function handler(
 
   try {
     const { data: outlineData, error: outlineError } = await supabase
-      .from("outlines")
+      .from("outline")
       .select("status")
       .eq("id", element.outline_id)
       .single();
@@ -27,10 +28,10 @@ export default async function handler(
     const { error: insertError } = await supabase.from("outline_elements").insert(element);
     if (insertError) throw insertError;
 
-    if (outlineData.status === "INITIALIZED") {
+    if (outlineData.status === OutlineStatusEnum.INITIALIZED) {
       const { error: updateError } = await supabase
-        .from("outlines")
-        .update({ status: "EDITING" })
+        .from("outline")
+        .update({ status: OutlineStatusEnum.EDITING })
         .eq("id", element.outline_id);
 
       if (updateError) throw updateError;

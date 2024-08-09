@@ -2,9 +2,9 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import { Database } from "@/lib/types/schema";
+import { OutlineStatusEnum } from "@/lib/types/customTypes";
 
 type Outline = Database["public"]["Tables"]["outline"]["Row"];
-type OutlineStatus = Database["public"]["Tables"]["outline"]["Row"]["status"];
 
 // Get all outlines
 export default async function handler(
@@ -20,7 +20,7 @@ export default async function handler(
     id: uuidv4(),
     created_at: new Date(),
     updated_at: new Date(),
-    status: "INITALIZED",
+    status: OutlineStatusEnum.INITIALIZED,
   };
 
   try {

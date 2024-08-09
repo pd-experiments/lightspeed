@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
 import { openai_client } from "@/lib/openai-client";
+import { OutlineStatusEnum } from "@/lib/types/customTypes";
 
 const CHUNK_SIZE = 5;
 
@@ -91,7 +92,7 @@ export default async function handler(
 
         await supabase
         .from("outline")
-        .update({ status: "GENERATING" })
+        .update({ status: OutlineStatusEnum.GENERATING })
         .eq("id", outline_id);
 
         //reset progress before regenerating
@@ -161,7 +162,7 @@ export default async function handler(
             .update({ 
                 full_script: fullScript, 
                 script_generation_progress: 100,
-                status: "SCRIPT_FINALIZED"
+                status: OutlineStatusEnum.SCRIPT_FINALIZED
             })
             .eq("id", outline_id);
 
@@ -170,7 +171,7 @@ export default async function handler(
     } catch (error) {
         await supabase
         .from("outline")
-        .update({ status: "EDITING" })
+        .update({ status: OutlineStatusEnum.EDITING })
         .eq("id", outline_id);
         console.error("Error generating full script:", error);
         res.status(500).json({ error: "Failed to generate full script" });

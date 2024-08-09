@@ -68,10 +68,6 @@ export function OutlineCreator() {
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Upload Compliance Document</DialogTitle>
-            <DialogDescription>Enter a URL or upload a PDF file.</DialogDescription>
-          </DialogHeader>
-          <DialogHeader>
             <DialogTitle>Create Outline</DialogTitle>
             <DialogDescription>Assemble your new outline in just a few clicks.</DialogDescription>
           </DialogHeader>

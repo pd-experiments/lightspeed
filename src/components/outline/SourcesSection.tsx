@@ -45,9 +45,6 @@ const SourcesSection: React.FC<SourcesSectionProps> = ({
     <div className="flex flex-col h-full p-2">
       <div className="flex justify-between items-center mb-2">
         <label className="text-sm font-medium text-gray-700">Sources</label>
-        <Badge variant="destructive" className="mb-2">
-          Request Approval
-        </Badge>
       </div>
       <div className="flex-grow flex flex-col">
         {isLoading ? (

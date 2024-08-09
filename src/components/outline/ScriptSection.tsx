@@ -169,9 +169,6 @@ const ScriptSection: React.FC<ScriptSectionProps> = ({
         <div className="flex-grow overflow-y-auto">
           <div className="flex justify-between items-center mb-2">
             <label className="text-sm font-medium text-gray-700">⌘ + Z to undo edits!</label>
-            <Badge variant="destructive" className="mb-2">
-              Request Approval
-            </Badge>
           </div>
           {scriptElements.map((scriptElement, index) => (
             <div key={index} className="p-2 flex items-start space-x-2 h-full max-h-24">

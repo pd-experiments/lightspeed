@@ -373,7 +373,7 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
     <>
       <Navbar />
       <main className="min-h-screen items-center justify-between p-24">
-        <div className="w-full max-w-7xl">
+        <div className="w-full">
           <Button variant="link" className="p-0 h-auto font-normal">
             <Link href={`/outline/${outlineId}`} className="flex items-center">
               <ChevronLeft className="mr-1 h-4 w-4" />

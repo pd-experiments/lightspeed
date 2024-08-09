@@ -14,8 +14,15 @@ import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { Spinner } from '@/components/ui/Spinner';
 import { FaYoutube } from 'react-icons/fa';
-import { Mic, Eye, Type, Music, Film, MonitorCheck, Download } from 'lucide-react';
+import { Mic, Eye, Type, Music, Film, MonitorCheck, Download, FileText } from 'lucide-react';
 import _ from 'lodash';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function ScriptPage({ params, searchParams }: { params: { id: string }, searchParams: { title: string } }) {
   const outlineId = params?.id as string;
@@ -29,9 +36,10 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
   const [scriptGenerationProgress, setScriptGenerationProgress] = useState<number>(0);
   const [videoInfo, setVideoInfo] = useState<Record<string, { title: string, id: string, video_id: string }>>({});
 
-  const [complianceReport, setComplianceReport] = useState('');
+  const [complianceReport, setComplianceReport] = useState<string>('');
   const [checkingCompliance, setCheckingCompliance] = useState(false);
-  
+  const [complianceDocTitle, setComplianceDocTitle] = useState<string>('');
+
   const fetchVideoInfo = async (ids: string[]) => {
     const { data, error } = await supabase
       .from('youtube')
@@ -49,7 +57,7 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
     });
     setVideoInfo(newVideoInfo);
   };
-
+  
   useEffect(() => {
     async function fetchOutlineData() {
       setLoading(true);
@@ -61,8 +69,14 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
           .single();
   
         if (outlineError) throw outlineError;
-  
+
+        if (outlineData.compliance_doc) {
+          const response = await supabase.from('compliance_docs').select('title').eq('id', outlineData.compliance_doc).single();
+          setComplianceDocTitle(response.data?.title || 'Unknown');
+        }
+
         setFullScript(outlineData.full_script);
+        setComplianceReport(outlineData.compliance_report);
   
         const { data: elementsData, error: elementsError } = await supabase
           .from('outline_elements')
@@ -252,7 +266,7 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
       const response = await fetch('/api/outlines/script-compliance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ outline_id: outlineId })
+        body: JSON.stringify({ outline_id: outlineId, compliance_doc_id: outline?.compliance_doc })
       });
       const data = await response.json();
       setComplianceReport(data.complianceReport);
@@ -260,6 +274,80 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
       console.error('Error checking compliance:', error);
     } finally {
       setCheckingCompliance(false);
+    }
+  };
+
+  type ComplianceAspect = {
+    header: string;
+    issue?: string;
+    background?: string;
+    recommendation?: string;
+    reference?: string;
+  }
+
+  const renderComplianceReport = (report: string | object) => {
+    try {
+      const parsedReport = typeof report === 'string' ? JSON.parse(report) : report;
+  
+      if (!parsedReport || typeof parsedReport !== 'object') {
+        throw new Error('Invalid report format');
+      }
+  
+      return (
+        <>
+          {Array.isArray(parsedReport.aspects) ? (
+            parsedReport.aspects.map((aspect: ComplianceAspect, index: number) => (
+              <div key={index} className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-800">{aspect.header}</h3>
+                <div className="mt-2 space-y-2">
+                  {aspect.issue && (
+                    <div>
+                      <span className="font-medium text-gray-700">Issue: </span>
+                      <span className="text-gray-600">{aspect.issue}</span>
+                    </div>
+                  )}
+                  {aspect.background && (
+                    <div>
+                      <span className="font-medium text-gray-700">Background: </span>
+                      <span className="text-gray-600">{aspect.background}</span>
+                    </div>
+                  )}
+                  {aspect.recommendation && (
+                    <div>
+                      <span className="font-medium text-gray-700">Recommendation: </span>
+                      <span className="text-gray-600">{aspect.recommendation}</span>
+                    </div>
+                  )}
+                  {aspect.reference && (
+                    <div>
+                      <span className="font-medium text-gray-700">Reference: </span>
+                      <span className="text-gray-600">{aspect.reference}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-yellow-500">No compliance aspects found in the report.</p>
+          )}
+          {parsedReport.overallAssessment && (
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-800">Overall Compliance Assessment</h3>
+              <p className="mt-2 text-blue-700">{parsedReport.overallAssessment}</p>
+            </div>
+          )}
+        </>
+      );
+    } catch (error) {
+      console.error('Error parsing compliance report:', error);
+      return (
+        <div className="p-4 bg-red-50 rounded-lg">
+          <p className="text-red-500">Error parsing compliance report</p>
+          <pre className="mt-2 text-sm text-red-700 whitespace-pre-wrap">
+            {typeof report === 'string' ? report : JSON.stringify(report, null, 2)}
+          </pre>
+        </div>
+      );
     }
   };
 
@@ -293,15 +381,44 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
                 <PencilIcon className="w-4 h-4 mr-1" />
                 <span>Version: {outline?.version ?? "1.0"}</span>
               </Badge>
+              <Badge variant="default" className="flex items-center">
+                <FileText className="w-4 h-4 mr-1" />
+                <span>{complianceDocTitle}</span>
+              </Badge>
             </div>
           </div>
           <div className="flex items-center justify-between mb-4 space-x-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handleGenerateFullScript} 
+              className="w-full"
+              disabled={scriptGenerationProgress > 0 && scriptGenerationProgress < 100}
+            >
+              {scriptGenerationProgress > 0 && scriptGenerationProgress < 100 ? (
+                  <div className="flex items-center justify-center">
+                  <Spinner className="mr-2 h-4 w-4" />
+                  <span className="text-blue-500">Generating...</span>
+                  </div>
+              ) : (
+                  scriptGenerationProgress === 100 ? <span className="text-blue-500">Regenerate</span> : <span className="text-blue-500">Generate</span>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={handleDownloadScript}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
             <Button
               size="sm"
               variant="outline"
               onClick={handleCheckCompliance}
-              className="mb-4 w-full"
-              disabled={checkingCompliance}
+              className= "w-full"
+              disabled={checkingCompliance || !outline?.compliance_doc}
             >
               {checkingCompliance ? (
                 <div className="flex items-center justify-center">
@@ -316,7 +433,7 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
           {complianceReport && (
             <div className="my-4 p-4 bg-white border border-gray-200 rounded-lg shadow">
               <h2 className="text-xl font-bold mb-4">Compliance Report</h2>
-              <pre className="whitespace-pre-wrap">{complianceReport}</pre>
+              <div className="space-y-4">{renderComplianceReport(complianceReport)}</div>
             </div>
           )}
           {loading ? (

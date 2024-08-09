@@ -1,15 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { supabase } from '@/lib/supabaseClient';
 
 export function OutlineCreator() {
   const router = useRouter();
   const [newOutlineTitle, setNewOutlineTitle] = useState<string>('');
   const [newOutlineDescription, setNewOutlineDescription] = useState<string>('');
+  const [complianceDocs, setComplianceDocs] = useState<{ id: string; title: string }[]>([]);
+  const [selectedComplianceDocId, setSelectedComplianceDocId] = useState<string>('');
+
+  useEffect(() => {
+    async function fetchComplianceDocs() {
+      const { data, error } = await supabase
+        .from('compliance_docs')
+        .select('id, title');
+      if (error) {
+        console.error('Error fetching compliance docs:', error);
+      } else {
+        setComplianceDocs(data || []);
+      }
+    }
+    fetchComplianceDocs();
+  }, []);
 
   const handleCreateOutline = async (title: string) => {
     const newOutline = {
@@ -17,6 +35,7 @@ export function OutlineCreator() {
       created_at: new Date(),
       updated_at: new Date(),
       description: null,
+      compliance_doc: selectedComplianceDocId,
     };
 
     try {
@@ -70,6 +89,21 @@ export function OutlineCreator() {
                 onChange={(e) => setNewOutlineDescription(e.target.value)}
                 className="mt-1"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Compliance Document</label>
+              <Select value={selectedComplianceDocId} onValueChange={setSelectedComplianceDocId}>
+                <SelectTrigger className="w-full mt-1">
+                  <SelectValue placeholder="Select a compliance document" />
+                </SelectTrigger>
+                <SelectContent>
+                  {complianceDocs.map((doc) => (
+                    <SelectItem key={doc.id} value={doc.id}>
+                      {doc.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>

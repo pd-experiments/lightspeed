@@ -15,9 +15,10 @@ import { OutlineActions } from '@/components/outline/OutlineActions';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Calendar, Layers, ChevronLeft } from 'lucide-react';
+import { Clock, Calendar, Layers, ChevronLeft, FileText } from 'lucide-react';
 import { formatDuration } from '@/lib/helperUtils/outline/utils';
 import _ from 'lodash';
+import { supabase } from '@/lib/supabaseClient';
 
 type Outline = Tables<'outline'>;
 type OutlineElement = Tables<'outline_elements'>;
@@ -41,6 +42,7 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
   const [elementCount, setElementCount] = useState<number>(0);
   const [totalDuration, setTotalDuration] = useState<number>(0);
   const playerRef = useRef<ReactPlayer>(null);
+  const [complianceDocTitle, setComplianceDocTitle] = useState<string>('');
 
   useEffect(() => {
     async function fetchOutlineData() {
@@ -49,6 +51,11 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
         const outlineResponse = await fetch(`/api/outlines/get-outline?outline_id=${outlineId}`);
         const outlineData = await outlineResponse.json();
         setOutline(outlineData);
+
+        if (outlineData.compliance_doc) {
+          const response = await supabase.from('compliance_docs').select('title').eq('id', outlineData.compliance_doc).single();
+          setComplianceDocTitle(response.data?.title || 'Unknown');
+        }
 
         const elementsResponse = await fetch(`/api/outlines/get-elements?outline_id=${outlineId}`);
         const elementsData = await elementsResponse.json();
@@ -180,6 +187,10 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
                 <Badge variant="secondary" className="flex items-center">
                   <Calendar className="w-4 h-4 mr-1" />
                   <span>Updated: {new Date(outline?.updated_at ?? '').toLocaleDateString()}</span>
+                </Badge>
+                <Badge variant="default" className="flex items-center">
+                  <FileText className="w-4 h-4 mr-1" />
+                  <span>{complianceDocTitle}</span>
                 </Badge>
               </div>
             </div>

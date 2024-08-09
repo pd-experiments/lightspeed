@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      compliance_docs: {
+        Row: {
+          created_at: string | null
+          embeddings: Json | null
+          id: string
+          text: string | null
+          title: string | null
+          type: Database["public"]["Enums"]["govtType"] | null
+          url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          embeddings?: Json | null
+          id?: string
+          text?: string | null
+          title?: string | null
+          type?: Database["public"]["Enums"]["govtType"] | null
+          url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          embeddings?: Json | null
+          id?: string
+          text?: string | null
+          title?: string | null
+          type?: Database["public"]["Enums"]["govtType"] | null
+          url?: string | null
+        }
+        Relationships: []
+      }
       frames_records: {
         Row: {
           created_at: string
@@ -153,33 +183,47 @@ export type Database = {
       }
       outline: {
         Row: {
+          compliance_doc: string | null
+          compliance_report: Json | null
           created_at: string
           description: string | null
-          full_script: string | null
+          full_script: Json | null
           id: string
           script_generation_progress: number | null
           title: string | null
           updated_at: string
         }
         Insert: {
+          compliance_doc?: string | null
+          compliance_report?: Json | null
           created_at?: string
           description?: string | null
-          full_script?: string | null
+          full_script?: Json | null
           id?: string
           script_generation_progress?: number | null
           title?: string | null
           updated_at?: string
         }
         Update: {
+          compliance_doc?: string | null
+          compliance_report?: Json | null
           created_at?: string
           description?: string | null
-          full_script?: string | null
+          full_script?: Json | null
           id?: string
           script_generation_progress?: number | null
           title?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "outline_compliance_doc_fkey"
+            columns: ["compliance_doc"]
+            isOneToOne: false
+            referencedRelation: "compliance_docs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       outline_elements: {
         Row: {
@@ -632,6 +676,7 @@ export type Database = {
       }
     }
     Enums: {
+      govtType: "FEDERAL" | "STATE" | "LOCAL"
       outlineElementType: "VIDEO" | "TRANSITION"
       simpleUserType: "PRANAV" | "DINESH"
       todoStatusType: "TODO" | "IN_PROGRESS" | "DONE"

@@ -7,6 +7,8 @@ import logging
 from dotenv import load_dotenv
 from pydantic import BaseModel
 import json
+import sys
+import argparse
 
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -51,7 +53,7 @@ def fetch_compliance_text(url):
             model="gpt-4o-2024-08-06",
             messages=[
                 {"role": "system", "content": "You are a text cleaning assistant."},
-                {"role": "user", "content": f"Clean the following text by removing duplicate lines and unnecessary whitespace, and generate a JSON with two fields: 'title' and 'cleaned_text':\n\n{raw_text}"}
+                {"role": "user", "content": f"Clean the following text by removing duplicate lines and unnecessary whitespace, and generate a JSON with three fields: 'title', 'cleaned_text', and 'type' (which should be FEDERAL, STATE, or LOCAL):\n\n{raw_text}"}
             ],
             response_format=ComplianceResponse,
         )
@@ -82,18 +84,22 @@ def store_compliance_text(data, url):
         "url": url,
         "text": data.cleaned_text,
         "embeddings": embeddings,
-        "type": "FEDERAL",
+        "type": data.type,
         "title": data.title
     }
 
     response = supabase.table("compliance_docs").insert(data_to_store).execute()
-    if response.status == 201:
+    if response:
         print("Compliance document stored successfully.")
     else:
         print(f"Error storing compliance document: {response.model_dump_json()}")
 
 if __name__ == "__main__":
-    url = "https://www.fec.gov/help-candidates-and-committees/advertising-and-disclaimers/"
+    parser = argparse.ArgumentParser(description='Fetch and store compliance text from a URL.')
+    parser.add_argument('url', type=str, help='The URL to fetch compliance text from')
+    args = parser.parse_args()
+
+    url = args.url
     result = fetch_compliance_text(url)
     
     if result:

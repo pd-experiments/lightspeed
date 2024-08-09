@@ -58,7 +58,7 @@ export function OutlineCard({ outline, elementCount, totalDuration, onDelete, sc
         <Badge variant="destructive" className="mb-3">
           Request Approval
         </Badge>
-        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{outline.description}</p>
+        <p className="text-sm text-gray-600 mb-4 line-clamp-3">{outline.description}</p>
         <div className="flex flex-col space-y-2">
           <div className="flex items-center text-sm text-gray-700">
             <Layers className="w-4 h-4 mr-2 text-blue-500" />

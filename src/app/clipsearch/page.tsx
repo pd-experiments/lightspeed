@@ -93,8 +93,6 @@ export default function ClipSearchPage() {
       .limit(1)
       .single();
 
-      if (error) throw new Error("Failed to fetch last outline element");
-
       const lastPositionEndTime = lastElement ? new Date(lastElement.position_end_time).getTime() : 0;
       const videoStartTime = new Date(item.start_timestamp).getTime();
       const videoEndTime = new Date(item.end_timestamp).getTime();

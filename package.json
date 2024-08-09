@@ -11,6 +11,7 @@
   "dependencies": {
     "@radix-ui/react-collapsible": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.1",
+    "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-select": "^2.1.1",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tabs": "^1.1.0",
@@ -20,6 +21,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "file-saver": "^2.0.5",
+    "formidable": "^3.5.1",
     "framer-motion": "^11.3.18",
     "googleapis": "^140.0.1",
     "lodash": "^4.17.21",
@@ -39,6 +41,7 @@
     "ytdl-core": "^4.11.5"
   },
   "devDependencies": {
+    "@types/formidable": "^3.4.5",
     "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^18",

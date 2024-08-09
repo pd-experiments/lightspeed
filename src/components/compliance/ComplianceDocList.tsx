@@ -11,7 +11,7 @@ type ComplianceDoc = Database['public']['Tables']['compliance_docs']['Row'];
 export default function ComplianceDocList() {
   const [complianceDocs, setComplianceDocs] = useState<ComplianceDoc[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
+  const [loadingItem, setLoadingItem] = useState<{ type: 'url' | 'pdf', value: string } | null>(null);
   const [dots, setDots] = useState<string>('');
 
   useEffect(() => {
@@ -32,27 +32,27 @@ export default function ComplianceDocList() {
   }, []);
 
   useEffect(() => {
-    if (loadingUrl) {
+    if (loadingItem) {
       const interval = setInterval(() => {
         setDots((prevDots) => (prevDots.length >= 3 ? '' : prevDots + '.'));
       }, 500);
       return () => clearInterval(interval);
     }
-  }, [loadingUrl]);
+  }, [loadingItem]);
 
   return (
     <>
       <div className="flex justify-between items-center mb-6">
-        <ComplianceUploadDialog onUpload={(url) => {
-            setLoadingUrl(url);
+        <ComplianceUploadDialog onUpload={(value, isPdf, fileName) => {
+          setLoadingItem(isPdf ? { type: 'pdf', value: fileName || '' } : { type: 'url', value });
         }} />
-        {loadingUrl && (
-            <div className="flex items-center justify-center">
-                <p className="text-base text-blue-500">
-                  Indexing {loadingUrl}
-                  <span className="inline-block w-8 text-left">{dots}</span>
-                </p>
-            </div>
+        {loadingItem && (
+          <div className="flex items-center justify-center">
+            <p className="text-base text-blue-500">
+              {loadingItem.type === 'url' ? `Indexing ${loadingItem.value}` : `Parsing ${loadingItem.value}`}
+              <span className="inline-block w-8 text-left">{dots}</span>
+            </p>
+          </div>
         )}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">

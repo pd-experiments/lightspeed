@@ -34,7 +34,7 @@ export function OutlineCreator() {
       title,
       created_at: new Date(),
       updated_at: new Date(),
-      description: null,
+      description: newOutlineDescription,
       compliance_doc: selectedComplianceDocId,
     };
 

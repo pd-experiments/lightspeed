@@ -372,15 +372,15 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
   return (
     <>
       <Navbar />
-      <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <main className="min-h-screen items-center justify-between p-24">
         <div className="w-full max-w-7xl">
-          <Button variant="link" className="mb-4 p-0 h-auto font-normal">
+          <Button variant="link" className="p-0 h-auto font-normal">
             <Link href={`/outline/${outlineId}`} className="flex items-center">
               <ChevronLeft className="mr-1 h-4 w-4" />
               <span>Back to Outline</span>
             </Link>
           </Button>
-          <div className="flex items-center mb-6">
+          <div className="flex items-center mb-6 mt-8">
             <h1 className="text-3xl font-bold mr-4">{_.startCase(outlineTitle)} Script</h1>
             <div className="flex space-x-2">
               <Badge variant="secondary" className="flex items-center">

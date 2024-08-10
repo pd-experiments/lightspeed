@@ -154,9 +154,10 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen items-center justify-between p-24">
+      <main className="min-h-screen flex flex-col items-center justify-between p-24">
+      <div className="w-full max-w-7xl mx-auto">
         <div className="w-full flex justify-between mb-4">
-          <Button variant="link" className="p-0 h-auto font-normal">
+            <Button variant="link" className="p-0 h-auto font-normal">
             <Link href="/outline" className="flex items-center">
               <ChevronLeft className="mr-1 h-4 w-4" />
               <span>Back to Outlines</span>
@@ -226,6 +227,7 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
               />
             </>
           )}
+        </div>
         </div>
       </main>
     </>

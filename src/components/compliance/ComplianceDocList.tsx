@@ -5,6 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Database } from '@/lib/types/schema';
 import { Link } from 'lucide-react';
 import { ComplianceUploadDialog } from './UploadDialog';
+import { Skeleton } from "@/components/ui/skeleton";
+import _ from 'lodash';
+import { z } from 'zod';
 
 type ComplianceDoc = Database['public']['Tables']['compliance_docs']['Row'];
 
@@ -41,6 +44,24 @@ export default function ComplianceDocList() {
     }
   }, [loadingItem]);
 
+  const DocTypeSchema = z.enum(['FEDERAL', 'STATE', 'LOCAL']);
+  type DocType = z.infer<typeof DocTypeSchema>;
+  
+  const ColorMapSchema = z.record(DocTypeSchema, z.string());
+  
+  const docTypes: DocType[] = ['FEDERAL', 'STATE', 'LOCAL'];
+  
+  const colorMap = ColorMapSchema.parse({
+    'FEDERAL': 'bg-blue-500',
+    'STATE': 'bg-green-500',
+    'LOCAL': 'bg-yellow-500'
+  });
+  
+  const groupedDocs = docTypes.reduce((acc, type) => {
+    acc[type] = complianceDocs.filter(doc => doc.type === type);
+    return acc;
+  }, {} as Record<DocType, ComplianceDoc[]>);
+
   return (
     <>
       <div className="flex justify-between items-center mb-6">
@@ -61,29 +82,54 @@ export default function ComplianceDocList() {
           </div>
         )}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-50 rounded-lg">
         {loading ? (
-            <p>Loading...</p>
-        ) : complianceDocs.length === 0 ? (
-            <p>No compliance documents found.</p>
+          docTypes.map((type, index) => (
+            <div key={index} className="bg-white rounded-lg shadow-sm p-4">
+              <div className="flex items-center mb-4">
+                <div className={`w-2 h-2 rounded-full ${colorMap[type]} mr-2`}></div>
+                <h2 className="text-sm font-medium text-gray-700">{type}</h2>
+              </div>
+              <div className="space-y-3">
+                {Array.from({ length: 2 }).map((_, idx) => (
+                  <Skeleton key={idx} className="h-24 w-full rounded-md" />
+                ))}
+              </div>
+            </div>
+          ))
         ) : (
-            complianceDocs.map((doc) => (
-              <Card key={doc.id} className="transition-transform hover:scale-105">
-                <CardContent className="p-4">
-                  <h3 className="text-lg font-semibold mb-2">{doc.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{doc.text?.substring(0, 200)}...</p>
-                  <div className="flex justify-between items-center">
-                    <div className="flex space-x-2">
-                      <Badge>{doc.type}</Badge>
-                      <Badge variant="secondary" className="shadow-md hover:shadow-lg cursor-pointer" onClick={() => {
-                        window.open(doc.url ?? '', '_blank');
-                      }}><Link className="w-4 h-4 mr-1"/> View Document</Badge>
+          <>
+            {docTypes.map((type) => (
+              <div key={type} className="bg-white rounded-lg shadow-sm p-4">
+                <div className="flex items-center mb-4">
+                  <div className={`w-2 h-2 rounded-full ${colorMap[type]} mr-2`}></div>
+                  <h2 className="text-sm font-medium text-gray-700">{type}</h2>
+                </div>
+                <div className="space-y-3">
+                  {groupedDocs[type]?.length > 0 ? (
+                    groupedDocs[type].map((doc) => (
+                      <Card key={doc.id} className="transition-all hover:shadow-md">
+                        <CardContent className="p-4">
+                          <h3 className="text-sm font-semibold mb-2 line-clamp-1">{doc.title}</h3>
+                          <p className="text-xs text-gray-600 mb-2 line-clamp-2">{doc.text?.substring(0, 100)}...</p>
+                          <div className="flex justify-between items-center">
+                            <Badge variant="secondary" className="shadow-md hover:shadow-lg cursor-pointer text-xs" onClick={() => {
+                              window.open(doc.url ?? '', '_blank');
+                            }}><Link className="w-3 h-3 mr-1"/> View</Badge>
+                            <span className="text-xs text-gray-500">{new Date(doc.created_at || '').toLocaleDateString()}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="flex items-center justify-center h-24 border border-dashed border-gray-200 rounded-md">
+                      <p className="text-sm text-gray-400">No documents</p>
                     </div>
-                    <span className="text-xs text-gray-500">{new Date(doc.created_at || '').toLocaleDateString()}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                  )}
+                </div>
+              </div>
+            ))}
+          </>
         )}
       </div>
     </>

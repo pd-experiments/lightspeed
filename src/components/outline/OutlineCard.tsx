@@ -1,9 +1,8 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tables } from '@/lib/types/schema';
-import { Clock, Calendar, Layers, Trash2, CheckCircle } from 'lucide-react';
+import { Clock, Layers, Trash2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { formatDuration } from '@/lib/helperUtils/outline/utils';
 
 type Outline = Tables<'outline'>;
@@ -40,39 +39,33 @@ export function OutlineCard({ outline, elementCount, totalDuration, onDelete, sc
   };
 
   return (
-    <Card className="hover:shadow-lg mb-3 transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center w-full">
-          <CardTitle className="text-xl font-bold text-gray-800">{outline.title}</CardTitle>
+    <Card className="hover:shadow-md transition-all duration-300 bg-white">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-sm font-semibold text-gray-800 line-clamp-1">{outline.title}</h3>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleDelete}
-            className="text-red-500 hover:text-red-700 hover:bg-red-100"
+            className="text-red-500 hover:text-red-700 hover:bg-red-100 p-1"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3 h-3" />
           </Button>
         </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-gray-600 mb-4 line-clamp-3">{outline.description}</p>
-        <div className="flex flex-col space-y-2">
-          <div className="flex items-center text-sm text-gray-700">
-            <Layers className="w-4 h-4 mr-2 text-blue-500" />
-            <span>{elementCount} Elements</span>
+        <p className="text-xs text-gray-600 mb-2 line-clamp-2">{outline.description}</p>
+        <div className="flex flex-wrap gap-2 text-xs text-gray-700">
+          <div className="flex items-center">
+            <Layers className="w-3 h-3 mr-1 text-blue-500" />
+            <span>{elementCount}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-700">
-            <Clock className="w-4 h-4 mr-2 text-green-500" />
+          <div className="flex items-center">
+            <Clock className="w-3 h-3 mr-1 text-green-500" />
             <span>{formatDuration(totalDuration)}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-700">
-            <Calendar className="w-4 h-4 mr-2 text-purple-500" />
-            <span>Updated: {new Date(outline.updated_at).toLocaleDateString()}</span>
-          </div>
           {scriptGenerated && (
-            <div className="flex items-center text-sm text-gray-700">
-              <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
-              <span>Script Generated</span>
+            <div className="flex items-center">
+              <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
+              <span>Script Ready</span>
             </div>
           )}
         </div>

@@ -62,59 +62,50 @@ export default function OutlineList() {
   }, {} as Record<string, OutlineWithDetails[]>);
 
   return (
-    <div className="flex overflow-x-auto space-x-6 p-6 bg-gray-50 rounded-lg">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 p-6 bg-gray-50 rounded-lg">
       {loading ? (
         statusColumns.map((status, index) => (
-          <div key={index} className="flex-shrink-0 w-72">
+          <div key={index} className="bg-white rounded-lg shadow-sm p-4">
             <div className="flex items-center mb-4">
-              <div className={`w-3 h-3 rounded-sm ${colorMap[status]} mr-2`}></div>
-              <h2 className="text-lg font-semibold text-gray-700">{_.startCase(_.toLower(status))}</h2>
+              <div className={`w-2 h-2 rounded-full ${colorMap[status]} mr-2`}></div>
+              <h2 className="text-sm font-medium text-gray-700">{_.startCase(_.toLower(status))}</h2>
             </div>
-            <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, idx) => (
-                <Skeleton key={idx} className="h-32 w-full rounded-lg" />
+            <div className="space-y-3">
+              {Array.from({ length: 2 }).map((_, idx) => (
+                <Skeleton key={idx} className="h-24 w-full rounded-md" />
               ))}
             </div>
           </div>
         ))
       ) : (
         <>
-          {statusColumns.filter(status => groupedOutlines[status]?.length > 0).map((status) => (
-            <div key={status} className="flex-shrink-0 w-72">
+          {statusColumns.map((status) => (
+            <div key={status} className="bg-white rounded-lg shadow-sm p-4">
               <div className="flex items-center mb-4">
-                <div className={`w-3 h-3 rounded-sm ${colorMap[status]} mr-2`}></div>
-                <h2 className="text-md font-medium text-gray-700">{_.startCase(_.toLower(status))}</h2>
+                <div className={`w-2 h-2 rounded-full ${colorMap[status]} mr-2`}></div>
+                <h2 className="text-sm font-medium text-gray-700">{_.startCase(_.toLower(status))}</h2>
               </div>
-              <div className="space-y-4">
-                {groupedOutlines[status].map((outline) => (
-                  <Link href={`/outline/${outline.id}`} key={outline.id} className="block transition-transform hover:scale-105">
-                    <OutlineCard 
-                      outline={outline} 
-                      elementCount={outline.elementCount} 
-                      totalDuration={outline.totalDuration} 
-                      onDelete={() => setOutlines(outlines.filter(o => o.id !== outline.id))}
-                      scriptGenerated={outline.script_generation_progress === 100}
-                    />
-                  </Link>
-                ))}
+              <div className="space-y-3">
+                {groupedOutlines[status]?.length > 0 ? (
+                  groupedOutlines[status].map((outline) => (
+                    <Link href={`/outline/${outline.id}`} key={outline.id} className="block transition-all hover:shadow-md">
+                      <OutlineCard 
+                        outline={outline} 
+                        elementCount={outline.elementCount} 
+                        totalDuration={outline.totalDuration} 
+                        onDelete={() => setOutlines(outlines.filter(o => o.id !== outline.id))}
+                        scriptGenerated={outline.script_generation_progress === 100}
+                      />
+                    </Link>
+                  ))
+                ) : (
+                  <div className="flex items-center justify-center h-24 border border-dashed border-gray-200 rounded-md">
+                    <p className="text-sm text-gray-400">No outlines</p>
+                  </div>
+                )}
               </div>
             </div>
           ))}
-          {statusColumns.filter(status => !groupedOutlines[status]?.length).length > 0 && (
-            <div className="flex-shrink-0 w-72">
-              {statusColumns.filter(status => !groupedOutlines[status]?.length).map((status) => (
-                <div key={status} className="flex items-center mb-4">
-                  <div className={`w-3 h-3 rounded-sm ${colorMap[status]} mr-2`}></div>
-                  <h2 className="text-md font-medium text-gray-700">{_.startCase(_.toLower(status))}</h2>
-                </div>
-              ))}
-              <Card className="p-4 bg-white shadow-sm border-dashed border-2 border-gray-200">
-                <CardContent className="flex items-center justify-center h-full py-3">
-                  <p className="text-sm text-gray-400">No outlines in these statuses</p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
         </>
       )}
     </div>

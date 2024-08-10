@@ -1,24 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tables } from '@/lib/types/schema';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Database } from '@/lib/types/schema';
 import { Calendar, Trash2, FileText, CheckCircleIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Database } from '@/lib/types/schema';
-import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
 type Outline = Database['public']['Tables']['outline']['Row'];
 type ComplianceDoc = Database['public']['Tables']['compliance_docs']['Row'];
 
+interface OutlineWithDoc extends Outline {
+  compliance_doc_details: ComplianceDoc | null;
+}
+
 interface ComplianceReportCardProps {
-  outline: Outline;
+  outline: OutlineWithDoc;
   onDelete: () => void;
 }
 
 export function ComplianceReportCard({ outline, onDelete }: ComplianceReportCardProps) {
   const router = useRouter();
-  const [complianceDoc, setComplianceDoc] = useState<ComplianceDoc>();
   const parsedReport = typeof outline.compliance_report === 'string' ? JSON.parse(outline.compliance_report) : outline.compliance_report;
   
   if (!parsedReport || typeof parsedReport !== 'object') {
@@ -47,68 +48,45 @@ export function ComplianceReportCard({ outline, onDelete }: ComplianceReportCard
     }
   };
 
-  useEffect(() => {
-    async function fetchComplianceDocTitle() {
-      if (outline.compliance_doc) {
-        const { data, error } = await supabase
-          .from('compliance_docs')
-          .select('*')
-          .eq('id', outline.compliance_doc)
-          .single();
-
-        if (error) {
-          console.error('Error fetching compliance doc title:', error);
-        } else if (data) {
-          setComplianceDoc(data);
-        }
-      }
-    }
-
-    fetchComplianceDocTitle();
-  }, [outline.compliance_doc]);
-
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center w-full">
-          <CardTitle className="text-xl font-bold text-gray-800">{outline.title}</CardTitle>
+    <Card className="transition-all hover:shadow-md">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-sm font-semibold line-clamp-1">{outline.title}</h3>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleDelete}
-            className="text-red-500 hover:text-red-700 hover:bg-red-100"
+            className="text-red-500 hover:text-red-700 hover:bg-red-100 p-1"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3 h-3" />
           </Button>
         </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{outline.description}</p>
-        <div className="flex flex-col space-y-2">
-          <div className="flex items-center text-sm text-gray-700">
-            <FileText className="w-4 h-4 mr-2 text-purple-500" />
-            <span className="font-bold">{complianceDoc?.title}</span>
+        <p className="text-xs text-gray-600 mb-2 line-clamp-2">{outline.description}</p>
+        <div className="flex flex-wrap gap-2 text-xs text-gray-700">
+          <div className="flex items-center">
+            <FileText className="w-3 h-3 mr-1 text-purple-500" />
+            <span className="font-bold line-clamp-1">{outline.compliance_doc_details?.title}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-700">
-            <Calendar className="w-4 h-4 mr-2 text-purple-500" />
-            <span>Generated: {new Date(outline.updated_at).toLocaleDateString()}</span>
+          <div className="flex items-center">
+            <Calendar className="w-3 h-3 mr-1 text-green-500" />
+            <span>{new Date(outline.updated_at).toLocaleDateString()}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-700">
-            <CheckCircleIcon className="w-4 h-4 mr-2 text-blue-500" />
-            <span>Compliance Status: {parsedReport.overallAssessment ? 'Completed' : 'Pending'}</span>
+          <div className="flex items-center">
+            <CheckCircleIcon className="w-3 h-3 mr-1 text-blue-500" />
+            <span>{parsedReport.overallAssessment ? 'Completed' : 'Pending'}</span>
           </div>
         </div>
-        <Button 
-          variant="secondary"
-          size="sm"
+        <Badge 
+          variant="secondary" 
+          className="mt-2 shadow-md hover:shadow-lg cursor-pointer text-xs w-full justify-center"
           onClick={(e) => {
             e.preventDefault();
             router.push(`/outline/${outline.id}`);
           }}
-          className="mt-3 w-full"
         >
           View Outline
-        </Button>
+        </Badge>
       </CardContent>
     </Card>
   );

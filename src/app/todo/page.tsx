@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import _ from 'lodash';
 import { PlusCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface Todo {
   id: string;
@@ -20,13 +21,19 @@ interface Todo {
 }
 
 export default function TodoPage() {
+  const router = useRouter();
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodo, setNewTodo] = useState('');
   const [selectedUser, setSelectedUser] = useState<'PRANAV' | 'DINESH'>('PRANAV');
   const [selectedStatus, setSelectedStatus] = useState<'TODO' | 'IN_PROGRESS' | 'DONE'>('TODO');
+  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
 
   useEffect(() => {
-    fetchTodos();
+    if (isDevMode) {
+      fetchTodos();
+    } else {
+      router.push("/")
+    }
   }, []);
 
   async function fetchTodos() {

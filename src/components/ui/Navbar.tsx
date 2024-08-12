@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
 
   return (
     <nav className="flex items-center justify-between p-4 bg-white shadow-sm">
@@ -20,12 +21,15 @@ export default function Navbar() {
           <NavItem href="/clipsearch" icon={<Search className="w-4 h-4 mr-2" />} text="Clip Search" isActive={pathname === '/clipsearch'} />
           <NavItem href="/outline" icon={<PencilRuler className="w-4 h-4 mr-2" />} text="Outline" isActive={pathname === '/outline'} />
           <NavItem href="/compliance" icon={<FileText className="w-4 h-4 mr-2" />} text="Compliance" isActive={pathname === '/compliance'} />
+          
+          {isDevMode && (
+            <NavItem href="/todo" icon={<CheckCircleIcon className="w-4 h-4 mr-2" />} text="Todo (DEVMODE)" isActive={pathname === '/todo'} />
+          )}
 
           {/* throwing some ideas here */}
           {/* <NavItem href="/" icon={<FileStackIcon className="w-4 h-4 mr-2" />} text="Pipeline (TBD)" isActive={pathname === '/'} />
           <NavItem href="/" icon={<CloudCog className="w-4 h-4 mr-2" />} text="Airtime (TBD)" isActive={pathname === '/'} />
           <NavItem href="/" icon={<LucideSwitchCamera className="w-4 h-4 mr-2" />} text="Testing (TBD)" isActive={pathname === '/'} /> */}
-          <NavItem href="/todo" icon={<CheckCircleIcon className="w-4 h-4 mr-2" />} text="Todo (DEVMODE)" isActive={pathname === '/todo'} />
         </div>
       </div>
     </nav>

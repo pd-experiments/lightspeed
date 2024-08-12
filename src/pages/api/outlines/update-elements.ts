@@ -1,9 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
-import { Database } from "@/lib/types/schema";
-import { OutlineElementWithVideoTitle } from "@/app/outline/page";
-
-type OutlineElement = Database["public"]["Tables"]["outline_elements"]["Row"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

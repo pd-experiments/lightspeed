@@ -1,4 +1,4 @@
-import { OutlineElementWithVideoTitle } from '@/app/outline/page';
+import { OutlineElementWithVideoTitle } from '@/app/outline/[id]/page';
 
 export function generateFcpxml(outlineElements: OutlineElementWithVideoTitle[]): string {
   const fcpxmlHeader = `<?xml version="1.0" encoding="UTF-8"?>

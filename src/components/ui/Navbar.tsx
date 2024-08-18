@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, VideoIcon, CloudLightningIcon, FileStackIcon, PencilRuler, CloudCog, LucideSwitchCamera, CheckCircleIcon, FileText } from 'lucide-react';
+import { Search, VideoIcon, CloudLightningIcon, FileStackIcon, PencilRuler, CloudCog, LucideSwitchCamera, CheckCircleIcon, FileText, User2Icon } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
@@ -23,7 +23,10 @@ export default function Navbar() {
           <NavItem href="/compliance" icon={<FileText className="w-4 h-4 mr-2" />} text="Compliance" isActive={pathname === '/compliance'} />
           
           {isDevMode && (
+            <>
+            <NavItem href="/personalization" icon={<User2Icon className="w-4 h-4 mr-2" />} text="Personalization (DEVMODE)" isActive={pathname === '/personalization'} />
             <NavItem href="/todo" icon={<CheckCircleIcon className="w-4 h-4 mr-2" />} text="Todo (DEVMODE)" isActive={pathname === '/todo'} />
+            </>
           )}
 
           {/* throwing some ideas here */}

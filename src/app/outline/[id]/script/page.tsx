@@ -24,7 +24,28 @@ import {
 
 export default function ScriptPage({ params, searchParams }: { params: { id: string }, searchParams: { title: string } }) {
   const outlineId = params?.id as string;
-  const outlineTitle = searchParams?.title || 'Untitled Outline';
+  const [outlineTitle, setOutlineTitle] = useState<string>(searchParams?.title || 'Untitled Outline');
+
+  useEffect(() => {
+    async function fetchOutlineTitle() {
+      if (!searchParams?.title) {
+        const { data, error } = await supabase
+          .from('outline')
+          .select('title')
+          .eq('id', outlineId)
+          .single();
+
+        if (error) {
+          console.error('Error fetching outline title:', error);
+        } else if (data) {
+          setOutlineTitle(data.title || 'Untitled Outline');
+        }
+      }
+    }
+
+    fetchOutlineTitle();
+  }, [outlineId, searchParams?.title]);
+
   const [fullScript, setFullScript] = useState<any[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);

@@ -53,7 +53,7 @@ export default function OutlineList() {
     'EDITING': 'bg-green-500',
     'GENERATING': 'bg-yellow-500',
     'SCRIPT_FINALIZED': 'bg-purple-500',
-    'COMPLIANCE_CHECK': 'bg-red-500'
+    'COMPLIANCE_CHECK': 'bg-red-500',
   });
 
   const groupedOutlines = statusColumns.reduce((acc, status) => {

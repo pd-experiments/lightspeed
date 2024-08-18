@@ -687,6 +687,7 @@ export type Database = {
         | "GENERATING"
         | "SCRIPT_FINALIZED"
         | "COMPLIANCE_CHECK"
+        | "PERSONALIZATION"
       simpleUserType: "PRANAV" | "DINESH"
       todoStatusType: "TODO" | "IN_PROGRESS" | "DONE"
     }

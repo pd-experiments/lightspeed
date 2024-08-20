@@ -60,7 +60,11 @@ def main():
         data = scrape_ad_data_from_url(url, driver)
         if data is None:
             continue
-        supabase_client.table("google_ads").upsert(data.model_dump_json()).execute()
+        json: dict[str, Any] = data.model_dump(mode="json")
+        try:
+            supabase_client.table("stg_ads__google_ads").upsert(json).execute()
+        except Exception as e:
+            print("Supabase couldn't upsert:", e)
 
 
 class Property(BaseModel):

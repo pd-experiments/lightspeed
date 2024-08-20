@@ -89,12 +89,11 @@ def scrape_ad_data_from_url(url: str, driver: WebDriver | None = None):
     if driver is None:
         driver = webdriver.Chrome()
 
+    ad_details: dict[str, Any] = {"advertisement_url": url}
     driver.get(url)
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CLASS_NAME, "creative-details-container"))
     )
-
-    ad_details: dict[str, Any] = {"advertisement_url": url}
 
     # Advertiser name
     WebDriverWait(driver, 10).until(
@@ -203,7 +202,7 @@ def scrape_ad_data_from_url(url: str, driver: WebDriver | None = None):
     if format_value is None:
         return
 
-    ad_details["media_link"] = []
+    ad_details["media_links"] = []
     while True:
         print("Started another iteration")
         try:
@@ -222,7 +221,7 @@ def scrape_ad_data_from_url(url: str, driver: WebDriver | None = None):
                 iframe: WebElement = container.find_element(By.TAG_NAME, "iframe")
                 driver.switch_to.frame(iframe)
                 img = driver.find_element(By.TAG_NAME, "img")
-                ad_details["media_link"].append(img.get_attribute("src"))
+                ad_details["media_links"].append(img.get_attribute("src"))
             elif format_value == "Text":
                 WebDriverWait(driver, 5).until(
                     EC.presence_of_element_located(
@@ -241,7 +240,7 @@ def scrape_ad_data_from_url(url: str, driver: WebDriver | None = None):
                     EC.presence_of_element_located((By.TAG_NAME, "div"))
                 )
                 body = driver.find_element(By.TAG_NAME, "body")
-                ad_details["media_link"].append(body.text)
+                ad_details["media_links"].append(body.text)
             elif format_value == "Video":
                 # WebDriverWait(driver, 10).until(
                 #     EC.presence_of_element_located((By.ID, "youtube-mobile"))
@@ -285,7 +284,7 @@ def scrape_ad_data_from_url(url: str, driver: WebDriver | None = None):
                 parsed_url = urlparse(url)
                 youtube_url = f"https://{parsed_url.netloc}{parsed_url.path}"
 
-                ad_details["media_link"].append(youtube_url)
+                ad_details["media_links"].append(youtube_url)
 
         except Exception as e:
             print("Something happened")

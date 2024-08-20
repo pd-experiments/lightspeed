@@ -42,3 +42,11 @@ venv/
 # python
 venv/
 /scripts/myenv
+/scripts/scrape_env
+/scripts/.session.json
+/scripts/.token
+/scripts/__pycache__/
+/scripts/threads_political_analysis.json
+/scripts/tiktok_political_data.json
+/scripts/threads_political_analysis.json
+/scripts/tiktok_political_data.json

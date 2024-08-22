@@ -157,6 +157,92 @@ export type Database = {
           },
         ]
       }
+      int_ads__google_ads_embeddings: {
+        Row: {
+          keywords: string[]
+          political_leaning: string | null
+          summary: string
+          versioned_ad_id: string
+        }
+        Insert: {
+          keywords: string[]
+          political_leaning?: string | null
+          summary: string
+          versioned_ad_id: string
+        }
+        Update: {
+          keywords?: string[]
+          political_leaning?: string | null
+          summary?: string
+          versioned_ad_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_versioned_ad_id"
+            columns: ["versioned_ad_id"]
+            isOneToOne: true
+            referencedRelation: "int_ads__google_ads_versioned"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      int_ads__google_ads_enhanced: {
+        Row: {
+          advertisement_url: string
+          advertiser_name: string | null
+          advertiser_url: string | null
+          age_targeting: Json | null
+          content: string | null
+          days_ran_for: number | null
+          first_shown: string | null
+          format: string | null
+          gender_targeting: Json | null
+          geo_targeting: Json | null
+          id: string
+          keywords: string[] | null
+          last_shown: string | null
+          political_leaning: string | null
+          summary: string | null
+          version: number | null
+        }
+        Insert: {
+          advertisement_url: string
+          advertiser_name?: string | null
+          advertiser_url?: string | null
+          age_targeting?: Json | null
+          content?: string | null
+          days_ran_for?: number | null
+          first_shown?: string | null
+          format?: string | null
+          gender_targeting?: Json | null
+          geo_targeting?: Json | null
+          id: string
+          keywords?: string[] | null
+          last_shown?: string | null
+          political_leaning?: string | null
+          summary?: string | null
+          version?: number | null
+        }
+        Update: {
+          advertisement_url?: string
+          advertiser_name?: string | null
+          advertiser_url?: string | null
+          age_targeting?: Json | null
+          content?: string | null
+          days_ran_for?: number | null
+          first_shown?: string | null
+          format?: string | null
+          gender_targeting?: Json | null
+          geo_targeting?: Json | null
+          id?: string
+          keywords?: string[] | null
+          last_shown?: string | null
+          political_leaning?: string | null
+          summary?: string | null
+          version?: number | null
+        }
+        Relationships: []
+      }
       int_ads__google_ads_versioned: {
         Row: {
           advertisement_url: string

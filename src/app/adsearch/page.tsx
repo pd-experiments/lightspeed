@@ -13,6 +13,7 @@ export default function AdSearchPage() {
           <p className="text-base text-gray-700 mb-6">
             Search for recent political ads.
           </p>
+          
           {/* Search bar */}
           <div className="flex flex-row items-center gap-2">
             <Input placeholder="Type to search" />
@@ -20,6 +21,8 @@ export default function AdSearchPage() {
               <Search />
             </Button>
           </div>
+
+          {/* Search results */}
         </div>
       </main>
     </>

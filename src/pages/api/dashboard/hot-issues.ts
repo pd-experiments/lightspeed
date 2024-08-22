@@ -88,25 +88,32 @@ async function analyzeHotIssues(content: string[]) {
       },
       {
         role: "user",
-        content: `Analyze the following recent political content and identify the top 5 hot issues or topics being discussed. For each issue, provide a brief description and its importance score (1-10):
-  
-  ${truncatedContent}
-  
-  Output the result as a JSON array with objects containing 'issue', 'description', and 'importance' fields. Do not include any additional text or formatting.`,
+        content: `Analyze the following recent political content and identify the top 10 hot issues or topics being discussed. For each issue, provide the following information:
+        1. issue: A short title for the issue
+        2. description: A brief description of the issue
+        3. importance: An importance score (1-10)
+        4. keyPoints: An array of 2-3 key points or arguments related to the issue
+        5. relatedTopics: An array of 2-3 related topics or subtopics
+        6. trendDirection: Whether the issue is 'rising', 'stable', or 'declining' in importance
+        7. impactAreas: An array of areas (e.g., 'economy', 'healthcare', 'foreign policy') this issue impacts
+
+        ${truncatedContent}
+
+        Output the result as a JSON array with objects containing these fields. Do not include any additional text or formatting.`,
       },
     ];
-  
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: messages,
       temperature: 0.5,
     });
-  
+
     const hotIssuesText = response.choices[0].message.content;
     if (!hotIssuesText) {
       throw new Error("No response from GPT");
     }
-  
+
     try {
       const cleanedText = hotIssuesText.replace(/```json\n?|\n?```/g, '').trim();
       return JSON.parse(cleanedText);

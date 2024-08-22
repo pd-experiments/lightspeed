@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/types/schema';
 import { uniq } from 'lodash';
+import { ExternalLink } from 'lucide-react';
 
 type Thread = Database['public']['Tables']['threads']['Row'];
 type TikTokVideo = Database['public']['Tables']['tiktok_videos']['Row'];
@@ -68,6 +69,19 @@ export default function TrendingTopics({ topics, isLoading }: TrendingTopicsProp
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
   };
 
+  const getRefUrl = (ref: TrendingTopic['references'][0]) => {
+    switch (ref.source) {
+      case 'threads':
+        return (ref.data as Thread).url ?? '';
+      case 'tiktok':
+        return `https://www.tiktok.com/@${(ref.data as TikTokVideo).author}/video/${(ref.data as TikTokVideo).video_id}`;
+      case 'news':
+        return (ref.data as NewsArticle).url ?? '';
+      default:
+        return '';
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -103,13 +117,16 @@ export default function TrendingTopics({ topics, isLoading }: TrendingTopicsProp
                             <span className="text-sm font-medium text-gray-700 capitalize">
                                 {ref.source} {ref.source === 'tiktok' && ('views' in ref.data ? 'Video' : 'Comment')}
                             </span>
+                            <a href={getRefUrl(ref)} target="_blank" rel="noopener noreferrer">
+                                <Badge variant="secondary" className="cursor-pointer hover:bg-gray-200 transition-colors">
+                                <ExternalLink size={12} className="mr-1" />
+                                View
+                                </Badge>
+                            </a>
                             </div>
                             {ref.source === 'threads' && (
                             <>
                                 <p className="font-semibold">{(ref.data as Thread).username ?? "No username"}</p>
-                                <a href={(ref.data as Thread).url ?? ''} target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">
-                                {(ref.data as Thread).url}
-                                </a>
                                 <p className="text-sm text-gray-600">
                                 {expandedRefs.has(index) ? ref.data.text : truncateText(ref.data.text ?? '', 100)}
                                 </p>

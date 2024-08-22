@@ -62,6 +62,7 @@ export default function Navbar() {
                 text="Ad Search"
                 isActive={pathname === "/adsearch"}
               />
+              <NavItem href="/dashboard" icon={<User2Icon className="w-4 h-4 mr-2" />} text="Dashboard (DEVMODE)" isActive={pathname === '/dashboard'} />
               <NavItem
                 href="/personalization"
                 icon={<User2Icon className="w-4 h-4 mr-2" />}

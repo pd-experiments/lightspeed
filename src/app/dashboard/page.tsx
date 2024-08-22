@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/ui/Navbar';
-import { supabase } from '@/lib/supabaseClient';
 import TrendingTopics from '@/components/dashboard/TrendingTopics';
 import RecentThreads from '@/components/dashboard/RecentThreads';
 import TikTokVideos from '@/components/dashboard/TikTokVideos';
@@ -13,46 +12,83 @@ import ContentThemes from '@/components/dashboard/ContentThemes';
 import InfluentialFigures from '@/components/dashboard/InfluentialFigures';
 
 export default function DashboardPage() {
-    const [isLoading, setIsLoading] = useState(true);
     const [trendingTopics, setTrendingTopics] = useState([]);
     const [hotIssues, setHotIssues] = useState([]);
     const [contentThemes, setContentThemes] = useState([]);
     const [influentialFigures, setInfluentialFigures] = useState([]);
+    const [newsArticles, setNewsArticles] = useState([]);
+
+    const [isLoadingTopics, setIsLoadingTopics] = useState(true);
+    const [isLoadingIssues, setIsLoadingIssues] = useState(true);
+    const [isLoadingThemes, setIsLoadingThemes] = useState(true);
+    const [isLoadingFigures, setIsLoadingFigures] = useState(true);
+    const [isLoadingNews, setIsLoadingNews] = useState(true);
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchTrendingTopics();
+    fetchHotIssues();
+    fetchContentThemes();
+    fetchInfluentialFigures();
+    fetchNewsArticles();
   }, []);
 
-  const fetchDashboardData = async () => {
-    setIsLoading(true);
+  const fetchTrendingTopics = async () => {
     try {
-      const [
-        topicsResponse,
-        issuesResponse,
-        themesResponse,
-        figuresResponse
-      ] = await Promise.all([
-        fetch('/api/dashboard/trending-topics'),
-        fetch('/api/dashboard/hot-issues'),
-        fetch('/api/dashboard/content-themes'),
-        fetch('/api/dashboard/influential-figures'),
-      ]);
-  
-      const [topics, issues, themes, figures] = await Promise.all([
-        topicsResponse.json(),
-        issuesResponse.json(),
-        themesResponse.json(),
-        figuresResponse.json(),
-      ]);
-  
-      setTrendingTopics(topics);
-      setHotIssues(issues);
-      setContentThemes(themes);
-      setInfluentialFigures(figures);
+      const response = await fetch('/api/dashboard/trending-topics');
+      const data = await response.json();
+      setTrendingTopics(data);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Error fetching trending topics:', error);
     } finally {
-      setIsLoading(false);
+      setIsLoadingTopics(false);
+    }
+  };
+
+  const fetchHotIssues = async () => {
+    try {
+      const response = await fetch('/api/dashboard/hot-issues');
+      const data = await response.json();
+      setHotIssues(data);
+    } catch (error) {
+      console.error('Error fetching hot issues:', error);
+    } finally {
+      setIsLoadingIssues(false);
+    }
+  };
+
+  const fetchContentThemes = async () => {
+    try {
+      const response = await fetch('/api/dashboard/content-themes');
+      const data = await response.json();
+      setContentThemes(data);
+    } catch (error) {
+      console.error('Error fetching content themes:', error);
+    } finally {
+      setIsLoadingThemes(false);
+    }
+  };
+
+  const fetchInfluentialFigures = async () => {
+    try {
+      const response = await fetch('/api/dashboard/influential-figures');
+      const data = await response.json();
+      setInfluentialFigures(data);
+    } catch (error) {
+      console.error('Error fetching influential figures:', error);
+    } finally {
+      setIsLoadingFigures(false);
+    }
+  };
+
+  const fetchNewsArticles = async () => {
+    try {
+      const response = await fetch('/api/dashboard/news-articles');
+      const data = await response.json();
+      setNewsArticles(data);
+    } catch (error) {
+      console.error('Error fetching news articles:', error);
+    } finally {
+      setIsLoadingNews(false);
     }
   };
 
@@ -64,13 +100,13 @@ export default function DashboardPage() {
           <h1 className="text-4xl font-bold mb-8">Political Pulse Dashboard</h1>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <TrendingTopics topics={trendingTopics} isLoading={isLoading} />
-            <HotIssues issues={hotIssues} isLoading={isLoading} />
+            <TrendingTopics topics={trendingTopics} isLoading={isLoadingTopics} />
+            <HotIssues issues={hotIssues} isLoading={isLoadingIssues} />
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <ContentThemes themes={contentThemes} isLoading={isLoading} />
-            <InfluentialFigures figures={influentialFigures} isLoading={isLoading} />
+            <ContentThemes themes={contentThemes} isLoading={isLoadingThemes} />
+            <InfluentialFigures figures={influentialFigures} isLoading={isLoadingFigures} />
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
@@ -80,7 +116,7 @@ export default function DashboardPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <TikTokComments />
-            <NewsArticles />
+            <NewsArticles articles={newsArticles} isLoading={isLoadingNews} />
           </div>
         </div>
       </main>

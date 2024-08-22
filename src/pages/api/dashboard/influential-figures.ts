@@ -80,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 async function filterEntities(entities: string[]): Promise<string[]> {
   if (entities.length === 0) return [];
 
-  const prompt = `Given the following list of entities, return only those that are likely to be people, organizations, or other entities that are relevant to the political sphere. If none are relevant, return the top 10 most likely to be names or organizations. Respond with a JSON array of strings:
+  const prompt = `Given the following list of entities, return only those that are likely to be people, organizations, or other entities that are relevant to the political sphere. If none are relevant, return the top 10 most likely to be names or organizations. Respond with a JSON array of strings, and nothing else:
 
 ${entities.join(', ')}`;
 
@@ -88,7 +88,7 @@ ${entities.join(', ')}`;
     const response = await openai_client.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: "You are a helpful assistant that identifies people and organizations from a list of entities." },
+        { role: "system", content: "You are a helpful assistant that identifies people and organizations from a list of entities. Always respond with valid JSON." },
         { role: "user", content: prompt }
       ],
       temperature: 0.3,
@@ -100,8 +100,16 @@ ${entities.join(', ')}`;
       return entities.slice(0, 10); 
     }
 
-    const filteredEntities = JSON.parse(content);
-    return Array.isArray(filteredEntities) ? filteredEntities : entities.slice(0, 10);
+    const cleanedContent = content.replace(/^```json\s*|\s*```$/g, '').trim();
+    
+    try {
+      const filteredEntities = JSON.parse(cleanedContent);
+      return Array.isArray(filteredEntities) ? filteredEntities : entities.slice(0, 10);
+    } catch (parseError) {
+      console.error("Error parsing OpenAI response:", parseError);
+      console.error("Raw response:", content);
+      return entities.slice(0, 10);
+    }
   } catch (error) {
     console.error("Error in filterEntities:", error);
     return entities.slice(0, 10);

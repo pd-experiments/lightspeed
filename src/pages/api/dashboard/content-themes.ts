@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         messages: [
           {
             role: "system",
-            content: "You are an expert in analyzing political content. Identify the top 10 recurring themes or narratives in the given text. For each theme, provide a short title and a brief description."
+            content: "You are an expert in analyzing political content. Identify the top 5 recurring themes or narratives in the given text. For each theme, provide a short title and a brief description."
           },
           {
             role: "user",

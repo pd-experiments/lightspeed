@@ -19,7 +19,7 @@ export default function TikTokComments() {
         .from('tiktok_comments')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(20);
 
       if (error) throw error;
       setComments(data);

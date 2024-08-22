@@ -24,6 +24,7 @@ export default function Navbar() {
           
           {isDevMode && (
             <>
+            <NavItem href="/dashboard" icon={<User2Icon className="w-4 h-4 mr-2" />} text="Dashboard (DEVMODE)" isActive={pathname === '/dashboard'} />
             <NavItem href="/personalization" icon={<User2Icon className="w-4 h-4 mr-2" />} text="Personalization (DEVMODE)" isActive={pathname === '/personalization'} />
             <NavItem href="/todo" icon={<CheckCircleIcon className="w-4 h-4 mr-2" />} text="Todo (DEVMODE)" isActive={pathname === '/todo'} />
             </>

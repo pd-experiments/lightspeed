@@ -299,6 +299,24 @@ export type Database = {
           },
         ]
       }
+      int_ads__google_advertisers: {
+        Row: {
+          advertiser_id: string
+          advertiser_name: string
+          advertiser_url: string
+        }
+        Insert: {
+          advertiser_id: string
+          advertiser_name: string
+          advertiser_url: string
+        }
+        Update: {
+          advertiser_id?: string
+          advertiser_name?: string
+          advertiser_url?: string
+        }
+        Relationships: []
+      }
       meta_ads: {
         Row: {
           ad_id: string

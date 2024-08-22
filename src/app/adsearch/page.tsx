@@ -1,14 +1,8 @@
 "use client";
 
+import AdSearchCard from "@/components/adsearch/AdSearchCard";
 import Navbar from "@/components/ui/Navbar";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Database } from "@/lib/types/schema";
 import { Search } from "lucide-react";
@@ -16,62 +10,6 @@ import { useEffect, useState } from "react";
 
 type EnhancedGoogleAd =
   Database["public"]["Tables"]["int_ads__google_ads_enhanced"]["Row"];
-
-function formatDate(inputDate: string | null): string {
-  if (inputDate === null) {
-    return "Unknown date";
-  }
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-
-  // Parse the input string into a Date object
-  const date = new Date(inputDate);
-
-  // Get the month, day, and year from the Date object
-  const month = months[date.getMonth()];
-  const day = date.getDate().toString().padStart(2, "0");
-  const year = date.getFullYear();
-
-  // Format the date as 'Mon DD, YYYY'
-  return `${month} ${day}, ${year}`;
-}
-
-function AdSearchCard({
-  adSearchResult,
-}: {
-  adSearchResult: EnhancedGoogleAd;
-}) {
-  return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>
-          <a href={adSearchResult.advertiser_url || ""}>
-            {adSearchResult.advertiser_name}
-          </a>
-        </CardTitle>
-        <CardDescription>
-          Ran from {formatDate(adSearchResult.first_shown)} to{" "}
-          {formatDate(adSearchResult.last_shown)}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <embed className="w-full" src={adSearchResult.content || ""} />
-      </CardContent>
-    </Card>
-  );
-}
 
 export default function AdSearchPage() {
   const [adSearchResults, setAdSearchResults] = useState<EnhancedGoogleAd[]>(

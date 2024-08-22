@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/lib/types/schema';
+import { MessageSquare } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 
 type Thread = Database['public']['Tables']['threads']['Row'];
 
@@ -31,19 +33,24 @@ export default function RecentThreads() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Threads</CardTitle>
+    <Card className="bg-white shadow-sm rounded-lg overflow-hidden h-full">
+      <CardHeader className="border-b bg-gray-50 p-4">
+        <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
+          <MessageSquare className="w-5 h-5 mr-2 text-blue-500" />
+          Recent Threads
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 max-h-[600px] overflow-y-auto">
         {isLoading ? (
-          <p>Loading recent & relevant threads...</p>
+          <div className="flex justify-center items-center h-48">
+            <Spinner className="w-6 h-6 text-blue-500" />
+          </div>
         ) : (
           <ul className="space-y-4">
             {threads.map((thread) => (
               <li key={thread.id} className="border-b pb-2">
-                <p className="font-semibold">{thread.username}</p>
-                <p className="text-sm text-gray-600">{thread.text}</p>
+                <p className="font-medium text-sm text-gray-800">{thread.username}</p>
+                <p className="text-sm text-gray-600 mt-1">{thread.text}</p>
               </li>
             ))}
           </ul>

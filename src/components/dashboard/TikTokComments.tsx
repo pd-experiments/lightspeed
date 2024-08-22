@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/lib/types/schema';
+import { MessageCircle } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 
 type TikTokComment = Database['public']['Tables']['tiktok_comments']['Row'];
 
@@ -31,20 +33,25 @@ export default function TikTokComments() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent TikTok Comments</CardTitle>
+    <Card className="bg-white shadow-sm rounded-lg overflow-hidden h-full">
+      <CardHeader className="border-b bg-gray-50 p-4">
+        <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
+          <MessageCircle className="w-5 h-5 mr-2 text-pink-500" />
+          Recent TikTok Comments
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 max-h-[600px] overflow-y-auto">
         {isLoading ? (
-          <p>Loading TikTok comments...</p>
+          <div className="flex justify-center items-center h-48">
+            <Spinner className="w-6 h-6 text-pink-500" />
+          </div>
         ) : (
           <ul className="space-y-4">
             {comments.map((comment) => (
               <li key={comment.id} className="border-b pb-2">
-                <p className="font-semibold">{comment.author}</p>
-                <p className="text-sm text-gray-600">{comment.text}</p>
-                <p className="text-xs text-gray-400">Likes: {comment.likes}</p>
+                <p className="font-medium text-sm text-gray-800">{comment.author}</p>
+                <p className="text-sm text-gray-600 mt-1">{comment.text}</p>
+                <p className="text-xs text-gray-400 mt-1">Likes: {comment.likes}</p>
               </li>
             ))}
           </ul>

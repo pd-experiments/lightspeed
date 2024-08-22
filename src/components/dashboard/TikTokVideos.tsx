@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabaseClient';
-import { Database } from '@/lib/types/schema';  
+import { Database } from '@/lib/types/schema';
+import { Video } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 
 type TikTokVideo = Database['public']['Tables']['tiktok_videos']['Row'];
 
@@ -31,20 +33,25 @@ export default function TikTokVideos() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent TikTok Videos</CardTitle>
+    <Card className="bg-white shadow-sm rounded-lg overflow-hidden h-full">
+      <CardHeader className="border-b bg-gray-50 p-4">
+        <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
+          <Video className="w-5 h-5 mr-2 text-red-500" />
+          Recent TikTok Videos
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 max-h-[600px] overflow-y-auto">
         {isLoading ? (
-          <p>Loading TikTok videos...</p>
+          <div className="flex justify-center items-center h-48">
+            <Spinner className="w-6 h-6 text-red-500" />
+          </div>
         ) : (
           <ul className="space-y-4">
             {videos.map((video) => (
               <li key={video.id} className="border-b pb-2">
-                <p className="font-semibold">{video.author}</p>
-                <p className="text-sm text-gray-600">{video.text}</p>
-                <p className="text-xs text-gray-400">Views: {video.views}</p>
+                <p className="font-medium text-sm text-gray-800">{video.author}</p>
+                <p className="text-sm text-gray-600 mt-1">{video.text}</p>
+                <p className="text-xs text-gray-400 mt-1">Views: {video.views}</p>
               </li>
             ))}
           </ul>

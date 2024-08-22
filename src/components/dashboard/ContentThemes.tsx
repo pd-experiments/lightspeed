@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Layers } from 'lucide-react';
 
 interface Theme {
   title: string;
@@ -16,40 +17,40 @@ interface ContentThemesProps {
 
 export default function ContentThemes({ themes, isLoading }: ContentThemesProps) {
   return (
-    <Card className="w-full h-full">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
+    <Card className="bg-white shadow-sm rounded-lg overflow-hidden h-full">
+      <CardHeader className="border-b bg-gray-50 p-4">
+        <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
+          <Layers className="w-5 h-5 mr-2 text-purple-500" />
           General Themes
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 max-h-[600px] overflow-y-auto">
         {isLoading ? (
           <div className="space-y-2">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-10 w-full" />
             ))}
           </div>
         ) : Array.isArray(themes) && themes.length > 0 ? (
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion type="single" collapsible className="w-full space-y-2">
             {themes.map((theme, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="text-lg font-semibold">
-                  <Badge variant="outline" className="mr-2">
-                    {index + 1}
-                  </Badge>
-                  {theme.title}
+              <AccordionItem key={index} value={`item-${index}`} className="border rounded-md">
+                <AccordionTrigger className="hover:no-underline px-4 py-2">
+                  <div className="flex items-center">
+                    <Badge variant="outline" className="mr-2 text-xs">
+                      {index + 1}
+                    </Badge>
+                    <span className="text-sm font-medium">{theme.title}</span>
+                  </div>
                 </AccordionTrigger>
-                <AccordionContent>
+                <AccordionContent className="px-4 py-2">
                   <p className="text-sm text-gray-600">{theme.description}</p>
                 </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
         ) : (
-          <p className="text-center text-gray-500">No content themes found.</p>
+          <p className="text-center text-gray-500 text-sm">No content themes found.</p>
         )}
       </CardContent>
     </Card>

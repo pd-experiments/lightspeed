@@ -10,6 +10,7 @@ import HotIssues from '@/components/dashboard/HotIssues';
 import TikTokComments from '@/components/dashboard/TikTokComments';
 import ContentThemes from '@/components/dashboard/ContentThemes';
 import InfluentialFigures from '@/components/dashboard/InfluentialFigures';
+import { Button } from '@/components/ui/button';
 
 export default function DashboardPage() {
     const [trendingTopics, setTrendingTopics] = useState([]);
@@ -25,12 +26,16 @@ export default function DashboardPage() {
     const [isLoadingNews, setIsLoadingNews] = useState(true);
 
   useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const fetchAllData = async () => {
     fetchTrendingTopics();
     fetchHotIssues();
     fetchContentThemes();
     fetchInfluentialFigures();
     fetchNewsArticles();
-  }, []);
+  }
 
   const fetchTrendingTopics = async () => {
     try {
@@ -94,29 +99,45 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Navbar />
-      <main className="flex min-h-screen flex-col items-center justify-between p-24">
-        <div className="w-full max-w-7xl">
-          <h1 className="text-4xl font-bold mb-8">Political Pulse Dashboard</h1>
+        <Navbar />
+        <main className="bg-gray-100 min-h-screen p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+        <header className="py-6 sm:py-8">
+            <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
+              <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
+                Dashboard
+              </h1>
+              <div className="flex items-center space-x-4">
+                <Button onClick={fetchAllData} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out">
+                  Refresh Data
+                </Button>
+              </div>
+            </div>
+          </header>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+                <div className="h-[600px]">
+                <TrendingTopics topics={trendingTopics} isLoading={isLoadingTopics} />
+                </div>
+            </div>
+            <div>
+                <div className="h-[600px]">
+                <HotIssues issues={hotIssues} isLoading={isLoadingIssues} />
+                </div>
+            </div>
+            </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <TrendingTopics topics={trendingTopics} isLoading={isLoadingTopics} />
-            <HotIssues issues={hotIssues} isLoading={isLoadingIssues} />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
             <ContentThemes themes={contentThemes} isLoading={isLoadingThemes} />
             <InfluentialFigures figures={influentialFigures} isLoading={isLoadingFigures} />
+            <NewsArticles articles={newsArticles} isLoading={isLoadingNews} />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
             <RecentThreads />
             <TikTokVideos />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <TikTokComments />
-            <NewsArticles articles={newsArticles} isLoading={isLoadingNews} />
           </div>
         </div>
       </main>

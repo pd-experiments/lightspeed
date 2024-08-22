@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      advertisements: {
+        Row: {
+          caption: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          platform: Database["public"]["Enums"]["platformType"] | null
+          tagline: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          platform?: Database["public"]["Enums"]["platformType"] | null
+          tagline?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          platform?: Database["public"]["Enums"]["platformType"] | null
+          tagline?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       compliance_docs: {
         Row: {
           created_at: string | null
@@ -121,6 +154,171 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "youtube"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      int_ads__google_ads_versioned: {
+        Row: {
+          advertisement_url: string
+          advertiser_name: string | null
+          advertiser_url: string | null
+          age_targeting: Json | null
+          content: string | null
+          days_ran_for: number | null
+          first_shown: string | null
+          format: string | null
+          gender_targeting: Json | null
+          geo_targeting: Json | null
+          id: string
+          last_shown: string | null
+          version: number | null
+        }
+        Insert: {
+          advertisement_url: string
+          advertiser_name?: string | null
+          advertiser_url?: string | null
+          age_targeting?: Json | null
+          content?: string | null
+          days_ran_for?: number | null
+          first_shown?: string | null
+          format?: string | null
+          gender_targeting?: Json | null
+          geo_targeting?: Json | null
+          id: string
+          last_shown?: string | null
+          version?: number | null
+        }
+        Update: {
+          advertisement_url?: string
+          advertiser_name?: string | null
+          advertiser_url?: string | null
+          age_targeting?: Json | null
+          content?: string | null
+          days_ran_for?: number | null
+          first_shown?: string | null
+          format?: string | null
+          gender_targeting?: Json | null
+          geo_targeting?: Json | null
+          id?: string
+          last_shown?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_advertisement_url"
+            columns: ["advertisement_url"]
+            isOneToOne: false
+            referencedRelation: "stg_ads__google_ads"
+            referencedColumns: ["advertisement_url"]
+          },
+        ]
+      }
+      meta_ads: {
+        Row: {
+          ad_id: string
+          ad_text: string | null
+          ad_url: string
+          advertiser: string | null
+          created_at: string | null
+          id: number
+          impressions: string | null
+          spend: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ad_id: string
+          ad_text?: string | null
+          ad_url: string
+          advertiser?: string | null
+          created_at?: string | null
+          id?: number
+          impressions?: string | null
+          spend?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ad_id?: string
+          ad_text?: string | null
+          ad_url?: string
+          advertiser?: string | null
+          created_at?: string | null
+          id?: number
+          impressions?: string | null
+          spend?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      meta_ads_demographics: {
+        Row: {
+          ad_id: string
+          age: string | null
+          created_at: string | null
+          gender: string | null
+          id: number
+          percentage: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ad_id: string
+          age?: string | null
+          created_at?: string | null
+          gender?: string | null
+          id?: number
+          percentage?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ad_id?: string
+          age?: string | null
+          created_at?: string | null
+          gender?: string | null
+          id?: number
+          percentage?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_ads_demographics_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "meta_ads"
+            referencedColumns: ["ad_id"]
+          },
+        ]
+      }
+      meta_ads_regions: {
+        Row: {
+          ad_id: string
+          created_at: string | null
+          id: number
+          percentage: string | null
+          region: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ad_id: string
+          created_at?: string | null
+          id?: number
+          percentage?: string | null
+          region?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ad_id?: string
+          created_at?: string | null
+          id?: number
+          percentage?: string | null
+          region?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_ads_regions_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "meta_ads"
+            referencedColumns: ["ad_id"]
           },
         ]
       }
@@ -299,6 +497,209 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      stg_ads__google_ads: {
+        Row: {
+          advertisement_url: string
+          advertiser_name: string | null
+          advertiser_url: string | null
+          age_targeting: Json | null
+          created_at: string
+          gender_targeting: Json | null
+          geo_targeting: Json | null
+          media_links: string[] | null
+          properties: Json | null
+          updated_at: string
+        }
+        Insert: {
+          advertisement_url: string
+          advertiser_name?: string | null
+          advertiser_url?: string | null
+          age_targeting?: Json | null
+          created_at?: string
+          gender_targeting?: Json | null
+          geo_targeting?: Json | null
+          media_links?: string[] | null
+          properties?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          advertisement_url?: string
+          advertiser_name?: string | null
+          advertiser_url?: string | null
+          age_targeting?: Json | null
+          created_at?: string
+          gender_targeting?: Json | null
+          geo_targeting?: Json | null
+          media_links?: string[] | null
+          properties?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      stg_ads__google_ads_links: {
+        Row: {
+          advertisement_url: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          advertisement_url: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          advertisement_url?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      threads: {
+        Row: {
+          conversation_id: string | null
+          created_at: string | null
+          embedding: string | null
+          hashtag: string | null
+          id: string
+          image_urls: string[] | null
+          is_verified: boolean | null
+          likes: number | null
+          replies: number | null
+          reposts: number | null
+          text: string | null
+          thread_id: string
+          url: string | null
+          user_id: string | null
+          user_pk: string | null
+          user_profile_pic_url: string | null
+          username: string | null
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string | null
+          embedding?: string | null
+          hashtag?: string | null
+          id?: string
+          image_urls?: string[] | null
+          is_verified?: boolean | null
+          likes?: number | null
+          replies?: number | null
+          reposts?: number | null
+          text?: string | null
+          thread_id: string
+          url?: string | null
+          user_id?: string | null
+          user_pk?: string | null
+          user_profile_pic_url?: string | null
+          username?: string | null
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string | null
+          embedding?: string | null
+          hashtag?: string | null
+          id?: string
+          image_urls?: string[] | null
+          is_verified?: boolean | null
+          likes?: number | null
+          replies?: number | null
+          reposts?: number | null
+          text?: string | null
+          thread_id?: string
+          url?: string | null
+          user_id?: string | null
+          user_pk?: string | null
+          user_profile_pic_url?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      tiktok_comments: {
+        Row: {
+          author: string
+          comment_id: string
+          created_at: string | null
+          embedding: string | null
+          id: string
+          likes: number | null
+          text: string | null
+          video_id: string
+        }
+        Insert: {
+          author: string
+          comment_id: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          likes?: number | null
+          text?: string | null
+          video_id: string
+        }
+        Update: {
+          author?: string
+          comment_id?: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          likes?: number | null
+          text?: string | null
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tiktok_comments_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "tiktok_videos"
+            referencedColumns: ["video_id"]
+          },
+        ]
+      }
+      tiktok_videos: {
+        Row: {
+          author: string
+          comments_count: number | null
+          created_at: string | null
+          embedding: string | null
+          hashtag: string | null
+          id: string
+          is_trending: boolean | null
+          likes: number | null
+          shares: number | null
+          text: string | null
+          video_id: string
+          views: number | null
+        }
+        Insert: {
+          author: string
+          comments_count?: number | null
+          created_at?: string | null
+          embedding?: string | null
+          hashtag?: string | null
+          id?: string
+          is_trending?: boolean | null
+          likes?: number | null
+          shares?: number | null
+          text?: string | null
+          video_id: string
+          views?: number | null
+        }
+        Update: {
+          author?: string
+          comments_count?: number | null
+          created_at?: string | null
+          embedding?: string | null
+          hashtag?: string | null
+          id?: string
+          is_trending?: boolean | null
+          likes?: number | null
+          shares?: number | null
+          text?: string | null
+          video_id?: string
+          views?: number | null
+        }
+        Relationships: []
       }
       todos: {
         Row: {
@@ -688,6 +1089,7 @@ export type Database = {
         | "SCRIPT_FINALIZED"
         | "COMPLIANCE_CHECK"
         | "PERSONALIZATION"
+      platformType: "INSTAGRAM" | "SNAPCHAT" | "FACEBOOK" | "TIKTOK"
       simpleUserType: "PRANAV" | "DINESH"
       todoStatusType: "TODO" | "IN_PROGRESS" | "DONE"
     }

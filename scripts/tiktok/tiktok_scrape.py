@@ -14,7 +14,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 # pip install playwright==1.37.0
 # playwright install
 
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env.local'))
 
 ms_token = os.getenv("MS_TOKEN")
 supabase_url = os.getenv("NEXT_PUBLIC_SUPABASE_URL")

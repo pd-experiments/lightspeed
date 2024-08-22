@@ -18,9 +18,9 @@ from dotenv import load_dotenv
 import datetime
 from multiprocessing import Pool, cpu_count
 from tqdm import tqdm
-from political_keywords import political_keywords
+from political_words import political_keywords, political_search_terms, political_hashtags as hashtags
 
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env.local'))
 
 supabase_url = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
 supabase_key = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
@@ -63,7 +63,7 @@ from nltk.corpus import stopwords
 def parse_thread(data: Dict) -> Dict:
     result = jmespath.search(
         """{
-        id: post.id,
+        id: post.code,
         text: post.caption.text,
         created_at: post.taken_at,
         likes: post.like_count,
@@ -71,78 +71,35 @@ def parse_thread(data: Dict) -> Dict:
         reposts: post.text_post_app_repost_count,
         conversation_id: post.parent_thread_id || post.id,
         user: {
-            username: user.username,
-            full_name: user.full_name,
-            is_verified: user.is_verified
-        }
+            username: post.user.username,
+            is_verified: post.user.is_verified,
+            profile_pic_url: post.user.profile_pic_url,
+            pk: post.user.pk,
+            id: post.user.id
+        },
+        code: post.code, 
+        image_urls: post.image_versions2.candidates[*].url
     }""",
         data,
     )
+    if result:
+        result['url'] = f"https://www.threads.net/t/{result['code']}"
+        result['username'] = result['user']['username']
+        result['is_verified'] = result['user']['is_verified']
     return result
 
-def scrape_threads(max_threads: int = 2000, timeout: int = 600) -> List[Dict]:
-    logging.info("Starting thread scraping...")
-    start_time = time.time()
-    
-    seen_ids = set()
+# def is_recent(created_at: int, days: int = 7) -> bool:
+#     return (time.time() - created_at) <= (days * 24 * 60 * 60)
 
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True) 
-        context = browser.new_context(viewport={"width": 1920, "height": 1080})
-        page = context.new_page()
+def is_recent(created_at: int, days: int = 45) -> bool:
+    current_time = time.time()
+    one_and_half_months_ago = current_time - (days * 24 * 60 * 60)
+    return created_at >= one_and_half_months_ago
 
-        scrape_general_threads(page, max_threads, timeout, start_time, seen_ids)
-
-        hashtags = ["politics", "election2024", "government", "democracy"]
-        remaining_threads = max_threads - len(seen_ids)
-        
-        with Pool(cpu_count()) as pool:
-            with tqdm(total=len(hashtags), desc="Scraping hashtags") as pbar:
-                for hashtag in hashtags:
-                    if len(seen_ids) >= max_threads:
-                        break
-                    pool.apply_async(
-                        scrape_hashtag_threads,
-                        args=(hashtag, remaining_threads // len(hashtags)),
-                        callback=lambda _: pbar.update(1)
-                    )
-
-                pool.close()
-                pool.join()
-
-    return list(seen_ids)
-
-def store_threads_in_supabase(threads: List[Dict]):
-    thread_data = [{
-        "thread_id": thread["id"],
-        "text": thread["text"],
-        "created_at": datetime.datetime.fromtimestamp(thread["created_at"]).isoformat(),
-        "likes": thread["likes"],
-        "replies": thread["replies"],
-        "reposts": thread["reposts"],
-        "conversation_id": thread["conversation_id"],
-        "username": thread["user"]["username"],
-        "full_name": thread["user"]["full_name"],
-        "is_verified": thread["user"]["is_verified"],
-        "hashtag": thread.get("hashtag")
-    } for thread in threads]
-    
-    try:
-        supabase.table("threads").upsert(thread_data, on_conflict="thread_id").execute()
-        logging.info(f"Stored {len(thread_data)} threads in Supabase")
-    except Exception as e:
-        logging.error(f"Error storing threads in Supabase: {str(e)}")
-
-def scrape_general_threads(page, max_threads: int, timeout: int, start_time: float, seen_ids: set) -> None:
+def scrape_threads_from_page(page, max_threads: int, timeout: int, start_time: float, seen_ids: set) -> set:
     last_thread_count = 0
     stuck_count = 0
     total_parsed_threads = 0
-
-    try:
-        page.goto("https://www.threads.net/", wait_until="networkidle", timeout=30000)
-        page.wait_for_load_state("domcontentloaded")
-    except PlaywrightTimeoutError:
-        logging.error("Timeout while loading the page. Proceeding with available content.")
 
     while len(seen_ids) < max_threads and (time.time() - start_time) < timeout:
         logging.info(f"Scraped {len(seen_ids)} political threads out of {total_parsed_threads} total threads so far...")
@@ -159,72 +116,123 @@ def scrape_general_threads(page, max_threads: int, timeout: int, start_time: flo
                 for t in thread:
                     parsed_thread = parse_thread(t)
                     total_parsed_threads += 1
-                    if parsed_thread['id'] not in seen_ids:
+                    if parsed_thread['id'] not in seen_ids and is_recent(parsed_thread['created_at']):
                         if is_political(parsed_thread['text']):
                             seen_ids.add(parsed_thread['id'])
                             store_threads_in_supabase([parsed_thread])
                             new_threads += 1
                             if len(seen_ids) >= max_threads:
-                                return
+                                return seen_ids
 
         if new_threads == 0:
             stuck_count += 1
             if stuck_count >= 5:
-                logging.warning("Scraping seems to be stuck. Moving to hashtags.")
                 break
         else:
             stuck_count = 0
 
         try:
             page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            time.sleep(random.uniform(1, 2))  
+            time.sleep(random.uniform(1, 2))
         except PlaywrightTimeoutError:
             logging.error("Timeout while scrolling. Continuing with available data.")
 
-def scrape_hashtag_threads(hashtag: str, max_threads: int = 500) -> None:
-    logging.info(f"Scraping threads for hashtag: {hashtag}")
+    return seen_ids
+
+def search_and_scrape_threads(page, query: str, max_threads: int, timeout: int, start_time: float, seen_ids: set) -> set:
+    try:
+        page.goto(f"https://www.threads.net/search/?q={query}", wait_until="networkidle", timeout=30000)
+        page.wait_for_load_state("domcontentloaded")
+    except PlaywrightTimeoutError:
+        logging.error(f"Timeout while loading search results for '{query}'. Proceeding with available content.")
+
+    return scrape_threads_from_page(page, max_threads, timeout, start_time, seen_ids)
+
+def scrape_threads(max_threads: int = 2000, timeout: int = 600) -> List[Dict]:
+    logging.info("Starting thread scraping...")
+    start_time = time.time()
+    
     seen_ids = set()
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=True) 
+        context = browser.new_context(viewport={"width": 1920, "height": 1080})
+        page = context.new_page()
+
+        # seen_ids = scrape_general_threads(page, max_threads, timeout, start_time, seen_ids)
+
+        remaining_threads = max_threads - len(seen_ids)
+        
+        with Pool(cpu_count()) as pool:
+            with tqdm(total=len(hashtags), desc="Scraping hashtags") as pbar:
+                for hashtag in hashtags:
+                    if len(seen_ids) >= max_threads:
+                        break
+                    pool.apply_async(
+                        scrape_hashtag_threads,
+                        args=(hashtag, remaining_threads // len(hashtags), seen_ids),
+                        callback=lambda result: seen_ids.update(result)
+                    )
+                    pbar.update(1)
+
+                pool.close()
+                pool.join()
+
+    return list(seen_ids)
+
+def store_threads_in_supabase(threads: List[Dict]):
+    thread_data = [{
+        "thread_id": thread["id"],
+        "url": thread["url"],
+        "text": thread["text"],
+        "created_at": datetime.datetime.fromtimestamp(thread["created_at"]).isoformat(),
+        "likes": thread["likes"],
+        "replies": thread["replies"],
+        "reposts": thread["reposts"],
+        "conversation_id": thread["conversation_id"],
+        "image_urls": thread.get("image_urls") or None,
+        "username": thread["user"]["username"],
+        "is_verified": thread["user"]["is_verified"],
+        "user_profile_pic_url": thread["user"]["profile_pic_url"],  
+        "user_pk": thread["user"]["pk"],
+        "user_id": thread["user"]["id"],
+        "hashtag": thread.get("hashtag"), 
+    } for thread in threads]
+
+    print(thread_data)
+    
+    try:
+        supabase.table("int_threads").upsert(thread_data, on_conflict="thread_id").execute()
+        logging.info(f"Stored {len(thread_data)} threads in Supabase")
+    except Exception as e:
+        logging.error(f"Error storing threads in Supabase: {str(e)}")
+
+def scrape_general_threads(page, max_threads: int, timeout: int, start_time: float, seen_ids: set) -> set:
+    for term in political_search_terms:
+        seen_ids = search_and_scrape_threads(page, term, max_threads, timeout, start_time, seen_ids)
+        if len(seen_ids) >= max_threads:
+            break
+
+    return seen_ids
+
+def scrape_hashtag_threads(hashtag: str, max_threads: int = 500, seen_ids: set = set()) -> set:
+    logging.info(f"Scraping threads for hashtag: {hashtag}")
 
     with sync_playwright() as pw:
         browser = pw.chromium.launch(headless=True)
         context = browser.new_context(viewport={"width": 1920, "height": 1080})
         page = context.new_page()
 
-        page.goto(f"https://www.threads.net/tag/{hashtag}", wait_until="networkidle", timeout=30000)
-        page.wait_for_load_state("domcontentloaded")
+        try:
+            page.goto(f"https://www.threads.net/tag/{hashtag}", wait_until="networkidle", timeout=30000)
+            page.wait_for_load_state("domcontentloaded")
+        except PlaywrightTimeoutError:
+            logging.error(f"Timeout while loading hashtag page for '{hashtag}'. Proceeding with available content.")
 
-        stuck_count = 0
+        start_time = time.time()
+        seen_ids = scrape_threads_from_page(page, max_threads, 600, start_time, seen_ids)
 
-        while len(seen_ids) < max_threads:
-            selector = Selector(page.content())
-            hidden_datasets = selector.css('script[type="application/json"][data-sjs]::text').getall()
-            
-            new_threads = 0
-            for hidden_dataset in hidden_datasets:
-                if '"ScheduledServerJS"' not in hidden_dataset:
-                    continue
-                data = json.loads(hidden_dataset)
-                thread_items = nested_lookup('thread_items', data)
-                for thread in thread_items:
-                    for t in thread:
-                        parsed_thread = parse_thread(t)
-                        if parsed_thread['id'] not in seen_ids:
-                            seen_ids.add(parsed_thread['id'])
-                            parsed_thread['hashtag'] = hashtag
-                            store_threads_in_supabase([parsed_thread])
-                            new_threads += 1
-                            if len(seen_ids) >= max_threads:
-                                return
-
-            if new_threads == 0:
-                stuck_count += 1
-                if stuck_count >= 5:
-                    break
-            else:
-                stuck_count = 0
-
-            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            time.sleep(random.uniform(1, 2))
+    return seen_ids
 
 def is_political(text: str) -> bool:
     if not text:
@@ -233,13 +241,16 @@ def is_political(text: str) -> bool:
     text_lower = text.lower()
     word_count = len(text.split())
     
+    common_political_terms = ["politics", "government", "election", "democracy", "policy", "vote"]
+    
     exact_matches = sum(1 for keyword in political_keywords if keyword in text_lower)
-    
     partial_matches = sum(1 for keyword in political_keywords if any(word.startswith(keyword) for word in text_lower.split()))
+    common_term_matches = sum(1 for term in common_political_terms if term in text_lower)
     
-    political_score = (exact_matches + 0.5 * partial_matches) / word_count
+    political_score = (exact_matches + 0.5 * partial_matches + common_term_matches) / word_count
     
-    return political_score > 0.03 
+    return political_score > 0.01
+    # return True
 
 def analyze_political_content(threads: List[Dict]) -> Dict:
     logging.info("Analyzing political content...")

@@ -1,3 +1,8 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:666d2f66040688c9fe9176060666c5459ec6ccad146297d2c1531c7d1fc86af2
-size 176
+{
+  "deno.enablePaths": ["supabase/functions"],
+  "deno.lint": true,
+  "deno.unstable": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}

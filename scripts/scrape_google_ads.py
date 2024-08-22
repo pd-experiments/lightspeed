@@ -1,4 +1,5 @@
 import os
+import time
 from typing import Any
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -8,12 +9,17 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
-from pydantic import BaseModel, HttpUrl
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 import re
 from urllib.parse import urlparse
 import traceback
+import multiprocessing as mp
 
 import supabase
+
+from scripts.models import GoogleAd
 
 # Load environment variables
 load_dotenv(".env.local")
@@ -27,10 +33,22 @@ def get_supabase_client():
     )
 
 
+def create_driver() -> WebDriver:
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()), options=chrome_options
+    )
+    return driver
+
+
 def main():
     url = "https://adstransparency.google.com/political?region=US&topic=political"
     # Open the website
-    driver = webdriver.Chrome()
+
+    driver = create_driver()
+    supabase_client = get_supabase_client()
+
     driver.get(url)
     all_links: list[str] = []
     try:
@@ -38,14 +56,59 @@ def main():
             EC.presence_of_all_elements_located((By.TAG_NAME, "creative-preview"))
         )
 
-        # Get all elements with the tag name 'creative-preview'
-        creative_previews = driver.find_elements(By.TAG_NAME, "creative-preview")
-
-        for preview in creative_previews:
-            # Save all links
-            all_links.append(
-                preview.find_element(By.TAG_NAME, "a").get_attribute("href")
+        creative_previews = []
+        num_iterations = 1000
+        prev_len = 0
+        for _ in range(num_iterations):
+            prev_len = len(creative_previews)
+            # Scroll to the bottom
+            driver.execute_script(
+                "window.scrollTo(0, document.body.scrollHeight - 100);"
             )
+            # Get all elements with the tag name 'creative-preview'
+            creative_previews = driver.find_elements(By.TAG_NAME, "creative-preview")
+
+            all_links = list(
+                set(
+                    map(
+                        lambda preview: preview.find_element(
+                            By.TAG_NAME, "a"
+                        ).get_attribute("href"),
+                        creative_previews,
+                    )
+                )
+            )
+
+            size = 200
+            for chunk in range(0, len(all_links), size):
+                supabase_client.table("stg_ads__google_ads_links").upsert(
+                    list(
+                        map(
+                            lambda url: {"advertisement_url": url},
+                            all_links[chunk : chunk + size],
+                        )
+                    )
+                ).execute()
+
+            if len(creative_previews) > 10000:
+                break
+            # if prev_len != len(creative_previews):
+            print("Accumulated to", len(creative_previews), "links")
+            time.sleep(0.5)
+            # driver.execute_script(
+            #     "window.scrollTo(0, document.body.scrollHeight - 100);"
+            # )
+            # Scroll to the top of the page
+            driver.execute_script("window.scrollTo(0, 0);")
+            time.sleep(0.5)
+
+        # for preview in creative_previews:
+        #     # Save all links
+        #     all_links.append(
+        #         preview.find_element(By.TAG_NAME, "a").get_attribute("href")
+        #     )
+
+        # all_links = list(set(all_links))
 
         # input("Waiting...")
     except TimeoutException:
@@ -55,7 +118,6 @@ def main():
 
     # print(*all_links, sep="\n")
     print("Got", len(all_links), "links")
-    supabase_client = get_supabase_client()
     for url in all_links:
         data = scrape_ad_data_from_url(url, driver)
         if data is None:
@@ -67,26 +129,64 @@ def main():
             print("Supabase couldn't upsert:", e)
 
 
-class Property(BaseModel):
-    label: str | None
-    value: str | None
+def scrape_ads_from_supabase_urls():
+    supabase_client = get_supabase_client()
+    links = []
+    chunk_size = 1000
+    start = 0
+    while True:
+        try:
+            response = (
+                supabase_client.table("stg_ads__google_ads_links")
+                .select("advertisement_url")
+                .range(start, start + chunk_size - 1)
+                .execute()
+            )
+        except Exception as e:
+            print("Failed to retrieve next set of urls from Supabase:", e)
+            break
+        links.extend(list(map(lambda item: item["advertisement_url"], response.data)))
+        if len(response.data) < chunk_size:
+            break
+        start += chunk_size
+
+    print("Got", len(links), "links")
+    print(links[0])
+    # driver = create_driver()
+
+    n_cores = mp.cpu_count()
+    print("Number of cores available:", n_cores)
+    with mp.Pool(processes=n_cores) as pool:
+        pool.map(scrape_helper, links)
+
+    # for url in links:
+    #     data = scrape_ad_data_from_url(url, driver)
+    #     if data is None:
+    #         continue
+    #     json: dict[str, Any] = data.model_dump(mode="json")
+    #     try:
+    #         supabase_client.table("stg_ads__google_ads").upsert(json).execute()
+    #     except Exception as e:
+    #         print("Supabase couldn't upsert:", e)
 
 
-class Targeting(BaseModel):
-    category_subheading: str | None
-    criterion_included: str | None
-    criterion_excluded: str | None
+driver = create_driver()
 
 
-class GoogleAd(BaseModel):
-    advertisement_url: HttpUrl
-    advertiser_name: str | None
-    advertiser_url: HttpUrl | None
-    properties: list[Property] | None
-    age_targeting: Targeting | None
-    gender_targeting: Targeting | None
-    geo_targeting: Targeting | None
-    media_links: list[str] | None
+def scrape_helper(url):
+    global driver
+    supabase_client = get_supabase_client()
+    print("Starting", url)
+    # driver = create_driver()
+    data = scrape_ad_data_from_url(url, driver)
+    if data is None:
+        return
+    json: dict[str, Any] = data.model_dump(mode="json")
+    try:
+        supabase_client.table("stg_ads__google_ads").upsert(json).execute()
+    except Exception as e:
+        print("Supabase couldn't upsert:", e)
+    # driver.quit()
 
 
 def scrape_ad_data_from_url(url: str, driver: WebDriver | None = None):
@@ -337,7 +437,10 @@ def find_youtube_link(driver: WebDriver):
         return None
 
 
-main()
+# main()
+if __name__ == "__main__":
+    scrape_ads_from_supabase_urls()
+    driver.quit()
 
 # for url in all_links:
 #     print(scrape_ad_data_from_url(driver, url))

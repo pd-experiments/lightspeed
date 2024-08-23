@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/ui/Navbar';
-import TrendingTopics from '@/components/dashboard/TrendingTopics';
-import RecentThreads from '@/components/dashboard/RecentThreads';
-import TikTokVideos from '@/components/dashboard/TikTokVideos';
-import NewsArticles from '@/components/dashboard/NewsArticles';
-import HotIssues from '@/components/dashboard/HotIssues';
-import TikTokComments from '@/components/dashboard/TikTokComments';
-import ContentThemes from '@/components/dashboard/ContentThemes';
-import InfluentialFigures from '@/components/dashboard/InfluentialFigures';
+import TrendingTopics from '@/components/dashboard/conversations/TrendingTopics';
+import RecentThreads from '@/components/dashboard/conversations/RecentThreads';
+import TikTokVideos from '@/components/dashboard/conversations/TikTokVideos';
+import NewsArticles from '@/components/dashboard/conversations/NewsArticles';
+import HotIssues from '@/components/dashboard/conversations/HotIssues';
+import TikTokComments from '@/components/dashboard/conversations/TikTokComments';
+import ContentThemes from '@/components/dashboard/conversations/ContentThemes';
+import InfluentialFigures from '@/components/dashboard/conversations/InfluentialFigures';
 import { Button } from '@/components/ui/button';
 
 export default function DashboardPage() {
@@ -39,7 +39,7 @@ export default function DashboardPage() {
 
   const fetchTrendingTopics = async () => {
     try {
-      const response = await fetch('/api/dashboard/trending-topics');
+      const response = await fetch('/api/dashboard/conversations/trending-topics');
       const data = await response.json();
       setTrendingTopics(data);
     } catch (error) {
@@ -51,7 +51,7 @@ export default function DashboardPage() {
 
   const fetchHotIssues = async () => {
     try {
-      const response = await fetch('/api/dashboard/hot-issues');
+      const response = await fetch('/api/dashboard/conversations/hot-issues');
       const data = await response.json();
       setHotIssues(data);
     } catch (error) {
@@ -63,7 +63,7 @@ export default function DashboardPage() {
 
   const fetchContentThemes = async () => {
     try {
-      const response = await fetch('/api/dashboard/content-themes');
+      const response = await fetch('/api/dashboard/conversations/content-themes');
       const data = await response.json();
       setContentThemes(data);
     } catch (error) {
@@ -75,7 +75,7 @@ export default function DashboardPage() {
 
   const fetchInfluentialFigures = async () => {
     try {
-      const response = await fetch('/api/dashboard/influential-figures');
+      const response = await fetch('/api/dashboard/conversations/influential-figures');
       const data = await response.json();
       setInfluentialFigures(data);
     } catch (error) {
@@ -87,7 +87,7 @@ export default function DashboardPage() {
 
   const fetchNewsArticles = async () => {
     try {
-      const response = await fetch('/api/dashboard/news-articles');
+      const response = await fetch('/api/dashboard/conversations/news-articles');
       const data = await response.json();
       setNewsArticles(data);
     } catch (error) {

@@ -13,6 +13,7 @@ import {
   Settings,
   Menu,
   X,
+  Dot
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,7 +36,7 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <header className="fixed top-0 left-0 right-0 flex items-center justify-between p-4 bg-white shadow-sm z-30">
+      <header className="fixed top-0 left-0 right-0 flex items-center justify-between p-4 bg-white z-30">
         <Link href="/" className="flex items-center">
           <CloudLightningIcon className="w-8 h-8 mr-2" />
           <h2 className="text-2xl font-semibold">lightspeed ads</h2>
@@ -72,13 +73,33 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
                       isActive={pathname === "/adsearch"}
                       onClick={() => isMobile && setIsMenuOpen(false)}
                     />
-                    <NavItem
-                      href="/dashboard"
-                      icon={<User2Icon className="w-4 h-4 mr-2" />}
-                      text="Dashboard"
-                      isActive={pathname === '/dashboard'}
-                      onClick={() => isMobile && setIsMenuOpen(false)}
-                    />
+                    <motion.div
+                      className={`flex items-center px-3 py-2 rounded-md`}
+                      whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
+                      animate={{
+                        backgroundColor: "rgba(0, 0, 0, 0)",
+                      }}
+                    >
+                      <User2Icon className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </motion.div>
+
+                    <div className="flex flex-col space-y-2 ml-4">
+                      <NavItem
+                        href="/dashboard/ads"
+                        icon={<Dot className="w-4 h-4 mr-2" />}
+                        text="Ads"
+                        isActive={pathname === '/dashboard/ads'}
+                        onClick={() => isMobile && setIsMenuOpen(false)}
+                      />
+                      <NavItem
+                        href="/dashboard/conversations"
+                        icon={<Dot className="w-4 h-4 mr-2" />}
+                        text="Conversations"
+                        isActive={pathname === '/dashboard/conversations'}
+                        onClick={() => isMobile && setIsMenuOpen(false)}
+                      />
+                    </div>
                   </>
                 )}
                 {/* <NavItem

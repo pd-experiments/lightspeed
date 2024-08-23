@@ -13,11 +13,13 @@ import {
   Settings,
   Menu,
   X,
-  Dot
+  Dot,
+  PencilLine
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { FaBinoculars } from "react-icons/fa";
 
 export default function Navbar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -66,13 +68,6 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
               <div className="flex flex-col space-y-2">
                 {isDevMode && (
                   <>
-                    <NavItem
-                      href="/adsearch"
-                      icon={<Megaphone className="w-4 h-4 mr-2" />}
-                      text="Ad Search"
-                      isActive={pathname === "/adsearch"}
-                      onClick={() => isMobile && setIsMenuOpen(false)}
-                    />
                     <motion.div
                       className={`flex items-center px-3 py-2 rounded-md`}
                       whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
@@ -81,25 +76,78 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
                       }}
                     >
                       <User2Icon className="w-4 h-4 mr-2" />
-                      Dashboard
+                      Research
                     </motion.div>
 
                     <div className="flex flex-col space-y-2 ml-4">
                       <NavItem
-                        href="/dashboard/ads"
+                        href="/research/adsearch"
                         icon={<Dot className="w-4 h-4 mr-2" />}
-                        text="Ads"
-                        isActive={pathname === '/dashboard/ads'}
+                        text="Ad Search"
+                        isActive={pathname === '/research/adsearch'}
                         onClick={() => isMobile && setIsMenuOpen(false)}
                       />
                       <NavItem
-                        href="/dashboard/conversations"
+                        href="/research/ads"
+                        icon={<Dot className="w-4 h-4 mr-2" />}
+                        text="Ads"
+                        isActive={pathname === '/research/ads'}
+                        onClick={() => isMobile && setIsMenuOpen(false)}
+                      />
+                      <NavItem
+                        href="/research/conversations"
                         icon={<Dot className="w-4 h-4 mr-2" />}
                         text="Conversations"
-                        isActive={pathname === '/dashboard/conversations'}
+                        isActive={pathname === '/research/conversations'}
                         onClick={() => isMobile && setIsMenuOpen(false)}
                       />
                     </div>
+
+                    <motion.div
+                      className={`flex items-center px-3 py-2 rounded-md`}
+                      whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
+                      animate={{
+                        backgroundColor: "rgba(0, 0, 0, 0)",
+                      }}
+                    >
+                      <PencilLine className="w-4 h-4 mr-2" />
+                      Create
+                    </motion.div>
+
+                    <div className="flex flex-col space-y-2 ml-4">
+                      <NavItem
+                        href="/create/clipsearch"
+                        icon={<Dot className="w-4 h-4 mr-2" />}
+                        text="Clip Search"
+                        isActive={pathname === '/create/clipsearch'}
+                        onClick={() => isMobile && setIsMenuOpen(false)}
+                      />
+                      <NavItem
+                        href="/create/outline"
+                        icon={<Dot className="w-4 h-4 mr-2" />}
+                        text="Outline"
+                        isActive={pathname === '/create/outline'}
+                        onClick={() => isMobile && setIsMenuOpen(false)}
+                      />
+                      <NavItem
+                        href="/create/compliance"
+                        icon={<Dot className="w-4 h-4 mr-2" />}
+                        text="Compliance"
+                        isActive={pathname === '/create/compliance'}
+                        onClick={() => isMobile && setIsMenuOpen(false)}
+                      />
+                    </div>
+
+                    <motion.div
+                      className={`flex items-center px-3 py-2 rounded-md`}
+                      whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
+                      animate={{
+                        backgroundColor: "rgba(0, 0, 0, 0)",
+                      }}
+                    >
+                      <FaBinoculars className="w-4 h-4 mr-2" />
+                      Insights
+                    </motion.div>
                   </>
                 )}
                 {/* <NavItem
@@ -109,30 +157,11 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
                   isActive={pathname === "/directory"}
                   onClick={() => isMobile && setIsMenuOpen(false)}
                 /> */}
-                <NavItem
-                  href="/clipsearch"
-                  icon={<Search className="w-4 h-4 mr-2" />}
-                  text="Clip Search"
-                  isActive={pathname === "/clipsearch"}
-                  onClick={() => isMobile && setIsMenuOpen(false)}
-                />
-                <NavItem
-                  href="/outline"
-                  icon={<PencilRuler className="w-4 h-4 mr-2" />}
-                  text="Outline"
-                  isActive={pathname === "/outline"}
-                  onClick={() => isMobile && setIsMenuOpen(false)}
-                />
-                <NavItem
-                  href="/compliance"
-                  icon={<FileText className="w-4 h-4 mr-2" />}
-                  text="Compliance"
-                  isActive={pathname === "/compliance"}
-                  onClick={() => isMobile && setIsMenuOpen(false)}
-                />
 
                 {isDevMode && (
                   <>
+                    <hr />
+                    <div className="text-xs text-gray-500 my-2">DEV MODE</div>
                     <NavItem
                       href="/personalization"
                       icon={<User2Icon className="w-4 h-4 mr-2" />}

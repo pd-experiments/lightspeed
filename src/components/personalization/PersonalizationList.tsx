@@ -25,13 +25,13 @@ export default function PersonalizationList() {
     async function fetchOutlines() {
       setLoading(true);
       try {
-        const response = await fetch('/api/outlines/get-all-outlines');
+        const response = await fetch('/api/create/outlines/get-all-outlines');
         const data = await response.json();
         
         const personalizationOutlines = await Promise.all(data.outlines
           .filter((outline: Outline) => outline.status === 'PERSONALIZATION')
           .map(async (outline: Outline) => {
-            const elementsResponse = await fetch(`/api/outlines/get-elements?outline_id=${outline.id}`);
+            const elementsResponse = await fetch(`/api/create/outlines/get-elements?outline_id=${outline.id}`);
             const elementsData = await elementsResponse.json();
             const elementCount = elementsData.length;
             const totalDuration = calculateOutlineDuration(elementsData);

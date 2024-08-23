@@ -27,10 +27,10 @@ export default function PersonalizationDetailPage({ params }: { params: { id: st
     async function fetchOutlineData() {
       setLoading(true);
       try {
-        const outlineResponse = await fetch(`/api/outlines/get-outline?outline_id=${params.id}`);
+        const outlineResponse = await fetch(`/api/create/outlines/get-outline?outline_id=${params.id}`);
         const outlineData = await outlineResponse.json();
 
-        const elementsResponse = await fetch(`/api/outlines/get-elements?outline_id=${params.id}`);
+        const elementsResponse = await fetch(`/api/create/outlines/get-elements?outline_id=${params.id}`);
         const elementsData = await elementsResponse.json();
 
         setOutline({
@@ -48,8 +48,7 @@ export default function PersonalizationDetailPage({ params }: { params: { id: st
   }, [params.id]);
 
   return (
-    <>
-      <Navbar />
+    <Navbar>
       <main className="min-h-screen flex flex-col items-center justify-between p-24">
         <div className="w-full max-w-7xl mx-auto">
           <div className="w-full flex justify-between mb-4">
@@ -74,6 +73,6 @@ export default function PersonalizationDetailPage({ params }: { params: { id: st
           )}
         </div>
       </main>
-    </>
+    </Navbar>
   );
 }

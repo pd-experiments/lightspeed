@@ -1,7 +1,7 @@
 import React from 'react';
 import SearchInput from '@/components/ui/SearchInput';
-import { OutlineSelector } from '@/components/outline/OutlineSelector';
-import ClipCard from '@/components/clipsearch/ClipCard';
+import { OutlineSelector } from '@/components/create/outline/OutlineSelector';
+import ClipCard from '@/components/create/clipsearch/ClipCard';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';

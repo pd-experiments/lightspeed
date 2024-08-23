@@ -115,3 +115,70 @@ export {
   PaginationNext,
   PaginationPrevious,
 }
+
+
+export function PaginationComponent({ currentPage, totalPages, setCurrentPage }: { 
+  currentPage: number, 
+  totalPages: number, 
+  setCurrentPage: (page: number | ((prevPage: number) => number)) => void 
+}) {
+  return (
+    <Pagination className="mt-4">
+      <PaginationContent>
+        <PaginationItem>
+          {currentPage > 1 ? (
+            <PaginationPrevious 
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            />
+          ) : (
+            <PaginationPrevious className="pointer-events-none opacity-50" />
+          )}
+        </PaginationItem>
+        {currentPage > 2 && (
+          <>
+            <PaginationItem>
+              <PaginationLink onClick={() => setCurrentPage(1)}>1</PaginationLink>
+            </PaginationItem>
+            {currentPage > 3 && <PaginationEllipsis />}
+          </>
+        )}
+        {currentPage > 1 && (
+          <PaginationItem>
+            <PaginationLink onClick={() => setCurrentPage(currentPage - 1)}>
+              {currentPage - 1}
+            </PaginationLink>
+          </PaginationItem>
+        )}
+        <PaginationItem>
+          <PaginationLink isActive>{currentPage}</PaginationLink>
+        </PaginationItem>
+        {currentPage < totalPages && (
+          <PaginationItem>
+            <PaginationLink onClick={() => setCurrentPage(currentPage + 1)}>
+              {currentPage + 1}
+            </PaginationLink>
+          </PaginationItem>
+        )}
+        {currentPage < totalPages - 1 && (
+          <>
+            {currentPage < totalPages - 2 && <PaginationEllipsis />}
+            <PaginationItem>
+              <PaginationLink onClick={() => setCurrentPage(totalPages)}>
+                {totalPages}
+              </PaginationLink>
+            </PaginationItem>
+          </>
+        )}
+        <PaginationItem>
+          {currentPage < totalPages ? (
+            <PaginationNext 
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            />
+          ) : (
+            <PaginationNext className="pointer-events-none opacity-50" />
+          )}
+        </PaginationItem>
+      </PaginationContent>
+  </Pagination>
+  );
+}

@@ -37,7 +37,7 @@ export default function HotIssues({ issues, isLoading }: HotIssuesProps) {
   const sortedIssues = [...issues].sort((a, b) => b.importance - a.importance);
 
   return (
-    <Card className="bg-white shadow-sm rounded-lg overflow-hidden h-full flex flex-col">
+    <Card className="bg-white shadow-sm rounded-lg overflow-hidden h-full min-h-[600px] flex flex-col">
       <CardHeader className="border-b bg-gray-50 p-4">
         <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
           <Flame className="w-5 h-5 mr-2 text-red-500" />

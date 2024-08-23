@@ -77,7 +77,7 @@ export default function TrendingTopics({ topics, isLoading }: TrendingTopicsProp
     };
   
     return (
-        <div className="h-full">
+        <div className="h-full min-h-[600px]">
         <Card className="bg-white shadow-sm rounded-lg overflow-hidden">
         <CardHeader className="border-b bg-gray-50 p-4">
           <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
@@ -91,7 +91,7 @@ export default function TrendingTopics({ topics, isLoading }: TrendingTopicsProp
               <Spinner className="w-6 h-6 text-blue-500" />
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 gap-3">
               {topics.map((topic, index) => (
                 <div
                   key={index}

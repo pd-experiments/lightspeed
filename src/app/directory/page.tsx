@@ -79,8 +79,7 @@ export default function DirectoryPage() {
   };
 
   return (
-    <>
-      <Navbar />
+    <Navbar>
       <main className="flex min-h-screen flex-col items-center justify-between p-24">
         <div className="w-full max-w-7xl">
           <h1 className="text-3xl font-bold mb-6">Directory</h1>
@@ -144,6 +143,6 @@ export default function DirectoryPage() {
           />
         </div>
       </main>
-    </>
+    </Navbar>
   );
 }

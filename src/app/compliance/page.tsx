@@ -9,8 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ComplianceReports() {
   return (
-    <>
-      <Navbar />
+    <Navbar>
       <main className="flex min-h-screen flex-col items-center justify-between p-24">
         <div className="w-full max-w-7xl">
           <h1 className="text-3xl font-bold mb-6">Compliance Management</h1>
@@ -31,7 +30,7 @@ export default function ComplianceReports() {
           </Tabs>
         </div>
       </main>
-    </>
+    </Navbar>
   );
 }
 

@@ -111,8 +111,7 @@ export default function TodoPage() {
   };
 
   return (
-    <>
-      <Navbar />
+    <Navbar>
       <main className="flex min-h-screen flex-col items-center justify-between p-24">
         <div className="w-full max-w-3xl">
           <h1 className="text-3xl font-bold mb-6">Developer Todo List</h1>
@@ -220,6 +219,6 @@ export default function TodoPage() {
           </div>
         </div>
       </main>
-    </>
+    </Navbar>
   );
 }

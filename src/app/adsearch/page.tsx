@@ -54,8 +54,7 @@ export default function AdSearchPage() {
   }, []);
 
   return (
-    <>
-      <Navbar />
+    <Navbar>
       <main className="flex min-h-screen flex-col items-center justify-between p-24">
         <div className="w-full max-w-7xl gap-6 flex flex-col">
           <h1 className="text-3xl font-bold">Ad Search</h1>
@@ -87,6 +86,6 @@ export default function AdSearchPage() {
           </div>
         </div>
       </main>
-    </>
+    </Navbar>
   );
 }

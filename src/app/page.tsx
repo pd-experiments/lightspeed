@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 
 export default function Component() {
   return (
+    <Navbar>
     <div className="flex flex-col min-h-[100dvh]">
-      <Navbar />
       <main className="flex-1">
         <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-r from-primary/10 to-primary/5">
           <div className="container px-4 md:px-6">
@@ -91,5 +91,6 @@ export default function Component() {
         </div>
       </footer>
     </div>
+    </Navbar>
   )
 }

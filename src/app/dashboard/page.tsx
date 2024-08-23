@@ -97,31 +97,32 @@ export default function DashboardPage() {
     }
   };
 
+  const getGreeting = (): string => {
+    const hour = new Date().getHours()
+    if (hour < 12) return "Good morning"
+    if (hour < 18) return "Good afternoon"
+    return "Good evening"
+  }
+
   return (
-    <>
-        <Navbar />
+    <Navbar>
         <main className="bg-gray-100 min-h-screen p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
         <header className="py-6 sm:py-8">
             <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
               <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                Dashboard
+                What&apos;s everyone talking about?
               </h1>
-              <div className="flex items-center space-x-4">
-                <Button onClick={fetchAllData} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out">
-                  Refresh Data
-                </Button>
-              </div>
             </div>
           </header>
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div className="lg:col-span-2">
                 <div className="h-[600px]">
                 <TrendingTopics topics={trendingTopics} isLoading={isLoadingTopics} />
                 </div>
             </div>
-            <div>
+            <div className="lg:col-span-3">
                 <div className="h-[600px]">
                 <HotIssues issues={hotIssues} isLoading={isLoadingIssues} />
                 </div>
@@ -141,6 +142,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
-    </>
+    </Navbar>
   );
 }

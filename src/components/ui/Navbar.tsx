@@ -38,7 +38,7 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
       <header className="fixed top-0 left-0 right-0 flex items-center justify-between p-4 bg-white shadow-sm z-30">
         <Link href="/" className="flex items-center">
           <CloudLightningIcon className="w-8 h-8 mr-2" />
-          <h2 className="text-2xl font-semibold">lightspeed</h2>
+          <h2 className="text-2xl font-semibold">lightspeed ads</h2>
         </Link>
         <div className="flex items-center">
           <Settings className="w-6 h-6 mr-4 cursor-pointer" />

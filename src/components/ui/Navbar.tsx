@@ -34,8 +34,8 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <div className="flex flex-col h-screen">
-      <header className="flex items-center justify-between p-4 bg-white shadow-sm">
+    <div className="flex h-screen overflow-hidden">
+      <header className="fixed top-0 left-0 right-0 flex items-center justify-between p-4 bg-white shadow-sm z-30">
         <Link href="/" className="flex items-center">
           <CloudLightningIcon className="w-8 h-8 mr-2" />
           <h2 className="text-2xl font-semibold">lightspeed</h2>
@@ -48,7 +48,7 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       </header>
-      <div className="flex flex-1">
+      <div className="flex pt-16 flex-1">
         <AnimatePresence>
           {(isMenuOpen || !isMobile) && (
             <motion.nav
@@ -59,17 +59,35 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
               className={`bg-white shadow-sm p-4 z-20 ${
                 isMobile
                   ? "fixed top-16 left-0 right-0 bottom-0 overflow-y-auto"
-                  : "w-64 fixed top-16 bottom-0 left-0 md:relative md:top-0"
+                  : "w-64 fixed top-16 bottom-0 left-0 overflow-y-auto"
               }`}
             >
               <div className="flex flex-col space-y-2">
-                <NavItem
+                {isDevMode && (
+                  <>
+                    <NavItem
+                      href="/adsearch"
+                      icon={<Megaphone className="w-4 h-4 mr-2" />}
+                      text="Ad Search"
+                      isActive={pathname === "/adsearch"}
+                      onClick={() => isMobile && setIsMenuOpen(false)}
+                    />
+                    <NavItem
+                      href="/dashboard"
+                      icon={<User2Icon className="w-4 h-4 mr-2" />}
+                      text="Dashboard"
+                      isActive={pathname === '/dashboard'}
+                      onClick={() => isMobile && setIsMenuOpen(false)}
+                    />
+                  </>
+                )}
+                {/* <NavItem
                   href="/directory"
                   icon={<VideoIcon className="w-4 h-4 mr-2" />}
                   text="Directory"
                   isActive={pathname === "/directory"}
                   onClick={() => isMobile && setIsMenuOpen(false)}
-                />
+                /> */}
                 <NavItem
                   href="/clipsearch"
                   icon={<Search className="w-4 h-4 mr-2" />}
@@ -95,20 +113,6 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
                 {isDevMode && (
                   <>
                     <NavItem
-                      href="/adsearch"
-                      icon={<Megaphone className="w-4 h-4 mr-2" />}
-                      text="Ad Search"
-                      isActive={pathname === "/adsearch"}
-                      onClick={() => isMobile && setIsMenuOpen(false)}
-                    />
-                    <NavItem
-                      href="/dashboard"
-                      icon={<User2Icon className="w-4 h-4 mr-2" />}
-                      text="Dashboard"
-                      isActive={pathname === '/dashboard'}
-                      onClick={() => isMobile && setIsMenuOpen(false)}
-                    />
-                    <NavItem
                       href="/personalization"
                       icon={<User2Icon className="w-4 h-4 mr-2" />}
                       text="Personalization"
@@ -128,7 +132,7 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
             </motion.nav>
           )}
         </AnimatePresence>
-        <main className={`flex-1 p-8 bg-gray-100`}>
+        <main className={`flex-1 p-8 bg-gray-100 overflow-y-auto ${isMobile ? 'w-full' : ''}`}>
           {children}
         </main>
       </div>

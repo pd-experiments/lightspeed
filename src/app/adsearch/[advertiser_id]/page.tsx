@@ -93,8 +93,7 @@ export default function AdvertiserDetailsPage({
 
   return (
     advertiserData && (
-      <>
-        <Navbar />
+      <Navbar>
         <main className="flex min-h-screen flex-col items-center justify-between p-24">
           <div className="w-full max-w-7xl gap-6 flex flex-col">
             {/* Title bar */}
@@ -139,7 +138,7 @@ export default function AdvertiserDetailsPage({
             </div>
           </div>
         </main>
-      </>
+      </Navbar>
     )
   );
 }

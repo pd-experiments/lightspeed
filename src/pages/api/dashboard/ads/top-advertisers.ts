@@ -7,8 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { data, error } = await supabase
         .from('int_ads__google_ads_enhanced')
         .select('advertiser_name, id')
-        .order('advertiser_name')
-        .limit(100);
+        .order('advertiser_name');
 
       if (error) throw error;
 
@@ -29,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       advertisers.sort((a, b) => b.adCount - a.adCount);
 
-      res.status(200).json(advertisers.slice(0, 5));
+      res.status(200).json(advertisers.slice(0, 10));
     } catch (error) {
       console.error('Error fetching top advertisers:', error);
       res.status(500).json({ error: 'Error fetching top advertisers' });

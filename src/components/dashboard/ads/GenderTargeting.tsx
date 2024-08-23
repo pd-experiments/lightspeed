@@ -13,6 +13,8 @@ interface GenderTargetingProps {
   isLoading: boolean;
 }
 
+//TODO: make this functional, this is basically non-functional right now as gender targeting is not properly implemented in the db
+
 export default function GenderTargeting({ targeting, isLoading }: GenderTargetingProps) {
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B'];
 

@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .from('int_ads__google_ads_enhanced')
         .select('advertiser_name, content, last_shown')
         .order('last_shown', { ascending: false })
-        .limit(5);
+        .limit(10);
 
       if (error) throw error;
 

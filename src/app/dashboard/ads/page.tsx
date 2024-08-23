@@ -8,6 +8,7 @@ import AdFormats from '@/components/dashboard/ads/AdFormats';
 import AgeTargeting from '@/components/dashboard/ads/AgeTargeting';
 import GenderTargeting from '@/components/dashboard/ads/GenderTargeting';
 import PoliticalLeanings from '@/components/dashboard/ads/PoliticalLeanings';
+import GeoTargeting from '@/components/dashboard/ads/GeoTargeting';
 
 export default function AdsDashboardPage() {
   const [topAdvertisers, setTopAdvertisers] = useState([]);
@@ -15,6 +16,7 @@ export default function AdsDashboardPage() {
   const [adFormats, setAdFormats] = useState([]);
   const [ageTargeting, setAgeTargeting] = useState([]);
   const [genderTargeting, setGenderTargeting] = useState([]);
+  const [geoTargeting, setGeoTargeting] = useState([]);
   const [politicalLeanings, setPoliticalLeanings] = useState([]);
 
   const [isLoadingAdvertisers, setIsLoadingAdvertisers] = useState(true);
@@ -23,6 +25,7 @@ export default function AdsDashboardPage() {
   const [isLoadingAgeTargeting, setIsLoadingAgeTargeting] = useState(true);
   const [isLoadingGenderTargeting, setIsLoadingGenderTargeting] = useState(true);
   const [isLoadingPoliticalLeanings, setIsLoadingPoliticalLeanings] = useState(true);
+  const [isLoadingGeoTargeting, setIsLoadingGeoTargeting] = useState(true);
 
   useEffect(() => {
     fetchAllData();
@@ -35,6 +38,7 @@ export default function AdsDashboardPage() {
     fetchAgeTargeting();
     fetchGenderTargeting();
     fetchPoliticalLeanings();
+    fetchGeoTargeting();
   }
 
   const fetchTopAdvertisers = async () => {
@@ -97,6 +101,18 @@ export default function AdsDashboardPage() {
     }
   };
 
+  const fetchGeoTargeting = async () => {
+    try {
+      const response = await fetch('/api/dashboard/ads/geo-targeting');
+      const data = await response.json();
+      setGeoTargeting(data);
+    } catch (error) {
+      console.error('Error fetching geo targeting:', error);
+    } finally {
+      setIsLoadingGeoTargeting(false);
+    }
+  };
+
   const fetchPoliticalLeanings = async () => {
     try {
       const response = await fetch('/api/dashboard/ads/political-leanings');
@@ -116,7 +132,7 @@ export default function AdsDashboardPage() {
           <header className="py-6 sm:py-8">
             <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
               <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                Google Ads Dashboard
+                What Ads Are Running?
               </h1>
             </div>
           </header>
@@ -126,14 +142,19 @@ export default function AdsDashboardPage() {
             <RecentAds ads={recentAds} isLoading={isLoadingRecentAds} />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-            <AdFormats formats={adFormats} isLoading={isLoadingAdFormats} />
-            <AgeTargeting targeting={ageTargeting} isLoading={isLoadingAgeTargeting} />
-            <GenderTargeting targeting={genderTargeting} isLoading={isLoadingGenderTargeting} />
+          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+            <div className="col-span-1">
+              <AdFormats formats={adFormats} isLoading={isLoadingAdFormats} />
+            </div>
+            <div className="col-span-2">
+              <PoliticalLeanings leanings={politicalLeanings} isLoading={isLoadingPoliticalLeanings} />
+            </div>
           </div>
           
-          <div className="mt-6">
-            <PoliticalLeanings leanings={politicalLeanings} isLoading={isLoadingPoliticalLeanings} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+            <AgeTargeting targeting={ageTargeting} isLoading={isLoadingAgeTargeting} />
+            <GenderTargeting targeting={genderTargeting} isLoading={isLoadingGenderTargeting} />
+            <GeoTargeting targeting={geoTargeting} isLoading={isLoadingGeoTargeting} />
           </div>
         </div>
       </main>

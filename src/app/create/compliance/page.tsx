@@ -3,8 +3,8 @@
 import { Suspense } from 'react';
 import Navbar from '@/components/ui/Navbar';
 import { Skeleton } from "@/components/ui/skeleton";
-import ComplianceReportList from '@/components/compliance/ComplianceReportList';
-import ComplianceDocList from '@/components/compliance/ComplianceDocList';
+import ComplianceReportList from '@/components/create/compliance/ComplianceReportList';
+import ComplianceDocList from '@/components/create/compliance/ComplianceDocList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ComplianceReports() {

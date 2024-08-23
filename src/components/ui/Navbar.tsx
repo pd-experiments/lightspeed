@@ -163,13 +163,6 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
                     <hr />
                     <div className="text-xs text-gray-500 my-2">DEV MODE</div>
                     <NavItem
-                      href="/personalization"
-                      icon={<User2Icon className="w-4 h-4 mr-2" />}
-                      text="Personalization"
-                      isActive={pathname === "/personalization"}
-                      onClick={() => isMobile && setIsMenuOpen(false)}
-                    />
-                    <NavItem
                       href="/todo"
                       icon={<CheckCircleIcon className="w-4 h-4 mr-2" />}
                       text="Todo"

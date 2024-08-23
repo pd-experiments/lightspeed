@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ComplianceReportCard } from '@/components/compliance/ComplianceReportCard';
+import { ComplianceReportCard } from '@/components/create/compliance/ComplianceReportCard';
 import { Database } from '@/lib/types/schema';
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from '@/lib/supabaseClient';

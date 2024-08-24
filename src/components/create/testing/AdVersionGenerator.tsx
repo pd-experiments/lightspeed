@@ -148,7 +148,7 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
   return (
     <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
       <Card className="bg-white shadow-sm flex flex-col h-full">
-        <CardHeader className="border-b bg-gray-50 p-4">
+        <CardHeader className="border-b bg-gray-50 p-4 rounded-t-md">
             <CardTitle className="text-xl font-semibold text-gray-800">
             Ad Generation Configuration
             </CardTitle>
@@ -251,7 +251,7 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
         </CardContent>
       </Card>
       <Card className="bg-white shadow-sm flex flex-col h-full">
-        <CardHeader className="border-b bg-gray-50 p-4">
+        <CardHeader className="border-b bg-gray-50 p-4 rounded-t-md">
             <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
             <Megaphone className="w-5 h-5 mr-2 text-blue-500" />
             Generated Ad Versions

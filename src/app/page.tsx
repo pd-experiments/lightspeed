@@ -10,9 +10,9 @@ export default function Component() {
     <Navbar>
     <div className="flex flex-col min-h-[100dvh]">
       <main className="flex-1">
-        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-r from-primary/10 to-primary/5">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-8 lg:grid-cols-[1fr_500px] lg:gap-12 xl:grid-cols-[1fr_550px] items-center">
+        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-r from-primary/10 to-primary/5 rounded-md">
+          <div className="container px-4 md:px-6 rounded-md">
+            <div className="grid gap-8 lg:grid-cols-[1fr_500px] lg:gap-12 xl:grid-cols-[1fr_550px] items-center rounded-md">
               <div className="flex flex-col justify-center space-y-6">
                 <div className="space-y-4">
                   <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none bg-clip-text text-transparent bg-gradient-to-r from-primary to-[gray]">

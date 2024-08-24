@@ -36,7 +36,7 @@ export default function GenerateTestPage() {
 
   const selectExperiment = (experiment: AdExperiment) => {
     setSelectedExperiment(experiment);
-    setCurrentStep(0);
+    setCurrentStep(experiment.flow === "Generation" ? 0 : 1);
   };
 
   const getStatusColor = (status: string) => {
@@ -49,9 +49,19 @@ export default function GenerateTestPage() {
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
+  const getFlowColor = (flow: string) => {
+    const colors = {
+      'Ideation': 'bg-teal-100 text-teal-800',
+      'Generation': 'bg-indigo-100 text-indigo-800',
+      'Testing': 'bg-amber-100 text-amber-800',
+      'Deployment': 'bg-rose-100 text-rose-800',
+    };
+    return colors[flow as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  };
+
   const handleMoveToTesting = async () => {
     setCurrentStep(1);
-    const { data, error } = await supabase
+    await supabase
       .from('ad_experiments')
       .update({ flow: 'Testing' })
       .eq('id', selectedExperiment?.id);
@@ -114,7 +124,7 @@ export default function GenerateTestPage() {
                         className="text-blue-600 hover:text-blue-800 whitespace-nowrap font-semibold"
                         onClick={() => {/* Handle completion */}}
                     >
-                        Complete <ChevronRight className="ml-2 h-4 w-4" />
+                        Proceed with Deployment <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
                     ) : (
                     <Button
@@ -130,7 +140,7 @@ export default function GenerateTestPage() {
             </div>
           ) : (
             <div className="mt-3 space-y-4">
-              {adExperiments.filter((experiment) => experiment.flow == "Generation").map((experiment) => (
+              {adExperiments.filter((experiment) => experiment.flow == "Generation" || experiment.flow == "Testing").map((experiment) => (
                 <Card key={experiment.id} className="hover:shadow-lg transition-shadow duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
@@ -143,10 +153,15 @@ export default function GenerateTestPage() {
                       </div>
                       <div className="flex-grow">
                         <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{experiment.title}</h3>
-                          <Badge className={`${getStatusColor(experiment.status)} text-xs`}>
-                            {experiment.status}
-                          </Badge>
+                          <h3 className="text-lg font-semibold text-gray-900 mr-2">{experiment.title}</h3>
+                          <div className="flex-shrink-0 flex space-x-2">
+                            <Badge className={`${getStatusColor(experiment.status)} text-xs shadow-sm`}>
+                              {experiment.status}
+                            </Badge>
+                            <Badge className={`${getFlowColor(experiment.flow)} text-xs shadow-sm`}>
+                              Working on {experiment.flow}
+                            </Badge>
+                          </div>
                         </div>
                         <p className="text-sm text-gray-600 mb-2">{experiment.description}</p>
                         <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
@@ -178,7 +193,7 @@ export default function GenerateTestPage() {
                             className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
                             onClick={() => selectExperiment(experiment)}
                           >
-                            {experiment.status === 'Configured' ? 'Generate' : experiment.status === 'Generated' ? 'Review & Proceed To Testing' : experiment.status === 'Test' ? 'Confirm & Deploy' : 'View Results'}
+                            {experiment.status === 'Configured' ? 'Generate' : experiment.status === 'Generated' ? experiment.flow === 'Testing' ? 'Continue Testing' : 'Review & Proceed To Testing' : experiment.status === 'Test' ? 'Confirm & Deploy' : 'View Results'}
                             <ChevronRight className="h-4 w-4 ml-1" />
                           </Button>
                         </div>

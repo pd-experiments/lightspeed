@@ -17,6 +17,7 @@ export type Database = {
           description: string | null
           duration: number
           end_date: string
+          flow: Database["public"]["Enums"]["ad_flow"]
           id: string
           key_components: string[]
           objective: Database["public"]["Enums"]["campaign_objective"]
@@ -36,6 +37,7 @@ export type Database = {
           description?: string | null
           duration: number
           end_date: string
+          flow?: Database["public"]["Enums"]["ad_flow"]
           id?: string
           key_components: string[]
           objective: Database["public"]["Enums"]["campaign_objective"]
@@ -55,6 +57,7 @@ export type Database = {
           description?: string | null
           duration?: number
           end_date?: string
+          flow?: Database["public"]["Enums"]["ad_flow"]
           id?: string
           key_components?: string[]
           objective?: Database["public"]["Enums"]["campaign_objective"]
@@ -1343,6 +1346,7 @@ export type Database = {
       }
     }
     Enums: {
+      ad_flow: "Ideation" | "Generation" | "Testing" | "Deployment"
       ad_platform:
         | "Facebook"
         | "Instagram"

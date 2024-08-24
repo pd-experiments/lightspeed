@@ -70,7 +70,7 @@ export default function GenerateTestPage() {
             <AdVersionGenerator experiment={selectedExperiment} />
           ) : (
             <div className="mt-3 space-y-4">
-              {adExperiments.filter((experiment) => experiment.status === 'Configured' || experiment.status === 'Generated' || experiment.status === 'Test' || experiment.status === 'Deployed').map((experiment) => (
+              {adExperiments.filter((experiment) => experiment.flow == "Generation").map((experiment) => (
                 <Card key={experiment.id} className="hover:shadow-lg transition-shadow duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">

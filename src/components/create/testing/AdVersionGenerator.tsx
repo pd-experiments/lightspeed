@@ -90,7 +90,7 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
       
           const { error: supabaseError } = await supabase
             .from('ad_experiments')
-            .update({ version_data: versionData })
+            .update({ status: 'Generated', version_data: versionData })
             .eq('id', experiment.id);
       
           if (supabaseError) {

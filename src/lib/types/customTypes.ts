@@ -41,3 +41,5 @@ export const OutlineStatusEnum: { [key: string]: OutlineStatus } = {
   };
   
 export type AdExperimentInsert = Database['public']['Tables']['ad_experiments']['Insert'];
+
+export type AdExperiment = Database['public']['Tables']['ad_experiments']['Row'];

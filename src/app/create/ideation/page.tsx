@@ -10,11 +10,15 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent} from '@/components/ui/card';
 import _ from 'lodash';
 
+import { AdSuggestions } from '@/components/create/ideation/AdSuggestions';
+
 import BasicInformationStep from '@/components/create/ideation/BasicInformationStep';
 import BudgetAndTimelineStep from '@/components/create/ideation/BudgetAndTimelineStep';
 import TargetAudienceStep from '@/components/create/ideation/TargetAudienceStep';
 import AdContentStep from '@/components/create/ideation/AdContentStep';
 import PlatformsAndLeaningStep from '@/components/create/ideation/PlatformsAndLeaningStep';
+import { useCallback } from 'react';
+import { Loader2 } from 'lucide-react';
 
 type AdExperiment = Database['public']['Tables']['ad_experiments']['Row'];
 type AdExperimentInsert = Database['public']['Tables']['ad_experiments']['Insert'];
@@ -48,6 +52,8 @@ export default function IdeationPage() {
     key_components: [],
     status: 'Draft',
   });
+  const [adSuggestions, setAdSuggestions] = useState<AdExperimentInsert[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 
   useEffect(() => {
     fetchAdDrafts();
@@ -65,6 +71,23 @@ export default function IdeationPage() {
       setAdDrafts(data || []);
     }
   };
+
+  const fetchAdSuggestions = useCallback(async () => {
+    setIsLoadingSuggestions(true);
+    try {
+      const response = await fetch('/api/create/ideation/generate-ad-suggestions');
+      const data = await response.json();
+      setAdSuggestions(data);
+    } catch (error) {
+      console.error('Error fetching ad suggestions:', error);
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  }, []);
+  
+  useEffect(() => {
+    fetchAdSuggestions();
+  }, [fetchAdSuggestions]);
 
   const createEmptyAdExperiment = async () => {
     const { data: existingDrafts } = await supabase
@@ -133,20 +156,44 @@ export default function IdeationPage() {
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
+  const updateExperiment = async (updatedExperiment: Partial<AdExperimentInsert>) => {
+    if (!adExperiment.id) return;
+
+    const { data, error } = await supabase
+      .from('ad_experiments')
+      .update(updatedExperiment)
+      .eq('id', adExperiment.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating ad experiment:', error);
+    } else if (data) {
+      setAdExperiment(data);
+      setAdDrafts(adDrafts.map(ad => ad.id === data.id ? data : ad));
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setAdExperiment((prev) => ({ ...prev, [name]: value }));
+    const updatedExperiment = { ...adExperiment, [name]: value };
+    setAdExperiment(updatedExperiment);
+    updateExperiment({ [name]: value });
   };
 
   const handleNestedInputChange = (category: 'target_audience' | 'ad_content', name: string, value: any) => {
-    setAdExperiment((prev) => ({
-      ...prev,
-      [category]: { ...prev[category], [name]: value },
-    }));
+    const updatedExperiment = {
+      ...adExperiment,
+      [category]: { ...adExperiment[category], [name]: value },
+    };
+    setAdExperiment(updatedExperiment);
+    updateExperiment({ [category]: updatedExperiment[category] });
   };
 
   const handleMultiSelectChange = (name: 'platforms' | 'key_components', value: string[]) => {
-    setAdExperiment((prev) => ({ ...prev, [name]: value }));
+    const updatedExperiment = { ...adExperiment, [name]: value };
+    setAdExperiment(updatedExperiment);
+    updateExperiment({ [name]: value });
   };
 
   const handleSubmit = async () => {
@@ -247,11 +294,15 @@ export default function IdeationPage() {
             <div className="mt-8">
               <div className="flex justify-between mb-8">
                 {steps.map((step, index) => (
-                  <div key={index} className="flex flex-col items-center">
-                    <div className={`rounded-full p-2 ${currentStep >= index ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                  <div 
+                    key={index} 
+                    className="flex flex-col items-center cursor-pointer"
+                    onClick={() => setCurrentStep(index)}
+                  >
+                    <div className={`rounded-full p-2 ${currentStep === index ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
                       {step.icon}
                     </div>
-                    <span className={`text-sm mt-2 ${currentStep >= index ? 'text-blue-500 font-medium' : 'text-gray-500'}`}>
+                    <span className={`text-sm mt-2 ${currentStep === index ? 'text-blue-500 font-medium' : 'text-gray-500'}`}>
                       {step.title}
                     </span>
                   </div>
@@ -274,11 +325,7 @@ export default function IdeationPage() {
                 >
                   <ChevronLeft className="mr-2 h-4 w-4" /> Previous
                 </Button>
-                {currentStep === steps.length - 1 ? (
-                  <Button onClick={handleSubmit} className="flex items-center">
-                    {adExperiment.id ? 'Update Ad Experiment' : 'Create Ad Experiment'}
-                  </Button>
-                ) : (
+                {currentStep === steps.length - 1 ? null : (
                   <Button onClick={() => setCurrentStep(currentStep + 1)} className="flex items-center">
                     Next <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -286,58 +333,71 @@ export default function IdeationPage() {
               </div>
             </div>
           ) : (
-            <div className="space-y-4 mt-3">
-              {adDrafts.map((ad) => (
-                <Card key={ad.id} className="hover:shadow-lg transition-shadow duration-300">
-                  <CardContent className="p-3">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-base font-semibold truncate">{ad.title}</h3>
-                      <div className="flex space-x-1">
-                        <Badge className={`${getPoliticalLeaningColor(ad.political_leaning)} text-xs`}>
-                          {_.startCase(_.toLower(ad.political_leaning))}
-                        </Badge>
-                        <Badge className={`${getStatusColor(ad.status)} text-xs`}>
-                          {_.startCase(_.toLower(ad.status))}
-                        </Badge>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-600 line-clamp-1 mb-1">{ad.description}</p>
-                    <div className="flex justify-between items-end">
-                      <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
-                        <div className="flex items-center">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          {new Date(ad.created_at).toLocaleDateString()}
-                        </div>
-                        <div className="flex items-center">
-                          <Users className="w-3 h-3 mr-1" />
-                          {ad.target_audience.location}
-                        </div>
-                        <div className="flex items-center">
-                          <Tag className="w-3 h-3 mr-1" />
-                          <span className="truncate">{ad.key_components.join(', ')}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <FileText className="w-3 h-3 mr-1" />
-                          <span className="truncate">{ad.platforms.join(', ')}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <DollarSign className="w-3 h-3 mr-1" />
-                          <span className="font-semibold">${ad.budget}</span>
+            <div className="mt-3 space-y-4">
+              <div>
+                <AdSuggestions
+                  suggestions={adSuggestions}
+                  isLoading={isLoadingSuggestions}
+                  onSelect={(suggestion) => {
+                    setAdExperiment(suggestion);
+                    setIsCreatingExperiment(true);
+                    setCurrentStep(0);
+                  }}
+                />
+              </div>
+              <div className="space-y-4">
+                {adDrafts.filter((experiment) => experiment.status !== 'Configured' && experiment.status !== 'Generating' && experiment.status !== 'Testing' && experiment.status !== 'Deployed').map((ad) => (
+                  <Card key={ad.id} className="hover:shadow-lg transition-shadow duration-300">
+                    <CardContent className="p-3">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-base font-semibold truncate">{ad.title}</h3>
+                        <div className="flex space-x-1">
+                          <Badge className={`${getPoliticalLeaningColor(ad.political_leaning)} text-xs`}>
+                            {_.startCase(_.toLower(ad.political_leaning))}
+                          </Badge>
+                          <Badge className={`${getStatusColor(ad.status)} text-xs`}>
+                            {_.startCase(_.toLower(ad.status))}
+                          </Badge>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                        onClick={() => loadAdExperiment(ad.id)}
-                      >
-                        {ad.status === 'Draft' ? 'Keep Working' : ad.status === 'In Review' ? 'Review' : 'Modify'}
-                        <ChevronRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <p className="text-xs text-gray-600 line-clamp-1 mb-1">{ad.description}</p>
+                      <div className="flex justify-between items-end">
+                        <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
+                          <div className="flex items-center">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {new Date(ad.created_at).toLocaleDateString()}
+                          </div>
+                          <div className="flex items-center">
+                            <Users className="w-3 h-3 mr-1" />
+                            {ad.target_audience.location}
+                          </div>
+                          <div className="flex items-center">
+                            <Tag className="w-3 h-3 mr-1" />
+                            <span className="truncate">{ad.key_components.join(', ')}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <FileText className="w-3 h-3 mr-1" />
+                            <span className="truncate">{ad.platforms.join(', ')}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <DollarSign className="w-3 h-3 mr-1" />
+                            <span className="font-semibold">${ad.budget}</span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
+                          onClick={() => loadAdExperiment(ad.id)}
+                        >
+                          {ad.status === 'Draft' ? 'Keep Working' : ad.status === 'In Review' ? 'Review' : 'Modify'}
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
           )}
         </div>

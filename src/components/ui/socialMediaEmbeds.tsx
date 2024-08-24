@@ -23,22 +23,32 @@ export const FacebookEmbed: React.FC<EmbedProps> = ({ version }) => (
 );
 
 export const InstagramPostEmbed: React.FC<EmbedProps> = ({ version }) => (
-  <div className="w-full border-2 border-black p-1 rounded-md">
-    <div className="border rounded-md bg-white shadow-sm w-full">
+    <div className="w-full border-2 border-black p-1 rounded-md">
+      <div className="border rounded-md bg-white shadow-sm w-full">
         <div className="flex items-center p-2">
-        <FaInstagram className="text-pink-600 w-6 h-6 mr-2" />
-        <span className="font-bold">Instagram User</span>
+          <FaInstagram className="text-pink-600 w-6 h-6 mr-2" />
+          <span className="font-bold">Instagram User</span>
         </div>
-        {version.images && version.images.length > 0 && (
-        <Image src={version.images[0]} alt="Ad visual" width={500} height={500} layout="responsive" />
-        )}
+        <div className="aspect-square w-full bg-gray-200 relative">
+          {version.images && version.images.length > 0 ? (
+            <img 
+              src={version.images[0]} 
+              alt="Ad visual" 
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+              No image
+            </div>
+          )}
+        </div>
         <div className="p-3">
-        <p className="text-sm mb-1">{version.textContent}</p>
-        <div className="text-blue-600 text-sm">{version.hashtags.join(' ')}</div>
+          <p className="text-sm mb-1">{version.textContent}</p>
+          <div className="text-blue-600 text-sm">{version.hashtags.join(' ')}</div>
         </div>
+      </div>
     </div>
-  </div>
-);
+  );
 
 export const InstagramStoryEmbed: React.FC<EmbedProps> = ({ version }) => (
     <div className="border-2 border-black p-1 rounded-md max-w-sm">

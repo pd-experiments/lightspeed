@@ -1,31 +1,61 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 import {
-  Search,
-  VideoIcon,
   CloudLightningIcon,
-  PencilRuler,
   CheckCircleIcon,
-  FileText,
   User2Icon,
-  Megaphone,
   Settings,
   Menu,
   X,
   Dot,
-  PencilLine
+  PencilLine,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { usePathname } from "next/navigation";
 import { FaBinoculars } from "react-icons/fa";
+
+interface NavItem {
+  title: string;
+  icon: React.ReactNode;
+  href?: string;
+  subItems?: NavItem[];
+}
+
+const navItems: NavItem[] = [
+  {
+    title: "Research",
+    icon: <User2Icon className="w-4 h-4 mr-2" />,
+    subItems: [
+      { title: "Ad Search", icon: <Dot className="w-4 h-4 mr-2" />, href: "/research/adsearch" },
+      { title: "Ads", icon: <Dot className="w-4 h-4 mr-2" />, href: "/research/ads" },
+      { title: "Conversations", icon: <Dot className="w-4 h-4 mr-2" />, href: "/research/conversations" },
+    ],
+  },
+  {
+    title: "Create",
+    icon: <PencilLine className="w-4 h-4 mr-2" />,
+    subItems: [
+      { title: "Ideation", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/ideation" },
+      { title: "Clip Search", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/clipsearch" },
+      { title: "Television", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/television" },
+      { title: "Compliance", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/compliance" },
+    ],
+  },
+  {
+    title: "Insights",
+    icon: <FaBinoculars className="w-4 h-4 mr-2" />,
+    subItems: [],
+  },
+];
 
 export default function Navbar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === "true";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -34,7 +64,75 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  useEffect(() => {
+    const initialOpenMenus = navItems.reduce((acc, item) => {
+      acc[item.title] = false;
+      return acc;
+    }, {} as Record<string, boolean>);
+    setOpenMenus(initialOpenMenus);
+  }, []);
+
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  const toggleExpanded = useCallback((title: string) => {
+    setOpenMenus(prev => ({
+      ...prev,
+      [title]: !prev[title]
+    }));
+  }, []);
+
+  const renderNavItems = (items: NavItem[], level = 0) => {
+    return items.map((item, index) => (
+      <div key={index} className={`ml-${level * 4}`}>
+        {item.href ? (
+          <Link href={item.href} className="block">
+            <motion.div
+              className={`flex items-center px-3 py-2 rounded-md ${
+                pathname === item.href ? "bg-gray-100" : ""
+              }`}
+              whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
+              animate={{
+                backgroundColor: pathname === item.href ? "rgba(0, 0, 0, 0.05)" : "rgba(0, 0, 0, 0)",
+              }}
+              onClick={() => isMobile && setIsMenuOpen(false)}
+            >
+              {item.icon}
+              {item.title}
+            </motion.div>
+          </Link>
+        ) : (
+          <div>
+            <motion.div
+              className="flex items-center justify-between px-3 py-2 rounded-md cursor-pointer"
+              whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
+              onClick={() => toggleExpanded(item.title)}
+            >
+              <div className="flex items-center">
+                {item.icon}
+                <span>{item.title}</span>
+              </div>
+              {item.subItems && item.subItems.length > 0 && (
+                openMenus[item.title] ?? false ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+              )}
+            </motion.div>
+            <AnimatePresence initial={false}>
+              {/* {(openMenus[item.title] ?? false) && item.subItems && ( */}
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  {renderNavItems(item.subItems, level + 1)}
+                </motion.div>
+              {/* )} */}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+    ));
+  };
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -66,153 +164,36 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
               }`}
             >
               <div className="flex flex-col space-y-2">
+                {isDevMode && renderNavItems(navItems)}
                 {isDevMode && (
                   <>
-                    <motion.div
-                      className={`flex items-center px-3 py-2 rounded-md`}
-                      whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-                      animate={{
-                        backgroundColor: "rgba(0, 0, 0, 0)",
-                      }}
-                    >
-                      <User2Icon className="w-4 h-4 mr-2" />
-                      Research
-                    </motion.div>
-
-                    <div className="flex flex-col space-y-2 ml-4">
-                      <NavItem
-                        href="/research/adsearch"
-                        icon={<Dot className="w-4 h-4 mr-2" />}
-                        text="Ad Search"
-                        isActive={pathname === '/research/adsearch'}
-                        onClick={() => isMobile && setIsMenuOpen(false)}
-                      />
-                      <NavItem
-                        href="/research/ads"
-                        icon={<Dot className="w-4 h-4 mr-2" />}
-                        text="Ads"
-                        isActive={pathname === '/research/ads'}
-                        onClick={() => isMobile && setIsMenuOpen(false)}
-                      />
-                      <NavItem
-                        href="/research/conversations"
-                        icon={<Dot className="w-4 h-4 mr-2" />}
-                        text="Conversations"
-                        isActive={pathname === '/research/conversations'}
-                        onClick={() => isMobile && setIsMenuOpen(false)}
-                      />
-                    </div>
-
-                    <motion.div
-                      className={`flex items-center px-3 py-2 rounded-md`}
-                      whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-                      animate={{
-                        backgroundColor: "rgba(0, 0, 0, 0)",
-                      }}
-                    >
-                      <PencilLine className="w-4 h-4 mr-2" />
-                      Create
-                    </motion.div>
-
-                    <div className="flex flex-col space-y-2 ml-4">
-                      <NavItem
-                        href="/create/ideation"
-                        icon={<Dot className="w-4 h-4 mr-2" />}
-                        text="Ideation"
-                        isActive={pathname === '/create/ideation'}
-                        onClick={() => isMobile && setIsMenuOpen(false)}
-                      />
-                      <NavItem
-                        href="/create/clipsearch"
-                        icon={<Dot className="w-4 h-4 mr-2" />}
-                        text="Clip Search"
-                        isActive={pathname === '/create/clipsearch'}
-                        onClick={() => isMobile && setIsMenuOpen(false)}
-                      />
-                      <NavItem
-                        href="/create/television"
-                        icon={<Dot className="w-4 h-4 mr-2" />}
-                        text="Television"
-                        isActive={pathname === '/create/television'}
-                        onClick={() => isMobile && setIsMenuOpen(false)}
-                      />
-                      <NavItem
-                        href="/create/compliance"
-                        icon={<Dot className="w-4 h-4 mr-2" />}
-                        text="Compliance"
-                        isActive={pathname === '/create/compliance'}
-                        onClick={() => isMobile && setIsMenuOpen(false)}
-                      />
-                    </div>
-
-                    <motion.div
-                      className={`flex items-center px-3 py-2 rounded-md`}
-                      whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-                      animate={{
-                        backgroundColor: "rgba(0, 0, 0, 0)",
-                      }}
-                    >
-                      <FaBinoculars className="w-4 h-4 mr-2" />
-                      Insights
-                    </motion.div>
-                  </>
-                )}
-                {/* <NavItem
-                  href="/directory"
-                  icon={<VideoIcon className="w-4 h-4 mr-2" />}
-                  text="Directory"
-                  isActive={pathname === "/directory"}
-                  onClick={() => isMobile && setIsMenuOpen(false)}
-                /> */}
-
-                {isDevMode && (
-                  <>
-                    <hr />
+                    <hr className="my-2 border-gray-200" />
                     <div className="text-xs text-gray-500 my-2">DEV MODE</div>
-                    <NavItem
-                      href="/todo"
-                      icon={<CheckCircleIcon className="w-4 h-4 mr-2" />}
-                      text="Todo"
-                      isActive={pathname === "/todo"}
-                      onClick={() => isMobile && setIsMenuOpen(false)}
-                    />
+                    <Link href="/todo" className="block">
+                      <motion.div
+                        className={`flex items-center px-3 py-2 rounded-md ${
+                          pathname === "/todo" ? "bg-gray-100" : ""
+                        }`}
+                        whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
+                        animate={{
+                          backgroundColor: pathname === "/todo" ? "rgba(0, 0, 0, 0.05)" : "rgba(0, 0, 0, 0)",
+                        }}
+                        onClick={() => isMobile && setIsMenuOpen(false)}
+                      >
+                        <CheckCircleIcon className="w-4 h-4 mr-2" />
+                        Todo
+                      </motion.div>
+                    </Link>
                   </>
                 )}
               </div>
             </motion.nav>
           )}
         </AnimatePresence>
-        <main className={`flex-1 p-8 bg-gray-100 overflow-y-auto ${isMobile ? 'w-full' : 'ml-64'}`}>
+        <main className={`flex-1 p-8 bg-gray-100 overflow-y-auto ${isMobile ? 'w-full' : 'ml-64'} rounded-tl-3xl`}>
           {children}
         </main>
       </div>
     </div>
-  );
-}
-
-interface NavItemProps {
-  href: string;
-  icon: React.ReactNode;
-  text: string;
-  isActive: boolean;
-  onClick: () => void;
-}
-
-function NavItem({ href, icon, text, isActive, onClick }: NavItemProps) {
-  return (
-    <Link href={href} className="block" onClick={onClick}>
-      <motion.div
-        className={`flex items-center px-3 py-2 rounded-md ${
-          isActive ? "bg-gray-100" : ""
-        }`}
-        whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-        animate={{
-          backgroundColor: isActive ? "rgba(0, 0, 0, 0.05)" : "rgba(0, 0, 0, 0)",
-        }}
-      >
-        {icon}
-        {text}
-      </motion.div>
-    </Link>
   );
 }

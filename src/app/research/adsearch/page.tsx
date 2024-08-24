@@ -30,7 +30,7 @@ export default function AdSearchPage() {
   const loadSearchResults = async (page: number) => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/adsearch/get-google-ads", {
+      const response = await fetch("/api/research/adsearch/get-google-ads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

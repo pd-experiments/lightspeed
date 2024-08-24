@@ -9,39 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      advertisements: {
-        Row: {
-          caption: string | null
-          created_at: string
-          description: string | null
-          id: string
-          image: string | null
-          platform: Database["public"]["Enums"]["platformType"] | null
-          tagline: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          caption?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          image?: string | null
-          platform?: Database["public"]["Enums"]["platformType"] | null
-          tagline?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          caption?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          image?: string | null
-          platform?: Database["public"]["Enums"]["platformType"] | null
-          tagline?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       compliance_docs: {
         Row: {
           created_at: string | null
@@ -162,18 +129,21 @@ export type Database = {
           keywords: string[]
           political_leaning: string | null
           summary: string
+          tone: string[] | null
           versioned_ad_id: string
         }
         Insert: {
           keywords: string[]
           political_leaning?: string | null
           summary: string
+          tone?: string[] | null
           versioned_ad_id: string
         }
         Update: {
           keywords?: string[]
           political_leaning?: string | null
           summary?: string
+          tone?: string[] | null
           versioned_ad_id?: string
         }
         Relationships: [
@@ -191,7 +161,6 @@ export type Database = {
           advertisement_url: string
           advertiser_name: string | null
           advertiser_url: string | null
-          age_targeting: Json | null
           content: string | null
           days_ran_for: number | null
           first_shown: string | null
@@ -203,13 +172,14 @@ export type Database = {
           last_shown: string | null
           political_leaning: string | null
           summary: string | null
+          targeted_ages: string[] | null
+          tone: string[] | null
           version: number | null
         }
         Insert: {
           advertisement_url: string
           advertiser_name?: string | null
           advertiser_url?: string | null
-          age_targeting?: Json | null
           content?: string | null
           days_ran_for?: number | null
           first_shown?: string | null
@@ -221,13 +191,14 @@ export type Database = {
           last_shown?: string | null
           political_leaning?: string | null
           summary?: string | null
+          targeted_ages?: string[] | null
+          tone?: string[] | null
           version?: number | null
         }
         Update: {
           advertisement_url?: string
           advertiser_name?: string | null
           advertiser_url?: string | null
-          age_targeting?: Json | null
           content?: string | null
           days_ran_for?: number | null
           first_shown?: string | null
@@ -239,6 +210,8 @@ export type Database = {
           last_shown?: string | null
           political_leaning?: string | null
           summary?: string | null
+          targeted_ages?: string[] | null
+          tone?: string[] | null
           version?: number | null
         }
         Relationships: []
@@ -248,7 +221,6 @@ export type Database = {
           advertisement_url: string
           advertiser_name: string | null
           advertiser_url: string | null
-          age_targeting: Json | null
           content: string | null
           days_ran_for: number | null
           first_shown: string | null
@@ -257,13 +229,13 @@ export type Database = {
           geo_targeting: Json | null
           id: string
           last_shown: string | null
+          targeted_ages: string[] | null
           version: number | null
         }
         Insert: {
           advertisement_url: string
           advertiser_name?: string | null
           advertiser_url?: string | null
-          age_targeting?: Json | null
           content?: string | null
           days_ran_for?: number | null
           first_shown?: string | null
@@ -272,13 +244,13 @@ export type Database = {
           geo_targeting?: Json | null
           id: string
           last_shown?: string | null
+          targeted_ages?: string[] | null
           version?: number | null
         }
         Update: {
           advertisement_url?: string
           advertiser_name?: string | null
           advertiser_url?: string | null
-          age_targeting?: Json | null
           content?: string | null
           days_ran_for?: number | null
           first_shown?: string | null
@@ -287,6 +259,7 @@ export type Database = {
           geo_targeting?: Json | null
           id?: string
           last_shown?: string | null
+          targeted_ages?: string[] | null
           version?: number | null
         }
         Relationships: [

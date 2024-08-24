@@ -17,6 +17,13 @@ import {
   ChevronUp
 } from "lucide-react";
 import { FaBinoculars } from "react-icons/fa";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface NavItem {
   title: string;
@@ -42,9 +49,6 @@ const navItems: NavItem[] = [
       { title: "Ideate", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/ideation" },
       { title: "Generate & Test", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/testing" },
       { title: "Deploy", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/deployment" },
-      { title: "Clip Search", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/clipsearch" },
-      { title: "Television", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/television" },
-      { title: "Compliance", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/compliance" },
     ],
   },
   {
@@ -60,6 +64,7 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -145,8 +150,21 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
           <CloudLightningIcon className="w-8 h-8 mr-2" />
           <h2 className="text-2xl font-semibold">lightspeed ads</h2>
         </Link>
-        <div className="flex items-center">
-          <Settings className="w-6 h-6 mr-4 cursor-pointer" />
+        <div className="flex items-center space-x-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Settings className="h-6 w-6" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem asChild>
+                <Link href="/compliance" className="w-full">
+                  Compliance
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
           <button onClick={toggleMenu} className="ml-4 md:hidden">
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

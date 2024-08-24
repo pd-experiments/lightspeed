@@ -10,6 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent} from '@/components/ui/card';
 import _ from 'lodash';
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import OutlineList from '@/components/create/outline/OutlineList';
+
 import { AdSuggestions } from '@/components/create/ideation/AdSuggestions';
 
 import BasicInformationStep from '@/components/create/ideation/BasicInformationStep';
@@ -19,8 +22,11 @@ import AdContentStep from '@/components/create/ideation/AdContentStep';
 import PlatformsAndLeaningStep from '@/components/create/ideation/PlatformsAndLeaningStep';
 import { useCallback } from 'react';
 import { AdExperimentInsert, AdExperiment } from '@/lib/types/customTypes';
+import { OutlineCreator } from '@/components/create/outline/OutlineCreator';
+import ClipSearchComponent from '@/components/ClipSearchComponent';
 
 export default function IdeationPage() {
+  const [mode, setMode] = useState<'social-media' | 'television'>('social-media');
   const [isCreatingExperiment, setIsCreatingExperiment] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [adDrafts, setAdDrafts] = useState<AdExperiment[]>([]);
@@ -51,6 +57,7 @@ export default function IdeationPage() {
   });
   const [adSuggestions, setAdSuggestions] = useState<AdExperimentInsert[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [adSuggestionsError, setAdSuggestionsError] = useState(false);
 
   useEffect(() => {
     fetchAdDrafts();
@@ -77,6 +84,8 @@ export default function IdeationPage() {
       setAdSuggestions(data);
     } catch (error) {
       console.error('Error fetching ad suggestions:', error);
+      setIsLoadingSuggestions(false);
+      setAdSuggestionsError(true);
     } finally {
       setIsLoadingSuggestions(false);
     }
@@ -275,18 +284,29 @@ export default function IdeationPage() {
                     : 'Create New Ad Experiment'
                   : 'Would you like to start creating your ad experiment?'}
               </h1>
-              {!isCreatingExperiment ? (
-                <Button onClick={createEmptyAdExperiment}>
-                  <Lightbulb className="mr-2 h-4 w-4" /> Create New Ad Experiment
-                </Button>
+              
+              {mode === "social-media" ? (
+                !isCreatingExperiment ? (
+                  <Button onClick={createEmptyAdExperiment}>
+                    <Lightbulb className="mr-2 h-4 w-4" /> Create New Ad Experiment
+                  </Button>
+                ) : (
+                  <Button variant="ghost" className="text-gray-600" onClick={() => setIsCreatingExperiment(false)}>
+                    <ChevronLeft className="mr-2 h-5 w-5" /> Back to Experiments
+                  </Button>
+                )
               ) : (
-                <Button variant="ghost" className="text-gray-600" onClick={() => setIsCreatingExperiment(false)}>
-                  <ChevronLeft className="mr-2 h-5 w-5" /> Back to Experiments
-                </Button>
+                <OutlineCreator />
               )}
             </div>
           </header>
-          
+
+          <Tabs className="w-full" value={mode} onValueChange={(value) => setMode(value as 'social-media' | 'television')}>
+            <TabsList className="flex justify-center w-full grid-cols-2 gap-0">
+              <TabsTrigger value="social-media" className="w-full">Social Media</TabsTrigger>
+              <TabsTrigger value="television" className="w-full">Television</TabsTrigger>
+            </TabsList>      
+          <TabsContent value="social-media">
           {isCreatingExperiment ? (
             <div className="mt-8">
               <div className="flex justify-between mb-8">
@@ -340,6 +360,7 @@ export default function IdeationPage() {
                     setIsCreatingExperiment(true);
                     setCurrentStep(0);
                   }}
+                  error={adSuggestionsError}
                 />
               </div>
               <div className="space-y-4">
@@ -412,6 +433,22 @@ export default function IdeationPage() {
               </div>
             </div>
           )}
+          </TabsContent>
+          <TabsContent value="television">
+            <Tabs defaultValue="clip-search" className="w-full">
+              <TabsList>  
+                <TabsTrigger value="clip-search">Clip Search</TabsTrigger>
+                <TabsTrigger value="outlines">Outlines</TabsTrigger>
+              </TabsList>
+              <TabsContent value="clip-search">
+                <ClipSearchComponent />
+              </TabsContent>
+              <TabsContent value="outlines">
+                <OutlineList />
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+          </Tabs>
         </div>
       </main>
     </Navbar>

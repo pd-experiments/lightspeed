@@ -8,7 +8,10 @@ import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Beaker, Clock, FileText, ArrowLeft, ChevronRight } from 'lucide-react';
+import { Beaker, Clock, FileText, ArrowLeft, ChevronRight, ChevronLeft, Tag } from 'lucide-react';
+import { Calendar, Globe, Target, Users, DollarSign, BarChart2, Zap } from 'lucide-react';
+import _ from 'lodash';
+import Link from 'next/link';
 
 type AdTest = Database['public']['Tables']['ad_tests']['Row'];
 
@@ -39,6 +42,7 @@ export default function TestDetailsPage() {
 
   const getStatusColor = (status: string) => {
     const colors = {
+      'Created': 'bg-orange-100 text-orange-800',
       'Configured': 'bg-blue-100 text-blue-800',
       'Running': 'bg-yellow-100 text-yellow-800',
       'Completed': 'bg-green-100 text-green-800',
@@ -55,67 +59,100 @@ export default function TestDetailsPage() {
     return <div>Test not found</div>;
   }
 
+  const getIconForKey = (key: string) => {
+    const iconMap: { [key: string]: React.ReactNode } = {
+      budget: <DollarSign className="w-5 h-5 text-green-500" />,
+      target_audience: <Users className="w-5 h-5 text-purple-500" />,
+      objective: <Target className="w-5 h-5 text-red-500" />,
+      duration: <Calendar className="w-5 h-5 text-orange-500" />,
+      metrics: <BarChart2 className="w-5 h-5 text-blue-500" />,
+    };
+    return iconMap[key] || <Zap className="w-5 h-5 text-gray-500" />;
+  };
+
   return (
     <Navbar>
       <main className="min-h-screen bg-gray-100">
-        <div className="max-w-4xl mx-auto p-4">
-          <Button
-            variant="ghost"
-            className="mb-4"
-            onClick={() => router.push('/create/testing')}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Tests
-          </Button>
-
-          <Card className="mb-8">
-            <CardHeader className="bg-gray-50 border-b">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-2xl font-bold">
-                  Test #{test.id.slice(0, 8)}
-                </CardTitle>
-                <Badge className={`${getStatusColor(test.status)} text-sm`}>
-                  {test.status}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="flex items-center">
-                  <Clock className="w-5 h-5 mr-2 text-gray-400" />
-                  <span className="text-sm text-gray-600">
-                    Created: {new Date(test.created_at || '').toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <FileText className="w-5 h-5 mr-2 text-gray-400" />
-                  <span className="text-sm text-gray-600">
-                    {Object.keys(test.test_config).length} Configurations
-                  </span>
+        <div className="max-w-7xl mx-auto p-4">
+          <header className="py-6 sm:py-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border-b border-gray-200">
+              <div>
+                <div className="flex items-center mb-4 sm:mb-0">
+                  <h1 className="text-2xl font-medium text-gray-900 mr-3">
+                    Let&apos;s see how Test #{test.id.slice(0, 8)} is doing!
+                  </h1>
+                  <Badge className={`${getStatusColor(test.status)} text-sm font-medium px-3 py-1`}>
+                    {test.status}
+                  </Badge>
                 </div>
               </div>
+              <Link href="/create/testing" className="mt-4 sm:mt-0">
+                <Button variant="ghost" className="text-gray-600">
+                  <ChevronLeft className="mr-2 h-5 w-5" /> Back to Tests
+                </Button>
+              </Link>
+            </div>
+          </header>
 
-              <h3 className="text-lg font-semibold mb-4">Test Configurations</h3>
-              <div className="space-y-4">
-                {Object.entries(test.test_config).map(([platform, config]) => (
-                  <Card key={platform}>
-                    <CardHeader className="py-3 px-4 bg-gray-50">
-                      <CardTitle className="text-md font-medium">{platform}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <pre className="text-sm overflow-x-auto">
-                        {JSON.stringify(config, null, 2)}
-                      </pre>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="space-y-8">
+            <Card className="bg-white shadow-sm flex flex-col h-full space-y-3">
+              <CardHeader className="border-b bg-gray-50 p-4 rounded-t-md">
+                  <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
+                  Test Overview
+                  </CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="border-l-4 border-blue-500">
+                  <CardContent className="flex items-center p-4">
+                    <Clock className="w-8 h-8 mr-4 text-blue-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Created</p>
+                      <p className="text-lg font-semibold text-gray-900">{new Date(test.created_at || '').toLocaleString()}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-l-4 border-purple-500">
+                  <CardContent className="flex items-center p-4">
+                    <Globe className="w-8 h-8 mr-4 text-purple-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Platform</p>
+                      <p className="text-lg font-semibold text-gray-900">{test.platform}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CardContent>
+            </Card>
 
-          <div className="flex justify-end">
-            <Button className="flex items-center">
-              View Results <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
+            <Card className="bg-white shadow-sm flex flex-col h-full space-y-3">
+              <CardHeader className="border-b bg-gray-50 p-4 rounded-t-md">
+                  <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
+                  Test Configuration
+                  </CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {Object.entries(test).map(([key, value]) => {
+                  if (['id', 'created_at', 'updated_at', 'experiment_id', 'status', 'platform'].includes(key)) return null;
+                  return (
+                    <Card key={key} className="border-l-4 border-gray-300 hover:border-blue-500 transition-colors duration-300">
+                      <CardContent className="flex items-start p-4">
+                        {getIconForKey(key)}
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-gray-500">{_.startCase(key)}</p>
+                          <p className="text-lg font-semibold text-gray-900">{String(value)}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end">
+              <Button className="flex items-center bg-blue-500 hover:bg-blue-600 text-white">
+                {test.status === 'Created' ? 'Deploy Test' : test.status === 'Running' ? 'View Progress' : 'View Results'}
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </main>

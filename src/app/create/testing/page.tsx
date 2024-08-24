@@ -6,7 +6,7 @@ import { Database } from '@/lib/types/schema';
 import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, FileText, Users, DollarSign, Share, ChevronRight } from 'lucide-react';
+import { ChevronLeft, FileText, Users, DollarSign, Share, ChevronRight, Wand2, TestTube } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import AdVersionGenerator from '@/components/create/testing/AdVersionGenerator';
 
@@ -15,6 +15,7 @@ type AdExperiment = Database['public']['Tables']['ad_experiments']['Row'];
 export default function GenerateTestPage() {
   const [adExperiments, setAdExperiments] = useState<AdExperiment[]>([]);
   const [selectedExperiment, setSelectedExperiment] = useState<AdExperiment | null>(null);
+  const [currentStep, setCurrentStep] = useState(selectedExperiment ? selectedExperiment.flow === "Generation" ? 0 : 1 : 0);
 
   useEffect(() => {
     fetchAdExperiments();
@@ -35,17 +36,31 @@ export default function GenerateTestPage() {
 
   const selectExperiment = (experiment: AdExperiment) => {
     setSelectedExperiment(experiment);
+    setCurrentStep(0);
   };
 
   const getStatusColor = (status: string) => {
     const colors = {
       'Configured': 'bg-blue-100 text-blue-800',
-      'Generating': 'bg-yellow-100 text-yellow-800',
-      'Testing': 'bg-purple-100 text-purple-800',
+      'Generated': 'bg-yellow-100 text-yellow-800',
+      'Test': 'bg-purple-100 text-purple-800',
       'Deployed': 'bg-green-100 text-green-800',
     };
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
+
+  const handleMoveToTesting = async () => {
+    setCurrentStep(1);
+    const { data, error } = await supabase
+      .from('ad_experiments')
+      .update({ flow: 'Testing' })
+      .eq('id', selectedExperiment?.id);
+  };
+
+  const steps = [
+    { title: 'Generate', icon: <Wand2 className="h-6 w-6" /> },
+    { title: 'Test', icon: <TestTube className="h-6 w-6" /> },
+  ];
 
   return (
     <Navbar>
@@ -54,9 +69,11 @@ export default function GenerateTestPage() {
           <header className="py-6 sm:py-8">
             <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
               <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-              {selectedExperiment 
-                ? `Alright, let's cook up some ad magic for "${selectedExperiment.title}"!` 
-                : "Let's whip up some ads and see what real people think!"}
+                {selectedExperiment 
+                  ? (currentStep === 0 
+                      ? `Alright, let's cook up some ad magic for "${selectedExperiment.title}"!` 
+                      : `Time to put "${selectedExperiment.title}" to the test and see what resonates!`)
+                  : "Let's whip up some ads and see what real people think!"}
               </h1>
               {selectedExperiment && (
                 <Button variant="ghost" className="text-gray-600" onClick={() => setSelectedExperiment(null)}>
@@ -67,10 +84,53 @@ export default function GenerateTestPage() {
           </header>
 
           {selectedExperiment ? (
-            <AdVersionGenerator experiment={selectedExperiment} />
+            <div className="mt-2">
+              <div className="bg-transparent rounded-lg p-3 mb-4">
+                {currentStep === 0 ? (
+                  <AdVersionGenerator experiment={selectedExperiment} />
+                ) : (
+                  <div>
+                     <h2 className="text-xl font-semibold mb-4">Testing Component</h2>
+                    <p>Implement testing logic here.</p>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-between items-center">
+                <div>
+                    {currentStep > 0 && (
+                    <Button
+                        variant="ghost"
+                        onClick={() => setCurrentStep(currentStep - 1)}
+                        className="text-blue-600 hover:text-blue-800 whitespace-nowrap font-semibold"
+                    >
+                        <ChevronLeft className="mr-2 h-4 w-4" /> Modify Generation
+                    </Button>
+                    )}
+                </div>
+                <div>
+                    {currentStep === steps.length - 1 ? (
+                    <Button
+                        variant="ghost"
+                        className="text-blue-600 hover:text-blue-800 whitespace-nowrap font-semibold"
+                        onClick={() => {/* Handle completion */}}
+                    >
+                        Complete <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                    ) : (
+                    <Button
+                        variant="ghost"
+                        className="text-blue-600 hover:text-blue-800 whitespace-nowrap font-semibold"
+                        onClick={handleMoveToTesting}
+                    >
+                        Confirm & Proceed To Testing <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                    )}
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="mt-3 space-y-4">
-              {adExperiments.filter((experiment) => experiment.status === 'Configured' || experiment.status === 'Generating' || experiment.status === 'Testing' || experiment.status === 'Deployed').map((experiment) => (
+              {adExperiments.filter((experiment) => experiment.flow == "Generation").map((experiment) => (
                 <Card key={experiment.id} className="hover:shadow-lg transition-shadow duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
@@ -105,8 +165,8 @@ export default function GenerateTestPage() {
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="flex space-x-2">
-                            <Badge variant="outline" className="text-xs">
-                              {experiment.ad_versions?.length || 0} Versions
+                            <Badge variant="outline" className={`text-xs ${experiment.version_data?.versions?.length || 0 > 0 ? 'bg-blue-500 text-white' : ''}`}>
+                                {experiment.version_data?.versions?.length || 0} Versions
                             </Badge>
                             <Badge variant="outline" className="text-xs">
                               {experiment.test_results?.length || 0} Test Results
@@ -118,7 +178,7 @@ export default function GenerateTestPage() {
                             className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
                             onClick={() => selectExperiment(experiment)}
                           >
-                            {experiment.status === 'Configured' ? 'Generate' : experiment.status === 'Generating' ? 'Test' : experiment.status === 'Testing' ? 'Confirm & Deploy' : 'View Results'}
+                            {experiment.status === 'Configured' ? 'Generate' : experiment.status === 'Generated' ? 'Review & Proceed To Testing' : experiment.status === 'Test' ? 'Confirm & Deploy' : 'View Results'}
                             <ChevronRight className="h-4 w-4 ml-1" />
                           </Button>
                         </div>

@@ -40,7 +40,7 @@ const navItems: NavItem[] = [
     icon: <PencilLine className="w-4 h-4 mr-2" />,
     subItems: [
       { title: "Ideate", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/ideation" },
-      { title: "Test", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/testing" },
+      { title: "Generate & Test", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/testing" },
       { title: "Deploy", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/deployment" },
       { title: "Clip Search", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/clipsearch" },
       { title: "Television", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/television" },

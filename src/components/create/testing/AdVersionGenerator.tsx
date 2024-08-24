@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { FacebookEmbed, InstagramPostEmbed, InstagramStoryEmbed, InstagramReelEmbed, TikTokEmbed, ThreadsEmbed } from '@/components/ui/socialMediaEmbeds';
+import { supabase } from '@/lib/supabaseClient';
 
 interface AdVersionGeneratorProps {
   experiment: AdExperiment;
@@ -48,39 +49,89 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
     const [numVersions, setNumVersions] = useState<number>(2);
     const [error, setError] = useState<string | null>(null);
 
-  const generateAdVersions = async () => {
-    setIsGenerating(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/create/testing/generate-ad-versions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          experiment,
-          platforms: selectedPlatforms,
-          toneOfVoice,
-          creativityLevel,
-          targetAudience,
-          keyMessage,
-          numVersions,
-        }),
-      });
+    const generateAdVersions = async () => {
+        setIsGenerating(true);
+        setError(null);
+        try {
+          const response = await fetch('/api/create/testing/generate-ad-versions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              experiment,
+              platforms: selectedPlatforms,
+              toneOfVoice,
+              creativityLevel,
+              targetAudience,
+              keyMessage,
+              numVersions,
+            }),
+          });
+      
+          if (!response.ok) {
+            throw new Error('Failed to generate ad versions');
+          }
+      
+          const data = await response.json();
+          setGeneratedVersions(data);
+      
+          const versionData = {
+            versions: data,
+            config: {
+              platforms: selectedPlatforms,
+              toneOfVoice,
+              creativityLevel,
+              targetAudience,
+              keyMessage,
+              numVersions,
+            }
+          };
+      
+          const { error: supabaseError } = await supabase
+            .from('ad_experiments')
+            .update({ status: 'Generated', version_data: versionData })
+            .eq('id', experiment.id);
+      
+          if (supabaseError) {
+            console.error('Error saving version data to Supabase:', supabaseError);
+          }
+        } catch (err) {
+          setError('An error occurred while generating ad versions. Please try again.');
+          console.error('Error generating ad versions:', err);
+        } finally {
+          setIsGenerating(false);
+        }
+      };
 
-      if (!response.ok) {
-        throw new Error('Failed to generate ad versions');
-      }
+    const fetchExistingVersions = async () => {
+    const { data, error } = await supabase
+        .from('ad_experiments')
+        .select('version_data')
+        .eq('id', experiment.id)
+        .single();
 
-      const data = await response.json();
-      setGeneratedVersions(data);
-    } catch (err) {
-      setError('An error occurred while generating ad versions. Please try again.');
-      console.error('Error generating ad versions:', err);
-    } finally {
-      setIsGenerating(false);
+    if (error) {
+        console.error('Error fetching existing version data:', error);
+        return;
     }
-  };
+
+    if (data && data.version_data) {
+        setGeneratedVersions(data.version_data.versions);
+        if (data.version_data.config) {
+        setSelectedPlatforms(data.version_data.config.platforms);
+        setToneOfVoice(data.version_data.config.toneOfVoice);
+        setCreativityLevel(data.version_data.config.creativityLevel);
+        setTargetAudience(data.version_data.config.targetAudience);
+        setKeyMessage(data.version_data.config.keyMessage);
+        setNumVersions(data.version_data.config.numVersions);
+        }
+    }
+    };
+
+  useEffect(() => {
+        fetchExistingVersions();
+  }, [experiment.id]);
 
   const getPlatformIcon = (platform: Platform) => {
     switch (platform) {
@@ -97,7 +148,7 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
   return (
     <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
       <Card className="bg-white shadow-sm flex flex-col h-full">
-        <CardHeader className="border-b bg-gray-50 p-4">
+        <CardHeader className="border-b bg-gray-50 p-4 rounded-t-md">
             <CardTitle className="text-xl font-semibold text-gray-800">
             Ad Generation Configuration
             </CardTitle>
@@ -183,24 +234,24 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
             </div>
             </div>
             <div className="mt-4 pt-4 border-t">
-            <Button 
-                onClick={generateAdVersions} 
-                disabled={isGenerating || selectedPlatforms.length === 0}
-                className="w-full"
-            >
-                {isGenerating ? 'Generating...' : 'Generate Ad Versions'}
-            </Button>
-            {error && (
-                <div className="mt-2 text-red-500 flex items-center">
-                <AlertTriangle className="w-4 h-4 mr-2" />
-                {error}
-                </div>
-            )}
+                <Button 
+                    onClick={generateAdVersions} 
+                    disabled={isGenerating || selectedPlatforms.length === 0}
+                    className="w-full"
+                >
+                {isGenerating ? 'Generating...' : generatedVersions.length > 0 ? 'Regenerate Ad Versions' : 'Generate Ad Versions'}
+                </Button>
+                {error && (
+                    <div className="mt-2 text-red-500 flex items-center">
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    {error}
+                    </div>
+                )}
             </div>
         </CardContent>
       </Card>
       <Card className="bg-white shadow-sm flex flex-col h-full">
-        <CardHeader className="border-b bg-gray-50 p-4">
+        <CardHeader className="border-b bg-gray-50 p-4 rounded-t-md">
             <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
             <Megaphone className="w-5 h-5 mr-2 text-blue-500" />
             Generated Ad Versions

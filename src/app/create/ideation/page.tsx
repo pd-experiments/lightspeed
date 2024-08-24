@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/lib/types/schema';
 import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, Users, Calendar, Tag, ChevronRight, FileText, ChevronLeft, Info, DollarSign, Share, Lightbulb } from 'lucide-react';
+import { PlusIcon, Users, Calendar, Tag, ChevronRight, FileText, ChevronLeft, Info, DollarSign, Share, Lightbulb, GalleryHorizontalEnd } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent} from '@/components/ui/card';
 import _ from 'lodash';
@@ -346,7 +346,7 @@ export default function IdeationPage() {
                 />
               </div>
               <div className="space-y-4">
-                {adDrafts.filter((experiment) => experiment.status !== 'Configured' && experiment.status !== 'Generating' && experiment.status !== 'Testing' && experiment.status !== 'Deployed').map((ad) => (
+                {adDrafts.filter((experiment) => experiment.flow == "Ideation").map((ad) => (
                   <Card key={ad.id} className="hover:shadow-lg transition-shadow duration-300">
                     <CardContent className="p-3">
                       <div className="flex justify-between items-start mb-2">
@@ -384,17 +384,32 @@ export default function IdeationPage() {
                             <span className="font-semibold">${ad.budget}</span>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                          onClick={() => loadAdExperiment(ad.id)}
-                        >
-                          {ad.status === 'Draft' ? 'Keep Working' : ad.status === 'In Review' ? 'Review' : 'Modify'}
-                          <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
+                            onClick={() => loadAdExperiment(ad.id)}
+                          >
+                            {ad.status === 'Draft' ? 'Keep Working' : ad.status === 'In Review' ? 'Review' : 'Modify'}
+                            <ChevronRight className="h-4 w-4 ml-1" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
+                      {ad.status === 'Configured' && (
+                        <div className="flex justify-end rounded-b-md bg-gray-100 p-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-100 shadow-sm whitespace-nowrap font-semibold"
+                            onClick={() => loadAdExperiment(ad.id)}
+                          >
+                            <GalleryHorizontalEnd className="w-4 h-4 mr-2" />
+                            Move to Generation
+                          </Button>
+                        </div>
+                      )}
                   </Card>
                 ))}
               </div>

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,7 +39,9 @@ const navItems: NavItem[] = [
     title: "Create",
     icon: <PencilLine className="w-4 h-4 mr-2" />,
     subItems: [
-      { title: "Ideation", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/ideation" },
+      { title: "Ideate", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/ideation" },
+      { title: "Test", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/testing" },
+      { title: "Deploy", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/deployment" },
       { title: "Clip Search", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/clipsearch" },
       { title: "Television", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/television" },
       { title: "Compliance", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/compliance" },

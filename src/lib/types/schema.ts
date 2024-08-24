@@ -232,6 +232,7 @@ export type Database = {
           last_shown: string | null
           political_leaning: string | null
           summary: string | null
+          summary_embeddings: string | null
           targeted_ages: string[] | null
           tone: string[] | null
           version: number | null
@@ -251,6 +252,7 @@ export type Database = {
           last_shown?: string | null
           political_leaning?: string | null
           summary?: string | null
+          summary_embeddings?: string | null
           targeted_ages?: string[] | null
           tone?: string[] | null
           version?: number | null
@@ -270,6 +272,7 @@ export type Database = {
           last_shown?: string | null
           political_leaning?: string | null
           summary?: string | null
+          summary_embeddings?: string | null
           targeted_ages?: string[] | null
           tone?: string[] | null
           version?: number | null
@@ -1045,6 +1048,32 @@ export type Database = {
         }
         Returns: unknown
       }
+      int_ads__google_ads_enhanced__semantic_search: {
+        Args: {
+          query_embedding: string
+          match_threshold: number
+        }
+        Returns: {
+          advertisement_url: string
+          advertiser_name: string | null
+          advertiser_url: string | null
+          content: string | null
+          days_ran_for: number | null
+          first_shown: string | null
+          format: string | null
+          gender_targeting: Json | null
+          geo_targeting: Json | null
+          id: string
+          keywords: string[] | null
+          last_shown: string | null
+          political_leaning: string | null
+          summary: string | null
+          summary_embeddings: string | null
+          targeted_ages: string[] | null
+          tone: string[] | null
+          version: number | null
+        }[]
+      }
       ivfflat_bit_support: {
         Args: {
           "": unknown
@@ -1122,20 +1151,47 @@ export type Database = {
             }
             Returns: unknown
           }
-      match_documents: {
-        Args: {
-          query_embedding: string
-          match_threshold: number
-          match_count: number
-          video_uuid_specific: string
-        }
-        Returns: {
-          video_uuid: string
-          timestamp: string
-          text: string
-          similarity: number
-        }[]
-      }
+      match_documents:
+        | {
+            Args: {
+              query_embedding: string
+              match_threshold: number
+            }
+            Returns: {
+              advertisement_url: string
+              advertiser_name: string | null
+              advertiser_url: string | null
+              content: string | null
+              days_ran_for: number | null
+              first_shown: string | null
+              format: string | null
+              gender_targeting: Json | null
+              geo_targeting: Json | null
+              id: string
+              keywords: string[] | null
+              last_shown: string | null
+              political_leaning: string | null
+              summary: string | null
+              summary_embeddings: string | null
+              targeted_ages: string[] | null
+              tone: string[] | null
+              version: number | null
+            }[]
+          }
+        | {
+            Args: {
+              query_embedding: string
+              match_threshold: number
+              match_count: number
+              video_uuid_specific: string
+            }
+            Returns: {
+              video_uuid: string
+              timestamp: string
+              text: string
+              similarity: number
+            }[]
+          }
       match_documents_grouped: {
         Args: {
           query_embedding: string
@@ -1224,7 +1280,14 @@ export type Database = {
         | "LinkedIn"
         | "TikTok"
         | "YouTube"
-      ad_status: "Draft" | "In Review" | "Active"
+      ad_status:
+        | "Draft"
+        | "In Review"
+        | "Active"
+        | "Configured"
+        | "Generating"
+        | "Testing"
+        | "Deployed"
       campaign_objective: "awareness" | "consideration" | "conversion"
       govtType: "FEDERAL" | "STATE" | "LOCAL"
       outlineElementType: "VIDEO" | "TRANSITION"

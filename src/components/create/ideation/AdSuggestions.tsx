@@ -45,7 +45,7 @@ export function AdSuggestions({ suggestions, onSelect, isLoading }: { suggestion
                       </div>
                       <div className="flex items-center">
                         <Users className="w-3 h-3 mr-1" />
-                        {suggestion.target_audience.location}
+                        {suggestion.target_audience?.location || 'N/A'}
                       </div>
                       <div className="flex items-center">
                         <Tag className="w-3 h-3 mr-1" />

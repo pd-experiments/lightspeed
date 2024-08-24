@@ -18,10 +18,7 @@ import TargetAudienceStep from '@/components/create/ideation/TargetAudienceStep'
 import AdContentStep from '@/components/create/ideation/AdContentStep';
 import PlatformsAndLeaningStep from '@/components/create/ideation/PlatformsAndLeaningStep';
 import { useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
-
-type AdExperiment = Database['public']['Tables']['ad_experiments']['Row'];
-type AdExperimentInsert = Database['public']['Tables']['ad_experiments']['Insert'];
+import { AdExperimentInsert, AdExperiment } from '@/lib/types/customTypes';
 
 export default function IdeationPage() {
   const [isCreatingExperiment, setIsCreatingExperiment] = useState(false);
@@ -184,7 +181,7 @@ export default function IdeationPage() {
   const handleNestedInputChange = (category: 'target_audience' | 'ad_content', name: string, value: any) => {
     const updatedExperiment = {
       ...adExperiment,
-      [category]: { ...adExperiment[category], [name]: value },
+      [category]: { ...(adExperiment[category] as object || {}), [name]: value },
     };
     setAdExperiment(updatedExperiment);
     updateExperiment({ [category]: updatedExperiment[category] });
@@ -365,11 +362,11 @@ export default function IdeationPage() {
                         <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
                           <div className="flex items-center">
                             <Calendar className="w-3 h-3 mr-1" />
-                            {new Date(ad.created_at).toLocaleDateString()}
+                            {ad.created_at ? new Date(ad.created_at).toLocaleDateString() : 'N/A'}                         
                           </div>
                           <div className="flex items-center">
                             <Users className="w-3 h-3 mr-1" />
-                            {ad.target_audience.location}
+                            {ad.target_audience?.location || 'N/A'}    
                           </div>
                           <div className="flex items-center">
                             <Tag className="w-3 h-3 mr-1" />
@@ -389,7 +386,7 @@ export default function IdeationPage() {
                             variant="ghost"
                             size="sm"
                             className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                            onClick={() => loadAdExperiment(ad.id)}
+                            onClick={() => loadAdExperiment(Number(ad.id))}
                           >
                             {ad.status === 'Draft' ? 'Keep Working' : ad.status === 'In Review' ? 'Review' : 'Modify'}
                             <ChevronRight className="h-4 w-4 ml-1" />
@@ -403,7 +400,7 @@ export default function IdeationPage() {
                             size="sm"
                             variant="ghost"
                             className="text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-100 shadow-sm whitespace-nowrap font-semibold"
-                            onClick={() => loadAdExperiment(ad.id)}
+                            onClick={() => loadAdExperiment(Number(ad.id))}
                           >
                             <GalleryHorizontalEnd className="w-4 h-4 mr-2" />
                             Move to Generation

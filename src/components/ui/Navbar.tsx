@@ -128,7 +128,7 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
                   transition={{ duration: 0.3 }}
                   className="overflow-hidden"
                 >
-                  {renderNavItems(item.subItems, level + 1)}
+                  {renderNavItems(item.subItems ?? [], level + 1)}
                 </motion.div>
               {/* )} */}
             </AnimatePresence>

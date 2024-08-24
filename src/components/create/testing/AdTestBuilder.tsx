@@ -12,14 +12,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdExperiment, AdVersion } from '@/lib/types/customTypes';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { PlayCircle, CheckCircle, Settings, PlusCircle } from 'lucide-react';
+import { PlayCircle, CheckCircle, Settings, Blocks } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaTiktok, FaThreads } from 'react-icons/fa6';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/lib/supabaseClient';
 import { FacebookEmbed, InstagramPostEmbed, InstagramStoryEmbed, InstagramReelEmbed, TikTokEmbed, ThreadsEmbed } from '@/components/ui/socialMediaEmbeds';
 import { Textarea } from '@/components/ui/textarea';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface AdTestBuilderProps {
   experiment: AdExperiment;
@@ -121,20 +121,32 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
     );
   
     try {
-      const { data, error } = await supabase
-        .from('ad_tests')
-        .insert({
-          experiment_id: experiment.id,
-          test_config: selectedVersions,
-          status: 'Created',
-          created_at: new Date().toISOString(),
-        })
-        .select();
+      for (const { platform, versionId, config } of selectedVersions) {
+        const { data, error } = await supabase
+          .from('ad_tests')
+          .insert({
+            experiment_id: experiment.id,
+            platform,
+            version_id: versionId,
+            budget: config.budget,
+            duration: config.duration,
+            audience: config.audience,
+            placement: config.placement,
+            bid_strategy: config.bidStrategy,
+            image_url: config.imageUrl,
+            video_url: config.videoUrl,
+            caption: config.caption,
+            link: config.link,
+            adset_id: config.adsetId,
+            status: 'Created',
+            created_at: new Date().toISOString(),
+          })
+          .select();
 
-      if (error) throw error;
+        if (error) throw error;
+        console.log('Ad test saved:', data);
+      }
 
-      console.log('Ad test saved:', data);
-  
       await supabase
         .from('ad_experiments')
         .update({ 
@@ -217,32 +229,6 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
         return null;
     }
   };
-
-  // const handleVersionSelection = (platform: Platform, versionId: string) => {
-  //   setTestConfig(prev => {
-  //     const newConfig = { ...prev };
-  //     if (newConfig[platform] && newConfig[platform]![versionId]) {
-  //       newConfig[platform]![versionId].selected = !newConfig[platform]![versionId].selected;
-        
-  //       if (newConfig[platform]![versionId].selected) {
-  //         Object.keys(newConfig[platform]!).forEach(id => {
-  //           if (id !== versionId) {
-  //             newConfig[platform]![id].selected = false;
-  //           }
-  //         });
-  //       }
-  //     }
-  //     return newConfig;
-  //   });
-  
-  //   setSelectedConfigVersion(prev => {
-  //     if (prev === `${platform}-${versionId}`) {
-  //       return null;
-  //     } else {
-  //       return `${platform}-${versionId}`;
-  //     }
-  //   });
-  // };
 
   const handleVersionSelection = (platform: Platform, versionId: string, value: boolean) => {
     setTestConfig(prev => {
@@ -588,12 +574,12 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
         >
           {testStatus === 'idle' ? (
             <>
-              <PlusCircle className="w-5 h-5 mr-2" />
-              <span>Build Selected Test(s)</span>
+              <Blocks className="w-5 h-5 mr-2" />
+              <span>Build New Test(s)</span>
             </>
           ) : testStatus === 'saving' ? (
             <>
-              <PlayCircle className="w-5 h-5 mr-2 animate-pulse" />
+              <Spinner className="w-5 h-5 mr-2 animate-pulse" />
               <span>Saving...</span>
             </>
           ) : (

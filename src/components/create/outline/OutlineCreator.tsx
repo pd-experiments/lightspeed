@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { supabase } from '@/lib/supabaseClient';
+import { FileStack } from 'lucide-react';
 
 export function OutlineCreator() {
   const router = useRouter();
@@ -61,10 +62,10 @@ export function OutlineCreator() {
   };
 
   return (
-    <div className="mb-6 flex justify-end items-center">
+    <div className="flex justify-end items-center">
       <Dialog>
         <DialogTrigger asChild>
-            <Button size="sm">Create Outline</Button>
+            <Button><FileStack className="mr-2 h-4 w-4" />Create Outline</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

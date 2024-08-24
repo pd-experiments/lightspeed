@@ -94,7 +94,7 @@ export default function GenerateTestPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <WalletCards className="w-5 h-5 text-blue-500" />
-                <h2 className="text-xl font-semibold text-gray-800">Projects</h2>
+                <h2 className="text-xl font-semibold text-gray-800">Creations</h2>
               </div>
               <Badge variant="outline" className="text-sm font-medium bg-blue-500 text-white">
                 {adExperiments.length} Advertisements
@@ -185,62 +185,58 @@ export default function GenerateTestPage() {
             </div>
             <div className="h-px bg-gray-200 mt-2"></div>
           </div>
-          <div className="mt-3 space-y-4">
+          <div className="space-y-4">
             {adTests.map((test) => (
               <Card key={test.id} className="hover:shadow-lg transition-shadow duration-300">
-                <CardContent className="p-3">
+                <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-base font-semibold truncate">Test #{test.id.slice(0, 8)}</h3>
-                    <div className="flex space-x-1">
-                      <Badge className={`${getStatusColor(test.status)} text-xs`}>
-                        {_.startCase(_.toLower(test.status))}
+                    <h3 className="text-lg font-semibold text-gray-800">Test #{test.id.slice(0, 8)}</h3>
+                    <Badge className={`${getStatusColor(test.status)} text-xs font-medium px-2 py-1`}>
+                      {_.startCase(_.toLower(test.status))}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                    <div className="flex items-center">
+                      <Calendar className="w-3 h-3 mr-1 text-gray-400" />
+                      {new Date(test.created_at || '').toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center">
+                      <Tag className="w-3 h-3 mr-1 text-gray-400" />
+                      {test.platform}
+                    </div>
+                    {test.budget && (
+                      <div className="flex items-center">
+                        <DollarSign className="w-3 h-3 mr-1 text-gray-400" />
+                        <span className="font-semibold">${test.budget}</span>
+                      </div>
+                    )}
+                    {test.target_audience && (
+                      <div className="flex items-center">
+                        <Users className="w-3 h-3 mr-1 text-gray-400" />
+                        {test.target_audience}
+                      </div>
+                    )}
+                    {test.versions && (
+                      <Badge variant="outline" className="text-xs">
+                        {test.versions.length} Versions
                       </Badge>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-600 line-clamp-1 mb-1">
-                    {test.experiment_id ? `Experiment ID: ${test.experiment_id}` : 'No associated experiment'}
-                  </p>
-                  <div className="flex justify-between items-end">
-                    <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
-                      <div className="flex items-center">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {new Date(test.created_at || '').toLocaleDateString()}
-                      </div>
-                      <div className="flex items-center">
-                        <FileText className="w-3 h-3 mr-1" />
-                        <span className="truncate">{Object.keys(test.test_config).length} Configurations</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Tag className="w-3 h-3 mr-1" />
-                        <span className="truncate">{Object.keys(test.test_config).join(', ')}</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                        onClick={() => selectTest(test.id)}
-                      >
-                        {test.status === 'Configured' ? 'Start Test' : test.status === 'Running' ? 'View Progress' : 'View Results'}
-                        <ChevronRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-                {test.status === 'Configured' && (
-                  <div className="flex justify-end rounded-b-md bg-gray-100 p-2">
+                    )}
+                    {test.results && (
+                      <Badge variant="outline" className="text-xs">
+                        {test.results.length} Results
+                      </Badge>
+                    )}
                     <Button
-                      size="sm"
                       variant="ghost"
-                      className="text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-100 shadow-sm whitespace-nowrap font-semibold"
+                      size="sm"
+                      className="text-blue-600 hover:text-blue-800 whitespace-nowrap ml-auto"
                       onClick={() => selectTest(test.id)}
                     >
-                      <PlayCircle className="w-4 h-4 mr-2" />
-                      Start Test
+                      {test.status === 'Created' ? 'Deploy Test' : test.status === 'Running' ? 'View Progress' : 'View Results'}
+                      <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>
-                )}
+                </CardContent>
               </Card>
             ))}
           </div>

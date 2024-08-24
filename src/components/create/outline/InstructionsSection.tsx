@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from "@/components/ui/textarea";
-import { OutlineElementWithVideoTitle } from '@/app/create/television/[id]/page';
+import { OutlineElementWithVideoTitle } from '@/app/create/ideation/television/[id]/page';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 

@@ -74,28 +74,61 @@ export type Database = {
       }
       ad_tests: {
         Row: {
+          adset_id: string | null
+          audience: string
+          bid_strategy: string
+          budget: number
+          caption: string
           created_at: string | null
+          duration: number
           experiment_id: string | null
           id: string
+          image_url: string | null
+          link: string
+          placement: string
+          platform: string
           status: string
-          test_config: Json
           updated_at: string | null
+          version_id: string
+          video_url: string | null
         }
         Insert: {
+          adset_id?: string | null
+          audience: string
+          bid_strategy: string
+          budget: number
+          caption: string
           created_at?: string | null
+          duration: number
           experiment_id?: string | null
           id?: string
+          image_url?: string | null
+          link: string
+          placement: string
+          platform: string
           status: string
-          test_config: Json
           updated_at?: string | null
+          version_id: string
+          video_url?: string | null
         }
         Update: {
+          adset_id?: string | null
+          audience?: string
+          bid_strategy?: string
+          budget?: number
+          caption?: string
           created_at?: string | null
+          duration?: number
           experiment_id?: string | null
           id?: string
+          image_url?: string | null
+          link?: string
+          placement?: string
+          platform?: string
           status?: string
-          test_config?: Json
           updated_at?: string | null
+          version_id?: string
+          video_url?: string | null
         }
         Relationships: [
           {

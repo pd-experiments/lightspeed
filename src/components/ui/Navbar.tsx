@@ -116,6 +116,13 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
 
                     <div className="flex flex-col space-y-2 ml-4">
                       <NavItem
+                        href="/create/ideation"
+                        icon={<Dot className="w-4 h-4 mr-2" />}
+                        text="Ideation"
+                        isActive={pathname === '/create/ideation'}
+                        onClick={() => isMobile && setIsMenuOpen(false)}
+                      />
+                      <NavItem
                         href="/create/clipsearch"
                         icon={<Dot className="w-4 h-4 mr-2" />}
                         text="Clip Search"
@@ -123,10 +130,10 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
                         onClick={() => isMobile && setIsMenuOpen(false)}
                       />
                       <NavItem
-                        href="/create/outline"
+                        href="/create/television"
                         icon={<Dot className="w-4 h-4 mr-2" />}
-                        text="Outline"
-                        isActive={pathname === '/create/outline'}
+                        text="Television"
+                        isActive={pathname === '/create/television'}
                         onClick={() => isMobile && setIsMenuOpen(false)}
                       />
                       <NavItem
@@ -175,7 +182,7 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
             </motion.nav>
           )}
         </AnimatePresence>
-        <main className={`flex-1 p-8 bg-gray-100 overflow-y-auto ${isMobile ? 'w-full' : ''}`}>
+        <main className={`flex-1 p-8 bg-gray-100 overflow-y-auto ${isMobile ? 'w-full' : 'ml-64'}`}>
           {children}
         </main>
       </div>

@@ -1,4 +1,5 @@
 import { Database } from "@/lib/types/schema";
+
 type OutlineStatus = Database["public"]["Tables"]["outline"]["Row"]["status"];
 
 export type ClipSearchResult = { // clip search results 
@@ -39,3 +40,4 @@ export const OutlineStatusEnum: { [key: string]: OutlineStatus } = {
     COMPLIANCE_CHECK: "COMPLIANCE_CHECK"
   };
   
+export type AdExperimentInsert = Database['public']['Tables']['ad_experiments']['Insert'];

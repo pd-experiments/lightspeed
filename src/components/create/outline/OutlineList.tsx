@@ -88,7 +88,7 @@ export default function OutlineList() {
               <div className="space-y-3">
                 {groupedOutlines[status]?.length > 0 ? (
                   groupedOutlines[status].map((outline) => (
-                    <Link href={`/outline/${outline.id}`} key={outline.id} className="block transition-all hover:shadow-md">
+                    <Link href={`/create/television/${outline.id}`} key={outline.id} className="block transition-all hover:shadow-md">
                       <OutlineCard 
                         outline={outline} 
                         elementCount={outline.elementCount} 

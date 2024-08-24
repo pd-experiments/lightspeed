@@ -106,7 +106,7 @@ export default function DashboardPage() {
 
   return (
     <Navbar>
-        <main className="bg-gray-100 min-h-screen p-4 md:p-8">
+        <main className="bg-gray-100 min-h-screen">
         <div className="max-w-7xl mx-auto">
         <header className="py-6 sm:py-8">
             <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">

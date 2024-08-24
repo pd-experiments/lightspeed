@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from "@/components/ui/textarea";
-import { OutlineElementWithVideoTitle } from '@/app/create/outline/[id]/page';
+import { OutlineElementWithVideoTitle } from '@/app/create/television/[id]/page';
 import TimeInput from '@/components/ui/time-input';
 import { type ScriptElement, isScriptElement } from '@/lib/types/customTypes';
 import { Card, CardContent } from '@/components/ui/card';

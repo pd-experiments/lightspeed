@@ -4,7 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Trash2Icon } from 'lucide-react';
 import ReactPlayer from 'react-player';
-import { OutlineElementWithVideoTitle } from '@/app/create/outline/[id]/page';
+import { OutlineElementWithVideoTitle } from '@/app/create/television/[id]/page';
 import DescriptionSection from './DescriptionSection';
 import InstructionsSection from './InstructionsSection';
 import SourcesSection from './SourcesSection';

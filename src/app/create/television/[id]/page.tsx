@@ -156,14 +156,14 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
       <main className="min-h-screen flex flex-col items-center justify-between p-24">
       <div className="w-full max-w-7xl mx-auto">
         <div className="w-full flex justify-between mb-4">
-            <Button variant="link" className="p-0 h-auto font-normal">
-            <Link href="/outline" className="flex items-center">
+          <Button variant="link" className="p-0 h-auto font-normal">
+            <Link href="/create/television" className="flex items-center">
               <ChevronLeft className="mr-1 h-4 w-4" />
               <span>Back to Outlines</span>
             </Link>
           </Button>
           <Button variant="link" className="p-0 h-auto font-normal">
-            <Link href={`/outline/${outlineId}/script?title=${encodeURIComponent(outline?.title || '')}`} className="flex items-center">
+            <Link href={`/create/television/${outlineId}/script?title=${encodeURIComponent(outline?.title || '')}`} className="flex items-center">
               <span>View Script</span>
               <ChevronLeft className="ml-1 h-4 w-4 transform rotate-180" />
             </Link>

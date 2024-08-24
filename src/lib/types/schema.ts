@@ -9,35 +9,59 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      advertisements: {
+      ad_experiments: {
         Row: {
-          caption: string | null
-          created_at: string
+          ad_content: Json
+          budget: number
+          created_at: string | null
           description: string | null
+          duration: number
+          end_date: string
           id: string
-          image: string | null
-          platform: Database["public"]["Enums"]["platformType"] | null
-          tagline: string | null
+          key_components: string[]
+          objective: Database["public"]["Enums"]["campaign_objective"]
+          platforms: Database["public"]["Enums"]["ad_platform"][]
+          political_leaning: Database["public"]["Enums"]["political_leaning"]
+          start_date: string
+          status: Database["public"]["Enums"]["ad_status"]
+          target_audience: Json
+          title: string
           updated_at: string | null
         }
         Insert: {
-          caption?: string | null
-          created_at?: string
+          ad_content: Json
+          budget: number
+          created_at?: string | null
           description?: string | null
+          duration: number
+          end_date: string
           id?: string
-          image?: string | null
-          platform?: Database["public"]["Enums"]["platformType"] | null
-          tagline?: string | null
+          key_components: string[]
+          objective: Database["public"]["Enums"]["campaign_objective"]
+          platforms: Database["public"]["Enums"]["ad_platform"][]
+          political_leaning: Database["public"]["Enums"]["political_leaning"]
+          start_date: string
+          status?: Database["public"]["Enums"]["ad_status"]
+          target_audience: Json
+          title: string
           updated_at?: string | null
         }
         Update: {
-          caption?: string | null
-          created_at?: string
+          ad_content?: Json
+          budget?: number
+          created_at?: string | null
           description?: string | null
+          duration?: number
+          end_date?: string
           id?: string
-          image?: string | null
-          platform?: Database["public"]["Enums"]["platformType"] | null
-          tagline?: string | null
+          key_components?: string[]
+          objective?: Database["public"]["Enums"]["campaign_objective"]
+          platforms?: Database["public"]["Enums"]["ad_platform"][]
+          political_leaning?: Database["public"]["Enums"]["political_leaning"]
+          start_date?: string
+          status?: Database["public"]["Enums"]["ad_status"]
+          target_audience?: Json
+          title?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -162,18 +186,24 @@ export type Database = {
           keywords: string[]
           political_leaning: string | null
           summary: string
+          summary_embeddings: string | null
+          tone: string[] | null
           versioned_ad_id: string
         }
         Insert: {
           keywords: string[]
           political_leaning?: string | null
           summary: string
+          summary_embeddings?: string | null
+          tone?: string[] | null
           versioned_ad_id: string
         }
         Update: {
           keywords?: string[]
           political_leaning?: string | null
           summary?: string
+          summary_embeddings?: string | null
+          tone?: string[] | null
           versioned_ad_id?: string
         }
         Relationships: [
@@ -191,7 +221,6 @@ export type Database = {
           advertisement_url: string
           advertiser_name: string | null
           advertiser_url: string | null
-          age_targeting: Json | null
           content: string | null
           days_ran_for: number | null
           first_shown: string | null
@@ -203,13 +232,14 @@ export type Database = {
           last_shown: string | null
           political_leaning: string | null
           summary: string | null
+          targeted_ages: string[] | null
+          tone: string[] | null
           version: number | null
         }
         Insert: {
           advertisement_url: string
           advertiser_name?: string | null
           advertiser_url?: string | null
-          age_targeting?: Json | null
           content?: string | null
           days_ran_for?: number | null
           first_shown?: string | null
@@ -221,13 +251,14 @@ export type Database = {
           last_shown?: string | null
           political_leaning?: string | null
           summary?: string | null
+          targeted_ages?: string[] | null
+          tone?: string[] | null
           version?: number | null
         }
         Update: {
           advertisement_url?: string
           advertiser_name?: string | null
           advertiser_url?: string | null
-          age_targeting?: Json | null
           content?: string | null
           days_ran_for?: number | null
           first_shown?: string | null
@@ -239,6 +270,8 @@ export type Database = {
           last_shown?: string | null
           political_leaning?: string | null
           summary?: string | null
+          targeted_ages?: string[] | null
+          tone?: string[] | null
           version?: number | null
         }
         Relationships: []
@@ -248,7 +281,6 @@ export type Database = {
           advertisement_url: string
           advertiser_name: string | null
           advertiser_url: string | null
-          age_targeting: Json | null
           content: string | null
           days_ran_for: number | null
           first_shown: string | null
@@ -257,13 +289,13 @@ export type Database = {
           geo_targeting: Json | null
           id: string
           last_shown: string | null
+          targeted_ages: string[] | null
           version: number | null
         }
         Insert: {
           advertisement_url: string
           advertiser_name?: string | null
           advertiser_url?: string | null
-          age_targeting?: Json | null
           content?: string | null
           days_ran_for?: number | null
           first_shown?: string | null
@@ -272,13 +304,13 @@ export type Database = {
           geo_targeting?: Json | null
           id: string
           last_shown?: string | null
+          targeted_ages?: string[] | null
           version?: number | null
         }
         Update: {
           advertisement_url?: string
           advertiser_name?: string | null
           advertiser_url?: string | null
-          age_targeting?: Json | null
           content?: string | null
           days_ran_for?: number | null
           first_shown?: string | null
@@ -287,6 +319,7 @@ export type Database = {
           geo_targeting?: Json | null
           id?: string
           last_shown?: string | null
+          targeted_ages?: string[] | null
           version?: number | null
         }
         Relationships: [
@@ -1184,6 +1217,15 @@ export type Database = {
       }
     }
     Enums: {
+      ad_platform:
+        | "Facebook"
+        | "Instagram"
+        | "Twitter"
+        | "LinkedIn"
+        | "TikTok"
+        | "YouTube"
+      ad_status: "Draft" | "In Review" | "Active"
+      campaign_objective: "awareness" | "consideration" | "conversion"
       govtType: "FEDERAL" | "STATE" | "LOCAL"
       outlineElementType: "VIDEO" | "TRANSITION"
       outlineStatus:
@@ -1194,6 +1236,12 @@ export type Database = {
         | "COMPLIANCE_CHECK"
         | "PERSONALIZATION"
       platformType: "INSTAGRAM" | "SNAPCHAT" | "FACEBOOK" | "TIKTOK"
+      political_leaning:
+        | "left"
+        | "center-left"
+        | "center"
+        | "center-right"
+        | "right"
       simpleUserType: "PRANAV" | "DINESH"
       todoStatusType: "TODO" | "IN_PROGRESS" | "DONE"
     }

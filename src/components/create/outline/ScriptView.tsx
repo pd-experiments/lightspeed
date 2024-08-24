@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { OutlineElementWithVideoTitle } from '@/app/create/outline/[id]/page';
+import { OutlineElementWithVideoTitle } from '@/app/create/television/[id]/page';
 import { v4 as uuidv4 } from 'uuid';
 import ElementCard from './ElementCard';
 import TimestampDivider from './TimestampDivider';

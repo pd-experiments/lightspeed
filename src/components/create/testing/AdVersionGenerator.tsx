@@ -40,7 +40,7 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
       if (Array.isArray(experiment.target_audience)) {
         return experiment.target_audience.join(', ');
       } else if (typeof experiment.target_audience === 'object') {
-        return Object.values(experiment.target_audience).flat().join(', ');
+        return Object.values(experiment.target_audience || {}).flat().join(', ');
       } else {
         return String(experiment.target_audience);
       }
@@ -157,9 +157,9 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
             <div className="space-y-4 p-2 flex-grow overflow-y-auto">
             <div>
               <h2 className="text-lg font-semibold mb-2">Original Ad Content</h2>
-              <p className="text-gray-600 mb-1"><strong>Headline:</strong> {experiment.ad_content.headline}</p>
-              <p className="text-gray-600 mb-1"><strong>Body:</strong> {experiment.ad_content.body}</p>
-              <p className="text-gray-600"><strong>Call to Action:</strong> {experiment.ad_content.callToAction}</p>
+              <p className="text-gray-600 mb-1"><strong>Headline:</strong> {experiment.ad_content?.headline}</p>
+              <p className="text-gray-600 mb-1"><strong>Body:</strong> {experiment.ad_content?.body}</p>
+              <p className="text-gray-600"><strong>Call to Action:</strong> {experiment.ad_content?.callToAction}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Select Platforms</label>
@@ -275,51 +275,6 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
                           <h3 className="ml-2 text-sm font-medium text-gray-700">{platform}</h3>
                         </div>
                         <Accordion type="single" collapsible className="w-full">
-                          {/* {platformVersions.map((version) => (
-                            <AccordionItem key={version.id} value={version.id} className="border-b last:border-b-0">
-                              <AccordionTrigger className="hover:no-underline px-4 py-2">
-                                <div className="flex justify-between items-center w-full">
-                                  <h4 className="font-medium text-gray-800 text-left text-sm">
-                                    {version.textContent && version.textContent.length > 50
-                                      ? `${version.textContent.slice(0, 50)}...`
-                                      : version.textContent || 'No content'}
-                                  </h4>
-                                  <Badge className="bg-blue-100 text-blue-800 text-xs">
-                                    Version {version.id.includes('-') ? version.id.split('-').pop() : version.id}
-                                  </Badge>
-                                </div>
-                              </AccordionTrigger>
-                              <AccordionContent className="px-4 py-2">
-                                <div className="space-y-2">
-                                  <p className="text-sm text-gray-600"><strong>Text Content:</strong> {version.textContent}</p>
-                                  {version.images && (
-                                    <div>
-                                      <p className="text-sm text-gray-600"><strong>Images:</strong></p>
-                                      <div className="flex flex-wrap gap-2 mt-2">
-                                        {version.images.map((img, index) => (
-                                          <img key={index} src={img} alt={`Ad visual ${index + 1}`} className="max-w-[100px] h-auto rounded-md" />
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {version.image && (
-                                    <div>
-                                      <p className="text-sm text-gray-600"><strong>Image:</strong></p>
-                                      <img src={version.image} alt="Ad visual" className="mt-2 max-w-full h-auto rounded-md" />
-                                    </div>
-                                  )}
-                                  {version.videoDescription && (
-                                    <p className="text-sm text-gray-600"><strong>Video Description:</strong> {version.videoDescription}</p>
-                                  )}
-                                  {version.inVideoScript && (
-                                    <p className="text-sm text-gray-600"><strong>In-Video Script:</strong> {version.inVideoScript}</p>
-                                  )}
-                                  <p className="text-sm text-gray-600"><strong>Hashtags:</strong> {version.hashtags.join(' ')}</p>
-                                </div>
-                              </AccordionContent>
-                            </AccordionItem>
-                          ))} */}
-
                           {platformVersions.map((version) => (
                             <AccordionItem key={version.id} value={version.id} className="border-b last:border-b-0">
                                 <AccordionTrigger className="hover:no-underline px-4 py-2">

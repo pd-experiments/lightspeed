@@ -39,7 +39,54 @@ export const OutlineStatusEnum: { [key: string]: OutlineStatus } = {
     SCRIPT_FINALIZED: "SCRIPT_FINALIZED",
     COMPLIANCE_CHECK: "COMPLIANCE_CHECK"
   };
-  
-export type AdExperimentInsert = Database['public']['Tables']['ad_experiments']['Insert'];
 
-export type AdExperiment = Database['public']['Tables']['ad_experiments']['Row'];
+export type AdContent = {
+    headline?: string;
+    body?: string;
+    callToAction?: string;
+    image?: File | null;
+  }
+
+export type TargetAudience = {
+    location?: string;
+    age?: string [];
+    gender?: string [];
+    interests?: string [];
+  }
+
+  export type AdVersion = {
+    id: string;
+    platform: Platform;
+    textContent: string;
+    images?: string[];
+    image?: string;
+    videoDescription?: string;
+    inVideoScript?: string;
+    hashtags: string[];
+  };
+  
+  type Platform = 'Facebook' | 'Instagram Post' | 'Instagram Story' | 'Instagram Reel' | 'TikTok' | 'Threads';
+  
+  type VersionData = {
+    versions: AdVersion[];
+    config: {
+      platforms: Platform[];
+      toneOfVoice: string;
+      creativityLevel: number;
+      targetAudience: string;
+      keyMessage: string;
+      numVersions: number;
+    };
+  };
+
+export type AdExperimentInsert = Database['public']['Tables']['ad_experiments']['Insert'] & {
+    ad_content: AdContent;
+    target_audience: TargetAudience;
+    version_data?: VersionData;
+  };
+
+export type AdExperiment = Database['public']['Tables']['ad_experiments']['Row'] & {
+    ad_content: AdContent;
+    target_audience: TargetAudience;
+    version_data?: VersionData;
+  };

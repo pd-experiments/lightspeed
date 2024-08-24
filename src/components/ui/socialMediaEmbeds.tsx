@@ -1,5 +1,6 @@
 import { FaFacebook, FaInstagram, FaTiktok, FaThreads, FaHeart, FaComment, FaShare } from 'react-icons/fa6';
 import { AdVersion } from '@/components/create/testing/AdVersionGenerator';
+import Image from 'next/image';
 
 interface EmbedProps {
   version: AdVersion;
@@ -29,7 +30,7 @@ export const InstagramPostEmbed: React.FC<EmbedProps> = ({ version }) => (
         <span className="font-bold">Instagram User</span>
         </div>
         {version.images && version.images.length > 0 && (
-        <img src={version.images[0]} alt="Ad visual" className="w-full h-auto" />
+        <Image src={version.images[0]} alt="Ad visual" width={500} height={500} layout="responsive" />
         )}
         <div className="p-3">
         <p className="text-sm mb-1">{version.textContent}</p>

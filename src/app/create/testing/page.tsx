@@ -9,8 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft, FileText, Users, DollarSign, Share, ChevronRight, Wand2, TestTube } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import AdVersionGenerator from '@/components/create/testing/AdVersionGenerator';
-
-type AdExperiment = Database['public']['Tables']['ad_experiments']['Row'];
+import Image from 'next/image';
+import { AdExperiment } from '@/lib/types/customTypes';
 
 export default function GenerateTestPage() {
   const [adExperiments, setAdExperiments] = useState<AdExperiment[]>([]);
@@ -145,8 +145,14 @@ export default function GenerateTestPage() {
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
                       <div className="w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
-                        {experiment.ad_content.image ? (
-                          <img src={experiment.ad_content.image} alt="Ad preview" className="w-full h-full object-cover" />
+                        {experiment.ad_content?.image ? (
+                          <Image
+                            src={typeof experiment.ad_content.image === 'string' ? experiment.ad_content.image : URL.createObjectURL(experiment.ad_content.image)}
+                            alt="Ad preview"
+                            width={96}
+                            height={96}
+                            className="object-cover"
+                            />
                         ) : (
                           <FileText className="w-12 h-12 text-gray-400" />
                         )}
@@ -167,7 +173,7 @@ export default function GenerateTestPage() {
                         <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
                           <div className="flex items-center">
                             <Users className="w-3 h-3 mr-1" />
-                            {experiment.target_audience.location || 'No location'}
+                            {experiment.target_audience?.location || 'No location'}
                           </div>
                           <div className="flex items-center">
                             <Share className="w-3 h-3 mr-1" />

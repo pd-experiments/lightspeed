@@ -12,13 +12,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { FacebookEmbed, InstagramPostEmbed, InstagramStoryEmbed, InstagramReelEmbed, TikTokEmbed, ThreadsEmbed } from '@/components/ui/socialMediaEmbeds';
 
 interface AdVersionGeneratorProps {
   experiment: AdExperiment;
 }
 
 type Platform = 'Facebook' | 'Instagram Post' | 'Instagram Story' | 'Instagram Reel' | 'TikTok' | 'Threads';
-type AdVersion = {
+export type AdVersion = {
     id: string;
     platform: Platform;
     textContent: string;
@@ -198,17 +199,17 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
             </div>
         </CardContent>
       </Card>
-      <Card className="bg-white shadow-sm overflow-y-auto">
+      <Card className="bg-white shadow-sm flex flex-col h-full">
         <CardHeader className="border-b bg-gray-50 p-4">
-          <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
+            <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
             <Megaphone className="w-5 h-5 mr-2 text-blue-500" />
             Generated Ad Versions
-          </CardTitle>
+            </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 w-full h-full overflow-x-scroll">
-          {isGenerating ? (
-            <div className="flex justify-center items-center h-32">
-              <Spinner className="w-8 h-8 text-blue-500" />
+        <CardContent className="p-4 w-full h-full flex flex-col">
+            {isGenerating ? (
+            <div className="flex-grow flex justify-center items-center">
+                <Spinner className="w-8 h-8 text-blue-500" />
             </div>
           ) : generatedVersions.length > 0 ? (
             <div className="space-y-8">
@@ -223,7 +224,7 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
                           <h3 className="ml-2 text-sm font-medium text-gray-700">{platform}</h3>
                         </div>
                         <Accordion type="single" collapsible className="w-full">
-                          {platformVersions.map((version) => (
+                          {/* {platformVersions.map((version) => (
                             <AccordionItem key={version.id} value={version.id} className="border-b last:border-b-0">
                               <AccordionTrigger className="hover:no-underline px-4 py-2">
                                 <div className="flex justify-between items-center w-full">
@@ -266,14 +267,55 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
                                 </div>
                               </AccordionContent>
                             </AccordionItem>
-                          ))}
+                          ))} */}
+
+                          {platformVersions.map((version) => (
+                            <AccordionItem key={version.id} value={version.id} className="border-b last:border-b-0">
+                                <AccordionTrigger className="hover:no-underline px-4 py-2">
+                                <div className="flex justify-between items-center w-full">
+                                    <h4 className="font-medium text-gray-800 text-left text-sm">
+                                    {version.textContent && version.textContent.length > 50
+                                        ? `${version.textContent.slice(0, 50)}...`
+                                        : version.textContent || 'No content'}
+                                    </h4>
+                                    <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                    Version {version.id.includes('-') ? version.id.split('-').pop() : version.id}
+                                    </Badge>
+                                </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="px-4 py-2">
+                                <div className="space-y-4">
+                                    {platform === 'Facebook' && <FacebookEmbed version={version} />}
+                                    {platform === 'Instagram Post' && <InstagramPostEmbed version={version} />}
+                                    {platform === 'Instagram Story' && <InstagramStoryEmbed version={version} />}
+                                    {platform === 'Instagram Reel' && <InstagramReelEmbed version={version} />}
+                                    {platform === 'TikTok' && <TikTokEmbed version={version} />}
+                                    {platform === 'Threads' && <ThreadsEmbed version={version} />}
+                                    <div className="space-y-2">
+                                    <p className="text-sm text-gray-600"><strong>Text Content:</strong> {version.textContent}</p>
+                                    {version.videoDescription && (
+                                        <p className="text-sm text-gray-600"><strong>Video Description:</strong> {version.videoDescription}</p>
+                                    )}
+                                    {version.inVideoScript && (
+                                        <p className="text-sm text-gray-600"><strong>In-Video Script:</strong> {version.inVideoScript}</p>
+                                    )}
+                                    <p className="text-sm text-gray-600"><strong>Hashtags:</strong> {version.hashtags.join(' ')}</p>
+                                    </div>
+                                </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                            ))}
                         </Accordion>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <p className="text-center text-gray-500">No versions generated yet. Select platforms and click the button to generate ad versions.</p>
+                <div className="flex-grow flex justify-center items-center px-6">
+                    <p className="text-center text-gray-500">
+                    No versions generated yet. Select platforms and click the button to generate ad versions.
+                    </p>
+                </div>
               )}
         </CardContent>
       </Card>

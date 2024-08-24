@@ -40,8 +40,8 @@ export default function GenerateTestPage() {
   const getStatusColor = (status: string) => {
     const colors = {
       'Configured': 'bg-blue-100 text-blue-800',
-      'Generating': 'bg-yellow-100 text-yellow-800',
-      'Testing': 'bg-purple-100 text-purple-800',
+      'Generated': 'bg-yellow-100 text-yellow-800',
+      'Test': 'bg-purple-100 text-purple-800',
       'Deployed': 'bg-green-100 text-green-800',
     };
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
@@ -70,7 +70,7 @@ export default function GenerateTestPage() {
             <AdVersionGenerator experiment={selectedExperiment} />
           ) : (
             <div className="mt-3 space-y-4">
-              {adExperiments.filter((experiment) => experiment.status === 'Configured' || experiment.status === 'Generating' || experiment.status === 'Testing' || experiment.status === 'Deployed').map((experiment) => (
+              {adExperiments.filter((experiment) => experiment.status === 'Configured' || experiment.status === 'Generated' || experiment.status === 'Test' || experiment.status === 'Deployed').map((experiment) => (
                 <Card key={experiment.id} className="hover:shadow-lg transition-shadow duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
@@ -105,8 +105,8 @@ export default function GenerateTestPage() {
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="flex space-x-2">
-                            <Badge variant="outline" className="text-xs">
-                              {experiment.ad_versions?.length || 0} Versions
+                            <Badge variant="outline" className={`text-xs ${experiment.version_data?.versions?.length || 0 > 0 ? 'bg-blue-500 text-white' : ''}`}>
+                                {experiment.version_data?.versions?.length || 0} Versions
                             </Badge>
                             <Badge variant="outline" className="text-xs">
                               {experiment.test_results?.length || 0} Test Results
@@ -118,7 +118,7 @@ export default function GenerateTestPage() {
                             className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
                             onClick={() => selectExperiment(experiment)}
                           >
-                            {experiment.status === 'Configured' ? 'Generate' : experiment.status === 'Generating' ? 'Test' : experiment.status === 'Testing' ? 'Confirm & Deploy' : 'View Results'}
+                            {experiment.status === 'Configured' ? 'Generate' : experiment.status === 'Generated' ? 'Review & Proceed To Testing' : experiment.status === 'Test' ? 'Confirm & Deploy' : 'View Results'}
                             <ChevronRight className="h-4 w-4 ml-1" />
                           </Button>
                         </div>

@@ -346,7 +346,7 @@ export default function IdeationPage() {
                 />
               </div>
               <div className="space-y-4">
-                {adDrafts.filter((experiment) => experiment.status !== 'Configured' && experiment.status !== 'Generating' && experiment.status !== 'Testing' && experiment.status !== 'Deployed').map((ad) => (
+                {adDrafts.filter((experiment) => experiment.status !== 'Configured' && experiment.status !== 'Generated' && experiment.status !== 'Test' && experiment.status !== 'Deployed').map((ad) => (
                   <Card key={ad.id} className="hover:shadow-lg transition-shadow duration-300">
                     <CardContent className="p-3">
                       <div className="flex justify-between items-start mb-2">

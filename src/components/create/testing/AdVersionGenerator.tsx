@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { FacebookEmbed, InstagramPostEmbed, InstagramStoryEmbed, InstagramReelEmbed, TikTokEmbed, ThreadsEmbed } from '@/components/ui/socialMediaEmbeds';
+import { supabase } from '@/lib/supabaseClient';
 
 interface AdVersionGeneratorProps {
   experiment: AdExperiment;
@@ -48,39 +49,89 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
     const [numVersions, setNumVersions] = useState<number>(2);
     const [error, setError] = useState<string | null>(null);
 
-  const generateAdVersions = async () => {
-    setIsGenerating(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/create/testing/generate-ad-versions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          experiment,
-          platforms: selectedPlatforms,
-          toneOfVoice,
-          creativityLevel,
-          targetAudience,
-          keyMessage,
-          numVersions,
-        }),
-      });
+    const generateAdVersions = async () => {
+        setIsGenerating(true);
+        setError(null);
+        try {
+          const response = await fetch('/api/create/testing/generate-ad-versions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              experiment,
+              platforms: selectedPlatforms,
+              toneOfVoice,
+              creativityLevel,
+              targetAudience,
+              keyMessage,
+              numVersions,
+            }),
+          });
+      
+          if (!response.ok) {
+            throw new Error('Failed to generate ad versions');
+          }
+      
+          const data = await response.json();
+          setGeneratedVersions(data);
+      
+          const versionData = {
+            versions: data,
+            config: {
+              platforms: selectedPlatforms,
+              toneOfVoice,
+              creativityLevel,
+              targetAudience,
+              keyMessage,
+              numVersions,
+            }
+          };
+      
+          const { error: supabaseError } = await supabase
+            .from('ad_experiments')
+            .update({ version_data: versionData })
+            .eq('id', experiment.id);
+      
+          if (supabaseError) {
+            console.error('Error saving version data to Supabase:', supabaseError);
+          }
+        } catch (err) {
+          setError('An error occurred while generating ad versions. Please try again.');
+          console.error('Error generating ad versions:', err);
+        } finally {
+          setIsGenerating(false);
+        }
+      };
 
-      if (!response.ok) {
-        throw new Error('Failed to generate ad versions');
-      }
+    const fetchExistingVersions = async () => {
+    const { data, error } = await supabase
+        .from('ad_experiments')
+        .select('version_data')
+        .eq('id', experiment.id)
+        .single();
 
-      const data = await response.json();
-      setGeneratedVersions(data);
-    } catch (err) {
-      setError('An error occurred while generating ad versions. Please try again.');
-      console.error('Error generating ad versions:', err);
-    } finally {
-      setIsGenerating(false);
+    if (error) {
+        console.error('Error fetching existing version data:', error);
+        return;
     }
-  };
+
+    if (data && data.version_data) {
+        setGeneratedVersions(data.version_data.versions);
+        if (data.version_data.config) {
+        setSelectedPlatforms(data.version_data.config.platforms);
+        setToneOfVoice(data.version_data.config.toneOfVoice);
+        setCreativityLevel(data.version_data.config.creativityLevel);
+        setTargetAudience(data.version_data.config.targetAudience);
+        setKeyMessage(data.version_data.config.keyMessage);
+        setNumVersions(data.version_data.config.numVersions);
+        }
+    }
+    };
+
+  useEffect(() => {
+        fetchExistingVersions();
+  }, [experiment.id]);
 
   const getPlatformIcon = (platform: Platform) => {
     switch (platform) {
@@ -183,19 +234,19 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
             </div>
             </div>
             <div className="mt-4 pt-4 border-t">
-            <Button 
-                onClick={generateAdVersions} 
-                disabled={isGenerating || selectedPlatforms.length === 0}
-                className="w-full"
-            >
-                {isGenerating ? 'Generating...' : 'Generate Ad Versions'}
-            </Button>
-            {error && (
-                <div className="mt-2 text-red-500 flex items-center">
-                <AlertTriangle className="w-4 h-4 mr-2" />
-                {error}
-                </div>
-            )}
+                <Button 
+                    onClick={generateAdVersions} 
+                    disabled={isGenerating || selectedPlatforms.length === 0}
+                    className="w-full"
+                >
+                {isGenerating ? 'Generating...' : generatedVersions.length > 0 ? 'Regenerate Ad Versions' : 'Generate Ad Versions'}
+                </Button>
+                {error && (
+                    <div className="mt-2 text-red-500 flex items-center">
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    {error}
+                    </div>
+                )}
             </div>
         </CardContent>
       </Card>

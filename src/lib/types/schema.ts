@@ -27,6 +27,7 @@ export type Database = {
           target_audience: Json
           title: string
           updated_at: string | null
+          version_data: Json | null
         }
         Insert: {
           ad_content: Json
@@ -45,6 +46,7 @@ export type Database = {
           target_audience: Json
           title: string
           updated_at?: string | null
+          version_data?: Json | null
         }
         Update: {
           ad_content?: Json
@@ -63,6 +65,7 @@ export type Database = {
           target_audience?: Json
           title?: string
           updated_at?: string | null
+          version_data?: Json | null
         }
         Relationships: []
       }
@@ -796,6 +799,60 @@ export type Database = {
           },
         ]
       }
+      tiktok_embeddings: {
+        Row: {
+          author: string | null
+          caption: string | null
+          caption_embedding: number[] | null
+          comments: Json | null
+          created_at: string | null
+          hashtags: string[] | null
+          id: string
+          keywords: string[] | null
+          political_leaning: string | null
+          summary: string | null
+          summary_embedding: number[] | null
+          tone: string[] | null
+          topic: string | null
+          video_id: string | null
+          views: number | null
+        }
+        Insert: {
+          author?: string | null
+          caption?: string | null
+          caption_embedding?: number[] | null
+          comments?: Json | null
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          keywords?: string[] | null
+          political_leaning?: string | null
+          summary?: string | null
+          summary_embedding?: number[] | null
+          tone?: string[] | null
+          topic?: string | null
+          video_id?: string | null
+          views?: number | null
+        }
+        Update: {
+          author?: string | null
+          caption?: string | null
+          caption_embedding?: number[] | null
+          comments?: Json | null
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          keywords?: string[] | null
+          political_leaning?: string | null
+          summary?: string | null
+          summary_embedding?: number[] | null
+          tone?: string[] | null
+          topic?: string | null
+          video_id?: string | null
+          views?: number | null
+        }
+        Relationships: []
+      }
       tiktok_videos: {
         Row: {
           author: string
@@ -998,6 +1055,19 @@ export type Database = {
           title: string | null
           transcript: Json | null
           video_id: string | null
+        }[]
+      }
+      get_tiktok_video_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          video_id: string
+          author: string
+          created_at: string
+          caption: string
+          hashtags: string[]
+          topic: string
+          views: number
+          comments: Json
         }[]
       }
       halfvec_avg: {
@@ -1285,8 +1355,8 @@ export type Database = {
         | "In Review"
         | "Active"
         | "Configured"
-        | "Generating"
-        | "Testing"
+        | "Generated"
+        | "Test"
         | "Deployed"
       campaign_objective: "awareness" | "consideration" | "conversion"
       govtType: "FEDERAL" | "STATE" | "LOCAL"

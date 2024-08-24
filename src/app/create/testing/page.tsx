@@ -6,19 +6,21 @@ import { Database } from '@/lib/types/schema';
 import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, FileText, Users, DollarSign, Share, ChevronRight, Wand2, TestTube } from 'lucide-react';
+import { FileText, Users, DollarSign, Share, ChevronRight, Beaker, Clock, WalletCards, PlayCircle, Calendar, Tag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import AdVersionGenerator from '@/components/create/testing/AdVersionGenerator';
 import Image from 'next/image';
 import { AdExperiment } from '@/lib/types/customTypes';
+import { useRouter } from 'next/navigation';
+import _ from 'lodash';
 
 export default function GenerateTestPage() {
   const [adExperiments, setAdExperiments] = useState<AdExperiment[]>([]);
-  const [selectedExperiment, setSelectedExperiment] = useState<AdExperiment | null>(null);
-  const [currentStep, setCurrentStep] = useState(selectedExperiment ? selectedExperiment.flow === "Generation" ? 0 : 1 : 0);
+  const [adTests, setAdTests] = useState<Database['public']['Tables']['ad_tests']['Row'][]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     fetchAdExperiments();
+    fetchAdTests();
   }, []);
 
   const fetchAdExperiments = async () => {
@@ -34,9 +36,26 @@ export default function GenerateTestPage() {
     }
   };
 
+
+  const fetchAdTests = async () => {
+    const { data, error } = await supabase
+      .from('ad_tests')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching ad tests:', error);
+    } else {
+      setAdTests(data || []);
+    }
+  };
+
   const selectExperiment = (experiment: AdExperiment) => {
-    setSelectedExperiment(experiment);
-    setCurrentStep(experiment.flow === "Generation" ? 0 : 1);
+    router.push(`/create/testing/${experiment.id}`);
+  };
+
+  const selectTest = (testId: string) => {
+    router.push(`/create/testing/test/${testId}`);
   };
 
   const getStatusColor = (status: string) => {
@@ -59,19 +78,6 @@ export default function GenerateTestPage() {
     return colors[flow as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleMoveToTesting = async () => {
-    setCurrentStep(1);
-    await supabase
-      .from('ad_experiments')
-      .update({ flow: 'Testing' })
-      .eq('id', selectedExperiment?.id);
-  };
-
-  const steps = [
-    { title: 'Generate', icon: <Wand2 className="h-6 w-6" /> },
-    { title: 'Test', icon: <TestTube className="h-6 w-6" /> },
-  ];
-
   return (
     <Navbar>
       <main className="min-h-screen bg-gray-100">
@@ -79,137 +85,165 @@ export default function GenerateTestPage() {
           <header className="py-6 sm:py-8">
             <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
               <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                {selectedExperiment 
-                  ? (currentStep === 0 
-                      ? `Alright, let's cook up some ad magic for "${selectedExperiment.title}"!` 
-                      : `Time to put "${selectedExperiment.title}" to the test and see what resonates!`)
-                  : "Let's whip up some ads and see what real people think!"}
+                Let&apos;s whip up some ads and see what real people think!
               </h1>
-              {selectedExperiment && (
-                <Button variant="ghost" className="text-gray-600" onClick={() => setSelectedExperiment(null)}>
-                  <ChevronLeft className="mr-2 h-5 w-5" /> Back to Experiments
-                </Button>
-              )}
             </div>
           </header>
 
-          {selectedExperiment ? (
-            <div className="mt-2">
-              <div className="bg-transparent rounded-lg p-3 mb-4">
-                {currentStep === 0 ? (
-                  <AdVersionGenerator experiment={selectedExperiment} />
-                ) : (
-                  <div>
-                     <h2 className="text-xl font-semibold mb-4">Testing Component</h2>
-                    <p>Implement testing logic here.</p>
-                  </div>
-                )}
+          <div className="mt-3 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <WalletCards className="w-5 h-5 text-blue-500" />
+                <h2 className="text-xl font-semibold text-gray-800">Projects</h2>
               </div>
-              <div className="flex justify-between items-center">
-                <div>
-                    {currentStep > 0 && (
-                    <Button
-                        variant="ghost"
-                        onClick={() => setCurrentStep(currentStep - 1)}
-                        className="text-blue-600 hover:text-blue-800 whitespace-nowrap font-semibold"
-                    >
-                        <ChevronLeft className="mr-2 h-4 w-4" /> Modify Generation
-                    </Button>
-                    )}
-                </div>
-                <div>
-                    {currentStep === steps.length - 1 ? (
-                    <Button
-                        variant="ghost"
-                        className="text-blue-600 hover:text-blue-800 whitespace-nowrap font-semibold"
-                        onClick={() => {/* Handle completion */}}
-                    >
-                        Proceed with Deployment <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                    ) : (
-                    <Button
-                        variant="ghost"
-                        className="text-blue-600 hover:text-blue-800 whitespace-nowrap font-semibold"
-                        onClick={handleMoveToTesting}
-                    >
-                        Confirm & Proceed To Testing <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                    )}
-                </div>
-              </div>
+              <Badge variant="outline" className="text-sm font-medium bg-blue-500 text-white">
+                {adExperiments.length} Advertisements
+              </Badge>
             </div>
-          ) : (
-            <div className="mt-3 space-y-4">
-              {adExperiments.filter((experiment) => experiment.flow == "Generation" || experiment.flow == "Testing").map((experiment) => (
-                <Card key={experiment.id} className="hover:shadow-lg transition-shadow duration-300">
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
-                        {experiment.ad_content?.image ? (
-                          <Image
-                            src={typeof experiment.ad_content.image === 'string' ? experiment.ad_content.image : URL.createObjectURL(experiment.ad_content.image)}
-                            alt="Ad preview"
-                            width={96}
-                            height={96}
-                            className="object-cover"
-                            />
-                        ) : (
-                          <FileText className="w-12 h-12 text-gray-400" />
-                        )}
+            <div className="h-px bg-gray-200 mt-2"></div>
+          </div>
+          <div className="space-y-4">
+            {adExperiments.filter((experiment) => experiment.flow == "Generation" || experiment.flow == "Testing").map((experiment) => (
+              <Card key={experiment.id} className="hover:shadow-lg transition-shadow duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
+                      {experiment.ad_content?.image ? (
+                        <Image
+                          src={typeof experiment.ad_content.image === 'string' ? experiment.ad_content.image : URL.createObjectURL(experiment.ad_content.image)}
+                          alt="Ad preview"
+                          width={96}
+                          height={96}
+                          className="object-cover"
+                        />
+                      ) : (
+                        <FileText className="w-12 h-12 text-gray-400" />
+                      )}
+                    </div>
+                    <div className="flex-grow">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900 mr-2">{experiment.title}</h3>
+                        <div className="flex-shrink-0 flex space-x-2">
+                          <Badge className={`${getStatusColor(experiment.status)} text-xs shadow-sm`}>
+                            {experiment.status}
+                          </Badge>
+                          <Badge className={`${getFlowColor(experiment.flow)} text-xs shadow-sm`}>
+                            Working on {experiment.flow}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="flex-grow">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900 mr-2">{experiment.title}</h3>
-                          <div className="flex-shrink-0 flex space-x-2">
-                            <Badge className={`${getStatusColor(experiment.status)} text-xs shadow-sm`}>
-                              {experiment.status}
-                            </Badge>
-                            <Badge className={`${getFlowColor(experiment.flow)} text-xs shadow-sm`}>
-                              Working on {experiment.flow}
-                            </Badge>
-                          </div>
+                      <p className="text-sm text-gray-600 mb-2">{experiment.description}</p>
+                      <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
+                        <div className="flex items-center">
+                          <Users className="w-3 h-3 mr-1" />
+                          {experiment.target_audience?.location || 'No location'}
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">{experiment.description}</p>
-                        <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
-                          <div className="flex items-center">
-                            <Users className="w-3 h-3 mr-1" />
-                            {experiment.target_audience?.location || 'No location'}
-                          </div>
-                          <div className="flex items-center">
-                            <Share className="w-3 h-3 mr-1" />
-                            <span className="truncate">{experiment.platforms.join(', ') || 'No platforms'}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <DollarSign className="w-3 h-3 mr-1" />
-                            <span className="font-semibold">${experiment.budget}</span>
-                          </div>
+                        <div className="flex items-center">
+                          <Share className="w-3 h-3 mr-1" />
+                          <span className="truncate">{experiment.platforms.join(', ') || 'No platforms'}</span>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <div className="flex space-x-2">
-                            <Badge variant="outline" className={`text-xs ${experiment.version_data?.versions?.length || 0 > 0 ? 'bg-blue-500 text-white' : ''}`}>
-                                {experiment.version_data?.versions?.length || 0} Versions
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {experiment.test_results?.length || 0} Test Results
-                            </Badge>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                            onClick={() => selectExperiment(experiment)}
-                          >
-                            {experiment.status === 'Configured' ? 'Generate' : experiment.status === 'Generated' ? experiment.flow === 'Testing' ? 'Continue Testing' : 'Review & Proceed To Testing' : experiment.status === 'Test' ? 'Confirm & Deploy' : 'View Results'}
-                            <ChevronRight className="h-4 w-4 ml-1" />
-                          </Button>
+                        <div className="flex items-center">
+                          <DollarSign className="w-3 h-3 mr-1" />
+                          <span className="font-semibold">${experiment.budget}</span>
                         </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex space-x-2">
+                          <Badge variant="outline" className={`text-xs ${experiment.version_data?.versions?.length || 0 > 0 ? 'bg-blue-500 text-white' : ''}`}>
+                            {experiment.version_data?.versions?.length || 0} Versions
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {experiment.tests?.length || 0} Test Results
+                          </Badge>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
+                          onClick={() => selectExperiment(experiment)}
+                        >
+                          {experiment.status === 'Configured' ? 'Generate' : experiment.status === 'Generated' ? experiment.flow === 'Testing' ? 'Continue Testing' : 'Review & Proceed To Testing' : experiment.status === 'Test' ? 'Continue Building Tests' : 'View'}
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-12 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Beaker className="w-5 h-5 text-blue-500" />
+                <h2 className="text-xl font-semibold text-gray-800">Tests</h2>
+              </div>
+              <Badge variant="outline" className="text-sm font-medium bg-blue-500 text-white">
+                {adTests.length} Tests
+              </Badge>
             </div>
-          )}
+            <div className="h-px bg-gray-200 mt-2"></div>
+          </div>
+          <div className="mt-3 space-y-4">
+            {adTests.map((test) => (
+              <Card key={test.id} className="hover:shadow-lg transition-shadow duration-300">
+                <CardContent className="p-3">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-base font-semibold truncate">Test #{test.id.slice(0, 8)}</h3>
+                    <div className="flex space-x-1">
+                      <Badge className={`${getStatusColor(test.status)} text-xs`}>
+                        {_.startCase(_.toLower(test.status))}
+                      </Badge>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-600 line-clamp-1 mb-1">
+                    {test.experiment_id ? `Experiment ID: ${test.experiment_id}` : 'No associated experiment'}
+                  </p>
+                  <div className="flex justify-between items-end">
+                    <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
+                      <div className="flex items-center">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {new Date(test.created_at || '').toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center">
+                        <FileText className="w-3 h-3 mr-1" />
+                        <span className="truncate">{Object.keys(test.test_config).length} Configurations</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Tag className="w-3 h-3 mr-1" />
+                        <span className="truncate">{Object.keys(test.test_config).join(', ')}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
+                        onClick={() => selectTest(test.id)}
+                      >
+                        {test.status === 'Configured' ? 'Start Test' : test.status === 'Running' ? 'View Progress' : 'View Results'}
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+                {test.status === 'Configured' && (
+                  <div className="flex justify-end rounded-b-md bg-gray-100 p-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-100 shadow-sm whitespace-nowrap font-semibold"
+                      onClick={() => selectTest(test.id)}
+                    >
+                      <PlayCircle className="w-4 h-4 mr-2" />
+                      Start Test
+                    </Button>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
         </div>
       </main>
     </Navbar>

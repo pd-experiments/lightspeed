@@ -90,3 +90,6 @@ export type AdExperiment = Database['public']['Tables']['ad_experiments']['Row']
     target_audience: TargetAudience;
     version_data?: VersionData;
   };
+
+
+export type AdTest = Database['public']['Tables']['ad_tests']['Row'];

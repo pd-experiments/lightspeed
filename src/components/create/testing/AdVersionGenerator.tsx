@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Spinner } from '@/components/ui/Spinner';
-import { AlertTriangle, Megaphone } from 'lucide-react';
+import { AlertTriangle, Megaphone, SparklesIcon } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaTiktok, FaThreads } from 'react-icons/fa6';
 import { AdExperiment } from '@/lib/types/customTypes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -237,14 +237,21 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
                 <Button 
                     onClick={generateAdVersions} 
                     disabled={isGenerating || selectedPlatforms.length === 0}
-                    className="w-full"
+                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium py-2 px-4 rounded-md shadow-md transition-all duration-300 ease-in-out flex items-center justify-center"
                 >
-                {isGenerating ? 'Generating...' : generatedVersions.length > 0 ? 'Regenerate Ad Versions' : 'Generate Ad Versions'}
+                    {isGenerating ? (
+                    <Spinner className="w-5 h-5 mr-2" />
+                    ) : (
+                    <SparklesIcon className="w-5 h-5 mr-2" />
+                    )}
+                    <span>
+                    {isGenerating ? 'Generating...' : generatedVersions.length > 0 ? 'Regenerate' : 'Generate'}
+                    </span>
                 </Button>
                 {error && (
-                    <div className="mt-2 text-red-500 flex items-center">
-                    <AlertTriangle className="w-4 h-4 mr-2" />
-                    {error}
+                    <div className="mt-3 text-red-500 text-sm flex items-center justify-center">
+                    <AlertTriangle className="w-4 h-4 mr-1" />
+                    <span>{error}</span>
                     </div>
                 )}
             </div>

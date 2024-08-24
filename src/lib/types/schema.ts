@@ -72,6 +72,41 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_tests: {
+        Row: {
+          created_at: string | null
+          experiment_id: string | null
+          id: string
+          status: string
+          test_config: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          experiment_id?: string | null
+          id?: string
+          status: string
+          test_config: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          experiment_id?: string | null
+          id?: string
+          status?: string
+          test_config?: Json
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_tests_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "ad_experiments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_docs: {
         Row: {
           created_at: string | null

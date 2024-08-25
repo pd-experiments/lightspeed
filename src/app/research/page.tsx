@@ -8,6 +8,7 @@ import { Search } from "lucide-react";
 import { getPlatformIcon } from "@/lib/helperUtils/create/utils";
 import UniversalSearchResults from "@/components/research/universalsearch/UniversalSearchResults";
 import { SearchResults } from "@/lib/types/lightspeed-search";
+import { PageHeader } from "@/components/ui/pageHeader";
 
 export default function UniversalSearchPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -40,19 +41,17 @@ export default function UniversalSearchPage() {
     <Navbar>
       <main className="flex min-h-screen flex-col items-center">
         <div className="w-full max-w-[1500px] gap-6 flex flex-col">
-          <header className="py-3 sm:py-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
-              <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                Search through troves of [previously] siloed data
-              </h1>
-              <div className="flex flex-row items-center gap-2">
+          <PageHeader
+            text="Search through troves of [previously] siloed data"
+            rightItem={
+              <>
                 {getPlatformIcon("TikTok", 6)}
                 {getPlatformIcon("Threads", 6)}
                 {getPlatformIcon("Facebook", 6)}
                 {getPlatformIcon("Instagram Post", 6)}
-              </div>
-            </div>
-          </header>
+              </>
+            }
+          />
 
           <div className="flex flex-row items-center gap-2">
             <Input

@@ -12,6 +12,7 @@ import TargetAudienceStep from '@/components/create/ideation/TargetAudienceStep'
 import AdContentStep from '@/components/create/ideation/AdContentStep';
 import PlatformsAndLeaningStep from '@/components/create/ideation/PlatformsAndLeaningStep';
 import { useRouter } from 'next/navigation';
+import { PageHeader } from '@/components/ui/pageHeader';
 
 export default function IdeationStepperPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -107,16 +108,14 @@ export default function IdeationStepperPage({ params }: { params: { id: string }
     <Navbar>
       <main className="min-h-screen">
         <div className="max-w-[1500px] mx-auto mt-8">
-          <header className="py-6 sm:py-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
-              <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                Let&apos;s set up &quot;{adExperiment.title}&quot;!
-              </h1>
+          <PageHeader 
+            text={`Let's set up &quot;{adExperiment.title}&quot;!`}
+            rightItem={
               <Button variant="ghost" className="text-gray-600" onClick={() => router.push('/create/ideation')}>
                 <ChevronLeft className="mr-2 h-5 w-5" /> Back to Ideation Dashboard
               </Button>
-            </div>
-          </header>
+            }
+          />
 
 
           <div className="flex justify-between mb-8">

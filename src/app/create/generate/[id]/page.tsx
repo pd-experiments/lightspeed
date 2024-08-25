@@ -18,6 +18,7 @@ import AdTestBuilder from '@/components/create/testing/AdTestBuilder';
 import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, Tag, DollarSign, Users, Zap, BarChart, ArrowLeft, GalleryHorizontalEnd } from 'lucide-react';
 import { FiExternalLink } from "react-icons/fi";
+import { PageHeader } from '@/components/ui/pageHeader';
 
 export default function ExperimentPage({ params }: { params: { id: string } }) {
   const [experiment, setExperiment] = useState<(AdCreation & { tests: AdDeploymentWithCreation[] }) | null>(null);
@@ -84,20 +85,20 @@ export default function ExperimentPage({ params }: { params: { id: string } }) {
     <Navbar>
       <main className="min-h-screen bg-gray-100">
         <div className="max-w-[1500px] mx-auto p-4">
-          <header className="py-6 sm:py-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
-              <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                {activeTab === 'generate' 
-                  ? `Alright, let's cook up some ad magic for "${experiment?.title}"!`
-                  : `Time to put "${experiment?.title}" to the test and see what resonates!`}
-              </h1>
-              <Link href="/create/generate">
-                <Button variant="ghost" className="text-gray-600">
-                  <ChevronLeft className="mr-2 h-5 w-5" /> Back to Experiments
-                </Button>
-              </Link>
-            </div>
-          </header>
+          <PageHeader 
+            text={activeTab === 'generate' 
+              ? `Alright, let's cook up some ad magic for "${experiment?.title}"!`
+              : `Time to put "${experiment?.title}" to the test and see what resonates!`}
+            rightItem={
+              <div className="flex items-center space-x-2">
+                <Link href="/create/generate">
+                  <Button variant="ghost" className="text-gray-600">
+                    <ChevronLeft className="mr-2 h-5 w-5" /> Back to Experiments
+                  </Button>
+                </Link>
+              </div>
+            }
+          />
 
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'generate' | 'test')}>
             <TabsList className="inline-flex h-14 items-center w-full space-x-1">

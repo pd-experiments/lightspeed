@@ -12,6 +12,7 @@ import _ from 'lodash';
 import { Tables } from '@/lib/types/schema';
 import { calculateOutlineDuration } from '@/lib/helperUtils/outline/utils';
 import AdDraftList from '@/components/create/ideation/AdDraftList';
+import { PageHeader } from '@/components/ui/pageHeader';
 
 type Outline = Tables<'outline'>;
 interface OutlineWithDetails extends Outline {
@@ -98,12 +99,31 @@ export default function IdeationPage() {
   const fetchAdSuggestions = useCallback(async () => {
     setIsLoadingSuggestions(true);
     try {
-      const response = await fetch('/api/create/ideation/generate-ad-suggestions');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const { data: latestData, error } = await supabase
+        .from('ai_suggestions_data')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+  
+      if (error && error.code !== 'PGRST116') {
+        throw error;
       }
-      const data = await response.json();
-      setAdSuggestions(data);
+  
+      if (!latestData || !latestData.created_at) {
+        await updateAdSuggestions();
+      } else {
+        const now = new Date();
+        const lastUpdate = new Date(latestData.created_at);
+        const hoursSinceLastUpdate = (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
+  
+        if (hoursSinceLastUpdate < 24) {
+          console.log('Using cached ad suggestions');
+          setAdSuggestions(latestData.suggestions);
+        } else {
+          await updateAdSuggestions();
+        }
+      }
     } catch (error) {
       console.error('Error fetching ad suggestions:', error);
       setAdSuggestions([]);
@@ -112,6 +132,28 @@ export default function IdeationPage() {
       setIsLoadingSuggestions(false);
     }
   }, []);
+  
+  const updateAdSuggestions = async () => {
+    try {
+      const response = await fetch('/api/create/ideation/generate-ad-suggestions');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const suggestions = await response.json();
+  
+      const { error } = await supabase
+        .from('ai_suggestions_data')
+        .insert({ suggestions });
+  
+      if (error) throw error;
+  
+      setAdSuggestions(suggestions);
+    } catch (error) {
+      console.error('Error updating ad suggestions:', error);
+      setAdSuggestions([]);
+      setAdSuggestionsError(true);
+    }
+  };
   
   useEffect(() => {
     fetchAdSuggestions();
@@ -268,31 +310,30 @@ export default function IdeationPage() {
     <Navbar>
       <main className="min-h-screen">
         <div className="max-w-[1500px] mx-auto">
-          <header className="py-6 sm:py-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
-              <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                {isCreatingExperiment
-                  ? adExperiment.id
-                    ? `${adExperiment.title}`
-                    : 'Create New Ad Experiment'
-                  : 'Would you like to start creating your ad experiment?'}
-              </h1>
-              
-              {mode === "social-media" ? (
-                !isCreatingExperiment ? (
-                  <Button onClick={createEmptyAdExperiment}>
-                    <Lightbulb className="mr-2 h-4 w-4" /> Create New Ad Experiment
-                  </Button>
+          <PageHeader 
+            text={isCreatingExperiment
+              ? adExperiment.id
+                ? `${adExperiment.title}`
+                : 'Create New Ad Experiment'
+              : 'Would you like to start creating your ad experiment?'}
+            rightItem={
+              <>
+                {mode === "social-media" ? (
+                  !isCreatingExperiment ? (
+                    <Button onClick={createEmptyAdExperiment}>
+                      <Lightbulb className="mr-2 h-4 w-4" /> Create New Ad Experiment
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" className="text-gray-600" onClick={() => setIsCreatingExperiment(false)}>
+                      <ChevronLeft className="mr-2 h-5 w-5" /> Back to Experiments
+                    </Button>
+                  )
                 ) : (
-                  <Button variant="ghost" className="text-gray-600" onClick={() => setIsCreatingExperiment(false)}>
-                    <ChevronLeft className="mr-2 h-5 w-5" /> Back to Experiments
-                  </Button>
-                )
-              ) : (
-                <OutlineCreator />
-              )}
-            </div>
-          </header>
+                  <OutlineCreator />
+                )}
+              </>
+            }
+          />
 
           <Tabs className="w-full" value={mode} onValueChange={(value) => setMode(value as 'social-media' | 'television')}>
           <TabsList className="inline-flex h-14 items-center w-full space-x-1">

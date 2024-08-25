@@ -8,6 +8,7 @@ import { AdCreation, AdDeploymentWithCreation } from '@/lib/types/customTypes';
 import { useRouter } from 'next/navigation';
 import { Beaker } from 'lucide-react';
 import AdTestList from '@/components/create/testing/AdTestList';
+import { PageHeader } from '@/components/ui/pageHeader';
 
 export default function TestingPage() {
   const [adTests, setAdTests] = useState<AdDeploymentWithCreation[]>([]);
@@ -66,13 +67,10 @@ export default function TestingPage() {
     <Navbar>
       <main className="min-h-screen">
         <div className="max-w-[1500px] mx-auto">
-          <header className="py-6 sm:py-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
-              <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                Let&apos;s review our ad tests!
-              </h1>
-            </div>
-          </header>
+
+          <PageHeader 
+            text="Let's review our ad tests!"
+          />
 
           <div className="mt-3 mb-6">
             <div className="flex items-center justify-between">

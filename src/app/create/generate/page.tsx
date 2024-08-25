@@ -8,6 +8,7 @@ import { AdCreation, AdDeployment } from '@/lib/types/customTypes';
 import { useRouter } from 'next/navigation';
 import { WalletCards } from 'lucide-react';
 import AdExperimentList from '@/components/create/generate/AdExperimentList';
+import { PageHeader } from '@/components/ui/pageHeader';
 
 export default function GeneratePage() {
   const [adExperiments, setAdExperiments] = useState<(AdCreation & { tests: string[] })[]>([]);
@@ -71,31 +72,25 @@ export default function GeneratePage() {
     return colors[flow as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
+  const deployedCount = adExperiments.filter(experiment => 
+    experiment.flow === 'Generation' || experiment.flow === "Testing" || experiment.flow === 'Deployment'
+  ).length;
+
   return (
     <Navbar>
       <main className="min-h-screen">
         <div className="max-w-[1500px] mx-auto">
-          <header className="py-6 sm:py-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
-              <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                Let&apos;s whip up some ads and see what real people think!
-              </h1>
-            </div>
-          </header>
-
-          <div className="mt-3 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <WalletCards className="w-5 h-5 text-blue-500" />
-                <h2 className="text-xl font-semibold text-gray-800">Creations</h2>
+          <PageHeader 
+            text="Let's whip up some ad creatives!"
+            rightItem={
+              <div className="flex items-center space-x-2">
+                <WalletCards className="w-5 h-5" />
+                <span className="text-sm font-medium">
+                  {deployedCount} Deployed
+                </span>
               </div>
-              <Badge variant="outline" className="text-sm font-medium bg-blue-500 text-white">
-                {adExperiments.length} Advertisements
-              </Badge>
-            </div>
-            <div className="h-px bg-gray-200 mt-2"></div>
-          </div>
-
+            }
+          />
           <AdExperimentList
             adExperiments={adExperiments}
             getStatusColor={getStatusColor}

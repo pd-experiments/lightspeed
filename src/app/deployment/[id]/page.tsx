@@ -15,6 +15,7 @@ import { AdDeploymentWithCreation } from '@/lib/types/customTypes';
 import { toast } from "sonner"
 import axios from 'axios';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PageHeader } from '@/components/ui/pageHeader';
 
 export default function DeploymentDetailsPage() {
   const [deployment, setDeployment] = useState<AdDeploymentWithCreation | null>(null);
@@ -117,23 +118,19 @@ export default function DeploymentDetailsPage() {
     <Navbar>
       <main className="min-h-screen bg-gray-100">
         <div className="max-w-[1500px] mx-auto p-4">
-          <header className="py-6 sm:py-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border-b border-gray-200">
-              <div>
-                <div className="flex items-center mb-4 sm:mb-0">
-                  <h1 className="text-2xl font-medium text-gray-900 mr-3">
-                    Deployment #{deployment?.id.slice(0, 8)} Performance
-                  </h1>
-                  <Badge className={`${getStatusColor(deployment?.status || '')} text-sm font-medium px-3 py-1`}>
-                    {deployment?.status}
-                  </Badge>
-                </div>
-              </div>
+          <PageHeader
+            text={`Let&apos;s see how "${deployment?.creation?.title}" is doing!`}
+            icons={[
+              <Badge key="status" className={`${getStatusColor(deployment?.status || '')} text-sm font-medium px-3 py-1`}>
+                {deployment?.status}
+              </Badge>
+            ]}
+            rightItem={
               <Button variant="ghost" className="text-gray-600" onClick={() => router.push('/deployment')}>
                 <ChevronLeft className="mr-2 h-5 w-5" /> Back to Deployments
               </Button>
-            </div>
-          </header>
+            }
+          />
 
           <Tabs defaultValue="overview" className="space-y-4">
             <div className="flex justify-between items-center">

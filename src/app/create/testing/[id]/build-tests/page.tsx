@@ -6,12 +6,12 @@ import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import TestingDashboard from '@/components/create/testing/TestingDashboard';
-import { AdExperiment } from '@/lib/types/customTypes';
+import { AdCreation } from '@/lib/types/customTypes';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function BuildTestsPage({ params }: { params: { id: string } }) {
-  const [experiment, setExperiment] = useState<AdExperiment | null>(null);
+  const [experiment, setExperiment] = useState<AdCreation | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function BuildTestsPage({ params }: { params: { id: string } }) {
 
   const fetchExperiment = async () => {
     const { data, error } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .select('*')
       .eq('id', params.id)
       .single();

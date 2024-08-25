@@ -29,7 +29,7 @@ import TargetAudienceStep from '@/components/create/ideation/TargetAudienceStep'
 import AdContentStep from '@/components/create/ideation/AdContentStep';
 import PlatformsAndLeaningStep from '@/components/create/ideation/PlatformsAndLeaningStep';
 import { useCallback } from 'react';
-import { AdExperimentInsert, AdExperiment } from '@/lib/types/customTypes';
+import { AdCreationInsert, AdCreation } from '@/lib/types/customTypes';
 import { OutlineCreator } from '@/components/create/outline/OutlineCreator';
 import ClipSearchComponent from '@/components/ClipSearchComponent';
 
@@ -37,8 +37,8 @@ export default function IdeationPage() {
   const [mode, setMode] = useState<'social-media' | 'television'>('social-media');
   const [isCreatingExperiment, setIsCreatingExperiment] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [adDrafts, setAdDrafts] = useState<AdExperiment[]>([]);
-  const [adExperiment, setAdExperiment] = useState<AdExperimentInsert>({
+  const [adDrafts, setAdDrafts] = useState<AdCreation[]>([]);
+  const [adExperiment, setAdExperiment] = useState<AdCreationInsert>({
     title: '',
     description: '',
     objective: 'awareness',
@@ -63,7 +63,7 @@ export default function IdeationPage() {
     key_components: [],
     status: 'Draft',
   });
-  const [adSuggestions, setAdSuggestions] = useState<AdExperimentInsert[]>([]);
+  const [adSuggestions, setAdSuggestions] = useState<AdCreationInsert[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [adSuggestionsError, setAdSuggestionsError] = useState(false);
 
@@ -73,7 +73,7 @@ export default function IdeationPage() {
 
   const fetchAdDrafts = async () => {
     const { data, error } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -108,7 +108,7 @@ export default function IdeationPage() {
 
   const createEmptyAdExperiment = async () => {
     const { data: existingDrafts } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .select('title')
       .like('title', 'Untitled%')
       .order('title', { ascending: false });
@@ -116,13 +116,13 @@ export default function IdeationPage() {
     const nextNumber = existingDrafts ? existingDrafts.length + 1 : 1;
     const newTitle = `Untitled #${nextNumber}`;
 
-    const newAdExperiment: AdExperimentInsert = {
+    const newAdExperiment: AdCreationInsert = {
       ...adExperiment,
       title: newTitle,
     };
 
     const { data, error } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .insert(newAdExperiment)
       .select()
       .single();
@@ -139,7 +139,7 @@ export default function IdeationPage() {
 
   const loadAdExperiment = async (id: number) => {
     const { data, error } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .select('*')
       .eq('id', id)
       .single();
@@ -173,11 +173,11 @@ export default function IdeationPage() {
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const updateExperiment = async (updatedExperiment: Partial<AdExperimentInsert>) => {
+  const updateExperiment = async (updatedExperiment: Partial<AdCreationInsert>) => {
     if (!adExperiment.id) return;
 
     const { data, error } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .update(updatedExperiment)
       .eq('id', adExperiment.id)
       .select()
@@ -216,13 +216,13 @@ export default function IdeationPage() {
   const handleSubmit = async () => {
     const { data, error } = adExperiment.id
       ? await supabase
-          .from('ad_experiments')
+          .from('ad_creations')
           .update(adExperiment)
           .eq('id', adExperiment.id)
           .select()
           .single()
       : await supabase
-          .from('ad_experiments')
+          .from('ad_creations')
           .insert(adExperiment)
           .select()
           .single();
@@ -266,7 +266,7 @@ export default function IdeationPage() {
   };
 
   type StepProps = {
-    adExperiment: AdExperimentInsert;
+    adExperiment: AdCreationInsert;
     handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     handleNestedInputChange: (category: 'target_audience' | 'ad_content', name: string, value: any) => void;
     handleMultiSelectChange: (name: 'platforms' | 'key_components', value: string[]) => void;

@@ -5,13 +5,13 @@ import { supabase } from '@/lib/supabaseClient';
 import Navbar from '@/components/ui/Navbar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AdExperiment } from '@/lib/types/customTypes';
+import { AdCreation } from '@/lib/types/customTypes';
 import { Calendar, Users, DollarSign, BarChart, ChevronRight, Tag, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import _ from 'lodash';
 
 export default function DeploymentPage() {
-  const [deployedAds, setDeployedAds] = useState<AdExperiment[]>([]);
+  const [deployedAds, setDeployedAds] = useState<AdCreation[]>([]);
 
   useEffect(() => {
     fetchDeployedAds();
@@ -19,7 +19,7 @@ export default function DeploymentPage() {
 
   const fetchDeployedAds = async () => {
     const { data, error } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .select('*')
       .eq('status', 'Deployed')
       .eq('type', 'Standard')

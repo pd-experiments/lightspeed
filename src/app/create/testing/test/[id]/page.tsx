@@ -12,8 +12,7 @@ import { Beaker, Clock, FileText, ArrowLeft, ChevronRight, ChevronLeft, Tag } fr
 import { Calendar, Globe, Target, Users, DollarSign, BarChart2, Zap } from 'lucide-react';
 import _ from 'lodash';
 import Link from 'next/link';
-
-type AdTest = Database['public']['Tables']['ad_tests']['Row'];
+import { AdTest } from '@/lib/types/customTypes';
 
 export default function TestDetailsPage() {
   const [test, setTest] = useState<AdTest | null>(null);
@@ -27,9 +26,10 @@ export default function TestDetailsPage() {
 
   const fetchTestDetails = async () => {
     const { data, error } = await supabase
-      .from('ad_tests')
+      .from('ad_deployments')
       .select('*')
-      .eq('id', params.id)
+      .eq('type', 'Test')
+      .eq('id', params?.id)
       .single();
 
     if (error) {

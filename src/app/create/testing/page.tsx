@@ -9,13 +9,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Users, DollarSign, Share, ChevronRight, Beaker, Clock, WalletCards, PlayCircle, Calendar, Tag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { AdExperiment } from '@/lib/types/customTypes';
+import { AdCreation } from '@/lib/types/customTypes';
 import { useRouter } from 'next/navigation';
 import _ from 'lodash';
 
 export default function GenerateTestPage() {
-  const [adExperiments, setAdExperiments] = useState<AdExperiment[]>([]);
-  const [adTests, setAdTests] = useState<Database['public']['Tables']['ad_tests']['Row'][]>([]);
+  const [adExperiments, setAdExperiments] = useState<AdCreation[]>([]);
+  const [adTests, setAdTests] = useState<Database['public']['Tables']['ad_deployments']['Row'][]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function GenerateTestPage() {
 
   const fetchAdExperiments = async () => {
     const { data, error } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -39,8 +39,9 @@ export default function GenerateTestPage() {
 
   const fetchAdTests = async () => {
     const { data, error } = await supabase
-      .from('ad_tests')
+      .from('ad_deployments')
       .select('*')
+      .eq('type', 'Test')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -50,7 +51,7 @@ export default function GenerateTestPage() {
     }
   };
 
-  const selectExperiment = (experiment: AdExperiment) => {
+  const selectExperiment = (experiment: AdCreation) => {
     router.push(`/create/testing/${experiment.id}`);
   };
 
@@ -210,7 +211,7 @@ export default function GenerateTestPage() {
                         <span className="font-semibold">${test.budget}</span>
                       </div>
                     )}
-                    {test.target_audience && (
+                    {/* {test.target_audience && (
                       <div className="flex items-center">
                         <Users className="w-3 h-3 mr-1 text-gray-400" />
                         {test.target_audience}
@@ -225,7 +226,7 @@ export default function GenerateTestPage() {
                       <Badge variant="outline" className="text-xs">
                         {test.results.length} Results
                       </Badge>
-                    )}
+                    )} */}
                     <Button
                       variant="ghost"
                       size="sm"

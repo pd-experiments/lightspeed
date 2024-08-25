@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Spinner } from '@/components/ui/Spinner';
 import { AlertTriangle, Megaphone, SparklesIcon } from 'lucide-react';
-import { AdExperiment } from '@/lib/types/customTypes';
+import { AdCreation } from '@/lib/types/customTypes';
 import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,7 +16,7 @@ import { FacebookEmbed, InstagramPostEmbed, InstagramStoryEmbed, InstagramReelEm
 import { supabase } from '@/lib/supabaseClient';
 
 interface AdVersionGeneratorProps {
-  experiment: AdExperiment;
+  experiment: AdCreation;
 }
 
 type Platform = 'Facebook' | 'Instagram Post' | 'Instagram Story' | 'Instagram Reel' | 'TikTok' | 'Threads';
@@ -89,7 +89,7 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
           };
       
           const { error: supabaseError } = await supabase
-            .from('ad_experiments')
+            .from('ad_creations')
             .update({ status: 'Generated', version_data: versionData })
             .eq('id', experiment.id);
       
@@ -106,7 +106,7 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
 
     const fetchExistingVersions = async () => {
     const { data, error } = await supabase
-        .from('ad_experiments')
+        .from('ad_creations')
         .select('version_data')
         .eq('id', experiment.id)
         .single();

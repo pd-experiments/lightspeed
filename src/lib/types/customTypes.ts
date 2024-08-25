@@ -83,17 +83,17 @@ export type TargetAudience = {
     };
   };
 
-export type AdExperimentInsert = Database['public']['Tables']['ad_experiments']['Insert'] & {
+export type AdCreationInsert = Database['public']['Tables']['ad_creations']['Insert'] & {
     ad_content: AdContent;
     target_audience: TargetAudience;
     version_data?: VersionData;
   };
 
-export type AdExperiment = Database['public']['Tables']['ad_experiments']['Row'] & {
+export type AdCreation = Database['public']['Tables']['ad_creations']['Row'] & {
     ad_content: AdContent;
     target_audience: TargetAudience;
     version_data?: VersionData;
   };
 
 
-export type AdTest = Database['public']['Tables']['ad_tests']['Row'];
+export type AdTest = Database['public']['Tables']['ad_deployments']['Row'];

@@ -127,9 +127,3 @@ grant trigger on table "public"."int_ads__google_ads_enhanced" to "service_role"
 grant truncate on table "public"."int_ads__google_ads_enhanced" to "service_role";
 
 grant update on table "public"."int_ads__google_ads_enhanced" to "service_role";
-
-CREATE TRIGGER trg_update_int_ads__google_ads_enhanced AFTER INSERT OR DELETE OR UPDATE ON public.int_ads__google_ads_embeddings FOR EACH ROW EXECUTE FUNCTION trigger_update_int_ads__google_ads_enhanced();
-
-CREATE TRIGGER trg_update_int_ads__google_ads_enhanced AFTER INSERT OR DELETE OR UPDATE ON public.int_ads__google_ads_versioned FOR EACH ROW EXECUTE FUNCTION trigger_update_int_ads__google_ads_enhanced();
-
-

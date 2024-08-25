@@ -25,7 +25,10 @@ class VersionedGoogleAd(BaseModel):
     format: Literal["Image", "Text", "Video"] | None
     content: str | None
     version: int | None
-    age_targeting: Targeting | None
+    targeted_ages: (
+        list[Literal["18-24", "25-34", "35-44", "45-54", "55-64", "65+", "Unknown age"]]
+        | None
+    )
     gender_targeting: dict[str, Any] | None
     geo_targeting: dict[str, Any] | None
 
@@ -47,7 +50,7 @@ class Transcript(BaseModel):
     duration: float
 
 
-class VideoDescription(BaseModel):
+class MediaDescription(BaseModel):
     summary: str
     keywords: list[
         Literal[
@@ -86,7 +89,21 @@ class VideoDescription(BaseModel):
         "Establishment Liberals",
         "Progressive Left",
     ]
+    tone: list[
+        Literal[
+            "Unknown",
+            "Attack on Opponent(s)",
+            "Patriotic",
+            "Fearmongering",
+            "Optimistic",
+            "Future-Building",
+            "Anger",
+            "Compassionate",
+            "Authoritative",
+        ]
+    ]
 
 
-class EmbeddedGoogleAd(VideoDescription):
+class EmbeddedGoogleAd(MediaDescription):
     versioned_ad_id: UUID4
+    summary_embeddings: list[float]

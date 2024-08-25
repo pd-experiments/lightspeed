@@ -14,7 +14,9 @@ import {
   Dot,
   PencilLine,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Sparkle,
+  TextSelect
 } from "lucide-react";
 import { FaBinoculars } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
@@ -25,6 +27,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { US } from 'country-flag-icons/react/3x2'
 
 interface NavItem {
   title: string;
@@ -36,16 +40,16 @@ interface NavItem {
 const navItems: NavItem[] = [
   {
     title: "Research",
-    icon: <User2Icon className="w-4 h-4 mr-2" />,
+    icon: <TextSelect className="w-4 h-4 mr-2" />,
     subItems: [
-      { title: "Ad Search", icon: <Dot className="w-4 h-4 mr-2" />, href: "/research/adsearch" },
-      { title: "Ads", icon: <Dot className="w-4 h-4 mr-2" />, href: "/research/ads" },
+      { title: "Search", icon: <Dot className="w-4 h-4 mr-2" />, href: "/research/adsearch" },
+      { title: "Advertisements", icon: <Dot className="w-4 h-4 mr-2" />, href: "/research/ads" },
       { title: "Conversations", icon: <Dot className="w-4 h-4 mr-2" />, href: "/research/conversations" },
     ],
   },
   {
     title: "Create",
-    icon: <PencilLine className="w-4 h-4 mr-2" />,
+    icon: <Sparkle className="w-4 h-4 mr-2" />,
     subItems: [
       { title: "Ideate", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/ideation" },
       { title: "Generate & Test", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/testing" },
@@ -166,8 +170,15 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen overflow-hidden">
       <header className="fixed top-0 left-0 right-0 flex items-center justify-between p-4 bg-white z-30">
         <div className="flex items-center cursor-pointer" onClick={() => router.push("/")}>
-          <CloudLightningIcon className="w-8 h-8 mr-2" />
+          {/* <CloudLightningIcon className="w-8 h-8 mr-2" /> */}
+          <US 
+            title="United States" 
+            className="w-8 h-8 mr-3 drop-shadow-md transition-transform duration-300 ease-in-out hover:scale-110" 
+          />
           <h2 className="text-2xl font-semibold">lightspeed ads</h2>
+          <Badge variant="outline" className="ml-2 bg-orange-500/10 border-orange-500 text-orange-500">
+            DEMO
+          </Badge>
         </div>
         <div className="flex items-center space-x-4">
           <DropdownMenu>

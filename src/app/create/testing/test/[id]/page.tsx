@@ -22,6 +22,8 @@ export default function TestDetailsPage() {
   const [loadingDeployTest, setLoadingDeployTest] = useState(false);
   const params = useParams();
   const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTest, setEditedTest] = useState<AdTest | null>(null);
 
   useEffect(() => {
     fetchTestDetails();
@@ -34,13 +36,33 @@ export default function TestDetailsPage() {
       .eq('type', 'Test')
       .eq('id', params?.id)
       .single();
-
+  
     if (error) {
       console.error('Error fetching test details:', error);
     } else {
       setTest(data);
+      setEditedTest(data);
     }
     setLoadingTestDetails(false);
+  };
+
+  const saveEditedTest = async () => {
+    if (!editedTest) return;
+  
+    try {
+      const { data, error } = await supabase
+        .from('ad_deployments')
+        .update(editedTest)
+        .eq('id', editedTest.id);
+  
+      if (error) throw error;
+  
+      setTest(editedTest);
+      setIsEditing(false);
+      toast.success('Test updated successfully');
+    } catch (error) {
+      toast.error(`Failed to update test: ${String(error)}`);
+    }
   };
 
   const deployTest = async () => {
@@ -154,46 +176,67 @@ export default function TestDetailsPage() {
                       Test Configuration
                     </CardTitle>
                   </div>
-                  {test && test.status === 'Created' && (
-                    <Button 
-                      onClick={deployTest}
-                      disabled={loadingDeployTest}
-                      className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
-                    >
-                      {loadingDeployTest ? (
-                        'Deploying...'
-                      ) : (
-                        <>
-                          <CirclePlayIcon className="w-4 h-4 mr-2" />
-                          Deploy Test
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  {test && test.status === 'Running' && (
-                    <Button className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg">
-                      <CircleStopIcon className="w-4 h-4 mr-2" />
-                      Pause Test
-                    </Button>
-                  )}
-                  {test && test.status === 'Paused' && (
-                    <Button className="bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg">
-                      <CirclePlayIcon className="w-4 h-4 mr-2" />
-                      Redeploy Test
-                    </Button>
-                  )}
+                  <div className="flex space-x-2">
+                    {!isEditing && test && test.status === 'Created' && (
+                      <Button 
+                        onClick={deployTest}
+                        disabled={loadingDeployTest}
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+                      >
+                        {loadingDeployTest ? (
+                          'Deploying...'
+                        ) : (
+                          <>
+                            <CirclePlayIcon className="w-4 h-4 mr-2" />
+                            Deploy Test
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    {!isEditing && test && test.status === 'Running' && (
+                      <Button className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg">
+                        <CircleStopIcon className="w-4 h-4 mr-2" />
+                        Pause Test
+                      </Button>
+                    )}
+                    {!isEditing && test && test.status === 'Paused' && (
+                      <Button className="bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg">
+                        <CirclePlayIcon className="w-4 h-4 mr-2" />
+                        Redeploy Test
+                      </Button>
+                    )}
+                    {isEditing ? (
+                      <Button onClick={saveEditedTest} className="bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg">
+                        Save Changes
+                      </Button>
+                    ) : (
+                      <Button onClick={() => setIsEditing(true)} className="bg-gray-500 hover:bg-gray-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg">
+                        Edit
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {test && Object.entries(test).map(([key, value]) => {
+                {editedTest && Object.entries(editedTest).map(([key, value]) => {
                   if (['id', 'created_at', 'updated_at', 'experiment_id', 'status', 'platform'].includes(key)) return null;
+                  const isEditable = !['version_id', 'type'].includes(key);
                   return (
                     <Card key={key} className="border-l-4 border-gray-300 hover:border-blue-500 transition-colors duration-300">
                       <CardContent className="flex items-start p-4">
                         {getIconForKey(key)}
-                        <div className="ml-4">
+                        <div className="ml-4 w-full">
                           <p className="text-sm font-medium text-gray-500">{_.startCase(key)}</p>
-                          <p className="text-lg font-semibold text-gray-900">{String(value)}</p>
+                          {isEditing && isEditable ? (
+                            <input
+                              type="text"
+                              value={String(value)}
+                              onChange={(e) => setEditedTest({...editedTest, [key]: e.target.value})}
+                              className="text-lg font-semibold text-gray-900 w-full border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                            />
+                          ) : (
+                            <p className="text-lg font-semibold text-gray-900">{String(value)}</p>
+                          )}
                         </div>
                       </CardContent>
                     </Card>

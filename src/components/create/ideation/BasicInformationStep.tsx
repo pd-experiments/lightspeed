@@ -5,7 +5,7 @@ import { AdCreationInsert } from '@/lib/types/customTypes';
 
 interface BasicInformationStepProps {
   adCreation: AdCreationInsert;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 }
 
 export default function BasicInformationStep({ adCreation, handleInputChange }: BasicInformationStepProps) {

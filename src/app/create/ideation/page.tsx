@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/lib/types/schema';
 import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, Users, Calendar, Tag, ChevronRight, FileText, ChevronLeft, Info, DollarSign, Share, Lightbulb, GalleryHorizontalEnd, Network, Video } from 'lucide-react';
+import { PlusIcon, Users, Calendar, Tag, ChevronRight, FileText, ChevronLeft, Info, DollarSign, Share, Lightbulb, GalleryHorizontalEnd, Network, Video, Paperclip } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent} from '@/components/ui/card';
 import _ from 'lodash';
@@ -306,6 +306,8 @@ export default function IdeationPage() {
     fetchOutlines();
   }, []);
 
+  const ideationCount = adDrafts.filter(draft => draft.flow === 'Ideation').length;
+
   return (
     <Navbar>
       <main className="min-h-screen">
@@ -318,6 +320,12 @@ export default function IdeationPage() {
               : 'Would you like to start creating your ad experiment?'}
             rightItem={
               <>
+                <div className="flex items-center space-x-2 mr-2">
+                    <Paperclip className="w-5 h-5" />
+                    <span className="text-sm font-medium">
+                    {ideationCount} Drafts
+                  </span>
+                </div>
                 {mode === "social-media" ? (
                   !isCreatingExperiment ? (
                     <Button onClick={createEmptyAdExperiment}>

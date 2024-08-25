@@ -80,19 +80,6 @@ export default function TestingPage() {
             }
           />
 
-          <div className="mt-3 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Beaker className="w-5 h-5 text-blue-500" />
-                <h2 className="text-xl font-semibold text-gray-800">Tests</h2>
-              </div>
-              <Badge variant="outline" className="text-sm font-medium bg-orange-500 bg-opacity-80 text-white hover:bg-orange-600 hover:bg-opacity-100">
-                {adTests.length} Tests
-              </Badge>
-            </div>
-            <div className="h-px bg-gray-200 mt-2"></div>
-          </div>
-
           <AdTestList
             adTests={adTests}
             getStatusColor={getStatusColor}

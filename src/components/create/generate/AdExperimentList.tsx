@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { AdCreation } from '@/lib/types/customTypes';
 import { Users, DollarSign, ChevronRight, FileText, Share, Beaker } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from 'next/navigation';
 
 interface AdExperimentListProps {
   adExperiments: (AdCreation & { tests: string[] })[];
@@ -14,6 +15,8 @@ interface AdExperimentListProps {
 }
 
 export default function AdExperimentList({ adExperiments, getStatusColor, getFlowColor, selectExperiment, isLoading = false }: AdExperimentListProps & { isLoading?: boolean }) {
+  const router = useRouter();
+  
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -108,7 +111,7 @@ export default function AdExperimentList({ adExperiments, getStatusColor, getFlo
                     variant="ghost"
                     size="sm"
                     className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                    onClick={() => selectExperiment(experiment)}
+                    onClick={() => router.push(`/create/generate/${experiment.id}`)}
                   >
                     {experiment.status === 'Configured' ? 'Generate' :
                     experiment.status === 'Generated' && experiment.flow === 'Testing' ? 

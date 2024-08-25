@@ -16,7 +16,8 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkle,
-  TextSelect
+  TextSelect,
+  Rocket
 } from "lucide-react";
 import { FaBinoculars } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
@@ -52,14 +53,16 @@ const navItems: NavItem[] = [
     icon: <Sparkle className="w-4 h-4 mr-2" />,
     subItems: [
       { title: "Ideate", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/ideation" },
-      { title: "Generate & Test", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/testing" },
-      { title: "Deploy", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/deployment" },
+      { title: "Generate", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/generate" },
+      { title: "Test", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/testing" },
+      // { title: "Deploy", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/deployment" },
     ],
   },
   {
-    title: "Insights",
-    icon: <FaBinoculars className="w-4 h-4 mr-2" />,
+    title: "Deployments",
+    icon: <Rocket className="w-4 h-4 mr-2" />,
     subItems: [],
+    href: "/deployment",
   },
 ];
 
@@ -209,7 +212,7 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
               exit={isAnimating ? (isMobile ? { y: -500 } : { x: -300 }) : {}}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               onAnimationComplete={() => setIsAnimating(false)}
-              className={`bg-white shadow-sm p-4 z-20 ${
+              className={`bg-white p-4 z-20 ${
                 isMobile
                   ? "fixed top-16 left-0 right-0 bottom-0 overflow-y-auto"
                   : "w-64 fixed top-16 bottom-0 left-0 overflow-y-auto"
@@ -243,7 +246,7 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
             </motion.nav>
           )}
         </AnimatePresence>
-        <main className={`flex-1 p-8 bg-gray-100 overflow-y-auto ${isMobile ? 'w-full' : 'ml-64'} rounded-tl-3xl`}>
+        <main className={`flex-1 p-8 bg-gray-100 overflow-y-auto ${isMobile ? 'w-full' : 'ml-64'} rounded-tl-3xl z-[1000000]`}>
           {children}
         </main>
       </div>

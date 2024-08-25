@@ -306,71 +306,33 @@ export default function IdeationPage() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="social-media">
-          {isCreatingExperiment ? (
-            <div className="mt-8">
-              <div className="flex justify-between mb-8">
-                {steps.map((step, index) => (
-                  <div 
-                    key={index} 
-                    className="flex flex-col items-center cursor-pointer"
-                    onClick={() => setCurrentStep(index)}
-                  >
-                    <div className={`rounded-full p-2 ${currentStep === index ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                      {step.icon}
-                    </div>
-                    <span className={`text-sm mt-2 ${currentStep === index ? 'text-blue-500 font-medium' : 'text-gray-500'}`}>
-                      {step.title}
-                    </span>
-                  </div>
-                ))}
+            {isCreatingExperiment ? (
+              <div className="mt-8">
+                <p>Your experiment has been created. Click on it in the list below to continue editing.</p>
               </div>
-              <div className="bg-white rounded-lg p-6 mb-8">
-                <CurrentStepComponent
-                  adCreation={adExperiment}
-                  handleInputChange={handleInputChange}
-                  handleNestedInputChange={handleNestedInputChange}
-                  handleMultiSelectChange={handleMultiSelectChange}
+            ) : (
+              <div className="mt-3 space-y-4">
+                <div>
+                  <AdSuggestions
+                    suggestions={adSuggestions}
+                    isLoading={isLoadingSuggestions}
+                    onSelect={(suggestion) => {
+                      setAdExperiment(suggestion);
+                      setIsCreatingExperiment(true);
+                      setCurrentStep(0);
+                    }}
+                    error={adSuggestionsError}
+                  />
+                </div>
+                <AdDraftList
+                  adDrafts={adDrafts}
+                  getPoliticalLeaningColor={getPoliticalLeaningColor}
+                  getStatusColor={getStatusColor}
+                  loadAdExperiment={loadAdExperiment}
+                  isLoading={isLoadingAdDrafts}
                 />
               </div>
-              <div className="flex justify-between">
-                <Button
-                  onClick={() => setCurrentStep(currentStep - 1)}
-                  disabled={currentStep === 0}
-                  variant="outline"
-                  className="flex items-center"
-                >
-                  <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-                </Button>
-                {currentStep === steps.length - 1 ? null : (
-                  <Button onClick={() => setCurrentStep(currentStep + 1)} className="flex items-center">
-                    Next <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="mt-3 space-y-4">
-              <div>
-                <AdSuggestions
-                  suggestions={adSuggestions}
-                  isLoading={isLoadingSuggestions}
-                  onSelect={(suggestion) => {
-                    setAdExperiment(suggestion);
-                    setIsCreatingExperiment(true);
-                    setCurrentStep(0);
-                  }}
-                  error={adSuggestionsError}
-                />
-              </div>
-              <AdDraftList
-                adDrafts={adDrafts}
-                getPoliticalLeaningColor={getPoliticalLeaningColor}
-                getStatusColor={getStatusColor}
-                loadAdExperiment={loadAdExperiment}
-                isLoading={isLoadingAdDrafts}
-              />
-            </div>
-          )}
+            )}
           </TabsContent>
           <TabsContent value="television">
             <Tabs defaultValue="outlines" className="w-full">

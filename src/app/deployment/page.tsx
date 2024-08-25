@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Navbar from '@/components/ui/Navbar';
 import { AdDeploymentWithCreation } from '@/lib/types/customTypes';
-import AdDeploymentList from '@/components/create/deployment/AdDeploymentList';
+import AdDeploymentList from '@/components/deployment/AdDeploymentList';
 
 export default function DeploymentPage() {
   const [deployments, setDeployments] = useState<AdDeploymentWithCreation[]>([]);

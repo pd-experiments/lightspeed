@@ -6,6 +6,7 @@ import { Calendar, Users, DollarSign, BarChart, ChevronRight, FileText, Zap, Arr
 import Link from 'next/link';
 import _ from 'lodash';
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from 'next/navigation';
 
 interface AdDeploymentListProps {
   deployments: AdDeploymentWithCreation[];
@@ -13,6 +14,8 @@ interface AdDeploymentListProps {
 }
 
 export default function AdDeploymentList({ deployments, getStatusColor, isLoading = false }: AdDeploymentListProps & { isLoading?: boolean }) {
+  const router = useRouter();
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -87,7 +90,7 @@ export default function AdDeploymentList({ deployments, getStatusColor, isLoadin
                 </div>
               </div>
               <div className="flex justify-end space-x-2">
-                <Link href={`/create/testing/${deployment.experiment_id}`}>
+                <Link href={`/create/generate/${deployment.experiment_id}`}>
                   <Button
                     variant="outline"
                     size="sm"
@@ -101,7 +104,7 @@ export default function AdDeploymentList({ deployments, getStatusColor, isLoadin
                   variant="ghost"
                   size="sm"
                   className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                  onClick={() => {/* Add your logic here */}}
+                  onClick={() => router.push(`/deployment/${deployment.id}`)}
                 >
                   View Details
                   <ChevronRight className="h-4 w-4 ml-1" />

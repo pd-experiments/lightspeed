@@ -5,6 +5,7 @@ import { AdCreation } from '@/lib/types/customTypes';
 import { Calendar, Users, Tag, FileText, DollarSign, ChevronRight, GalleryHorizontalEnd } from 'lucide-react';
 import _ from 'lodash';
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from 'next/navigation';
 
 interface AdDraftListProps {
   adDrafts: AdCreation[];
@@ -14,6 +15,8 @@ interface AdDraftListProps {
 }
 
 export default function AdDraftList({ adDrafts, getPoliticalLeaningColor, getStatusColor, loadAdExperiment, isLoading = false }: AdDraftListProps & { isLoading?: boolean }) {
+  const router = useRouter();
+
     if (isLoading) {
       return (
         <div className="space-y-4">
@@ -91,7 +94,9 @@ export default function AdDraftList({ adDrafts, getPoliticalLeaningColor, getSta
                   variant="ghost"
                   size="sm"
                   className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                  onClick={() => loadAdExperiment(Number(ad.id))}
+                  onClick={() => {
+                    router.push(`/create/ideation/${ad.id}`);
+                  }}
                 >
                   {ad.status === 'Draft' ? 'Keep Working' : ad.status === 'In Review' ? 'Review' : 'Modify'}
                   <ChevronRight className="h-4 w-4 ml-1" />

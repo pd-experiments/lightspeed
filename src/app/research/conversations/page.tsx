@@ -10,131 +10,131 @@ import HotIssues from '@/components/research/conversations/HotIssues';
 import TikTokComments from '@/components/research/conversations/TikTokComments';
 import ContentThemes from '@/components/research/conversations/ContentThemes';
 import InfluentialFigures from '@/components/research/conversations/InfluentialFigures';
-import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabaseClient';
+import { PageHeader } from '@/components/ui/pageHeader';
+import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
 
 export default function DashboardPage() {
-    const [trendingTopics, setTrendingTopics] = useState([]);
-    const [hotIssues, setHotIssues] = useState([]);
-    const [contentThemes, setContentThemes] = useState([]);
-    const [influentialFigures, setInfluentialFigures] = useState([]);
-    const [newsArticles, setNewsArticles] = useState([]);
-
-    const [isLoadingTopics, setIsLoadingTopics] = useState(true);
-    const [isLoadingIssues, setIsLoadingIssues] = useState(true);
-    const [isLoadingThemes, setIsLoadingThemes] = useState(true);
-    const [isLoadingFigures, setIsLoadingFigures] = useState(true);
-    const [isLoadingNews, setIsLoadingNews] = useState(true);
+  const [data, setData] = useState({
+    trendingTopics: [],
+    hotIssues: [],
+    contentThemes: [],
+    influentialFigures: [],
+    newsArticles: []
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchAllData();
+    fetchData();
   }, []);
 
-  const fetchAllData = async () => {
-    fetchTrendingTopics();
-    fetchHotIssues();
-    fetchContentThemes();
-    fetchInfluentialFigures();
-    fetchNewsArticles();
-  }
-
-  const fetchTrendingTopics = async () => {
+  const fetchData = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch('/api/research/conversations/trending-topics');
-      const data = await response.json();
-      setTrendingTopics(data);
+      const { data: latestData, error } = await supabase
+        .from('ai_conversations_data')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      const now = new Date();
+      const lastUpdate = latestData ? new Date(latestData.created_at) : new Date(0);
+      const hoursSinceLastUpdate = (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
+
+      if (latestData && hoursSinceLastUpdate < 24) {
+        setData({
+          trendingTopics: latestData.trending_topics,
+          hotIssues: latestData.hot_issues,
+          contentThemes: latestData.content_themes,
+          influentialFigures: latestData.influential_figures,
+          newsArticles: latestData.news_articles
+        });
+      } else {
+        await updateData();
+      }
     } catch (error) {
-      console.error('Error fetching trending topics:', error);
+      console.error('Error fetching data:', error);
     } finally {
-      setIsLoadingTopics(false);
+      setIsLoading(false);
     }
   };
 
-  const fetchHotIssues = async () => {
+  const updateData = async () => {
     try {
-      const response = await fetch('/api/research/conversations/hot-issues');
-      const data = await response.json();
-      setHotIssues(data);
+      const [trendingTopics, hotIssues, contentThemes, influentialFigures, newsArticles] = await Promise.all([
+        fetch('/api/research/conversations/trending-topics').then(res => res.json()),
+        fetch('/api/research/conversations/hot-issues').then(res => res.json()),
+        fetch('/api/research/conversations/content-themes').then(res => res.json()),
+        fetch('/api/research/conversations/influential-figures').then(res => res.json()),
+        fetch('/api/research/conversations/news-articles').then(res => res.json())
+      ]);
+
+      const newData = {
+        trending_topics: trendingTopics,
+        hot_issues: hotIssues,
+        content_themes: contentThemes,
+        influential_figures: influentialFigures,
+        news_articles: newsArticles
+      };
+
+      const { error } = await supabase
+        .from('ai_conversations_data')
+        .insert(newData);
+
+      if (error) throw error;
+
+      setData({
+        trendingTopics,
+        hotIssues,
+        contentThemes,
+        influentialFigures,
+        newsArticles
+      });
     } catch (error) {
-      console.error('Error fetching hot issues:', error);
-    } finally {
-      setIsLoadingIssues(false);
+      console.error('Error updating data:', error);
     }
   };
-
-  const fetchContentThemes = async () => {
-    try {
-      const response = await fetch('/api/research/conversations/content-themes');
-      const data = await response.json();
-      setContentThemes(data);
-    } catch (error) {
-      console.error('Error fetching content themes:', error);
-    } finally {
-      setIsLoadingThemes(false);
-    }
-  };
-
-  const fetchInfluentialFigures = async () => {
-    try {
-      const response = await fetch('/api/research/conversations/influential-figures');
-      const data = await response.json();
-      setInfluentialFigures(data);
-    } catch (error) {
-      console.error('Error fetching influential figures:', error);
-    } finally {
-      setIsLoadingFigures(false);
-    }
-  };
-
-  const fetchNewsArticles = async () => {
-    try {
-      const response = await fetch('/api/research/conversations/news-articles');
-      const data = await response.json();
-      setNewsArticles(data);
-    } catch (error) {
-      console.error('Error fetching news articles:', error);
-    } finally {
-      setIsLoadingNews(false);
-    }
-  };
-
-  const getGreeting = (): string => {
-    const hour = new Date().getHours()
-    if (hour < 12) return "Good morning"
-    if (hour < 18) return "Good afternoon"
-    return "Good evening"
-  }
 
   return (
     <Navbar>
-        <main className="bg-gray-100 min-h-screen">
+      <main className="bg-gray-100 min-h-screen">
         <div className="max-w-[1500px] mx-auto">
-        <header className="py-6 sm:py-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
-              <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                What&apos;s everyone talking about?
-              </h1>
-            </div>
-          </header>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <PageHeader
+            text="What&apos;s everyone talking about?"
+            rightItem={
+              <>
+                {getPlatformIcon("TikTok", 6)}
+                {getPlatformIcon("Threads", 6)}
+                {getPlatformIcon("Facebook", 6)}
+                {getPlatformIcon("Instagram Post", 6)}
+              </>
+            }
+          />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div className="lg:col-span-2">
-                <div className="h-[600px]">
-                <TrendingTopics topics={trendingTopics} isLoading={isLoadingTopics} />
-                </div>
+              <div className="h-[600px]">
+                <TrendingTopics topics={data.trendingTopics} isLoading={isLoading} />
+              </div>
             </div>
             <div className="lg:col-span-3">
-                <div className="h-[600px]">
-                <HotIssues issues={hotIssues} isLoading={isLoadingIssues} />
-                </div>
+              <div className="h-[600px]">
+                <HotIssues issues={data.hotIssues} isLoading={isLoading} />
+              </div>
             </div>
-            </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-            <ContentThemes themes={contentThemes} isLoading={isLoadingThemes} />
-            <InfluentialFigures figures={influentialFigures} isLoading={isLoadingFigures} />
-            <NewsArticles articles={newsArticles} isLoading={isLoadingNews} />
           </div>
-          
+        
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+            <ContentThemes themes={data.contentThemes} isLoading={isLoading} />
+            <InfluentialFigures figures={data.influentialFigures} isLoading={isLoading} />
+            <NewsArticles articles={data.newsArticles} isLoading={isLoading} />
+          </div>
+        
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
             <RecentThreads />
             <TikTokVideos />

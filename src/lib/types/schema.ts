@@ -143,6 +143,90 @@ export type Database = {
           },
         ]
       }
+      ai_ads_data: {
+        Row: {
+          ad_formats: Json | null
+          age_targeting: Json | null
+          created_at: string | null
+          gender_targeting: Json | null
+          geo_targeting: Json | null
+          id: string
+          political_leanings: Json | null
+          recent_ads: Json | null
+          top_advertisers: Json | null
+        }
+        Insert: {
+          ad_formats?: Json | null
+          age_targeting?: Json | null
+          created_at?: string | null
+          gender_targeting?: Json | null
+          geo_targeting?: Json | null
+          id?: string
+          political_leanings?: Json | null
+          recent_ads?: Json | null
+          top_advertisers?: Json | null
+        }
+        Update: {
+          ad_formats?: Json | null
+          age_targeting?: Json | null
+          created_at?: string | null
+          gender_targeting?: Json | null
+          geo_targeting?: Json | null
+          id?: string
+          political_leanings?: Json | null
+          recent_ads?: Json | null
+          top_advertisers?: Json | null
+        }
+        Relationships: []
+      }
+      ai_conversations_data: {
+        Row: {
+          content_themes: Json | null
+          created_at: string | null
+          hot_issues: Json | null
+          id: string
+          influential_figures: Json | null
+          news_articles: Json | null
+          trending_topics: Json | null
+        }
+        Insert: {
+          content_themes?: Json | null
+          created_at?: string | null
+          hot_issues?: Json | null
+          id?: string
+          influential_figures?: Json | null
+          news_articles?: Json | null
+          trending_topics?: Json | null
+        }
+        Update: {
+          content_themes?: Json | null
+          created_at?: string | null
+          hot_issues?: Json | null
+          id?: string
+          influential_figures?: Json | null
+          news_articles?: Json | null
+          trending_topics?: Json | null
+        }
+        Relationships: []
+      }
+      ai_suggestions_data: {
+        Row: {
+          created_at: string | null
+          id: string
+          suggestions: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          suggestions?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          suggestions?: Json | null
+        }
+        Relationships: []
+      }
       compliance_docs: {
         Row: {
           created_at: string | null

@@ -5,6 +5,8 @@ import { AdDeploymentWithCreation, Platform } from '@/lib/types/customTypes';
 import { Calendar, Users, DollarSign, BarChart, ChevronRight, Zap, ArrowLeft, Tag, GalleryHorizontalEnd } from 'lucide-react';
 import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
 
 interface AdTestListProps {
   adTests: AdDeploymentWithCreation[];
@@ -14,6 +16,8 @@ interface AdTestListProps {
 }
 
 export default function AdTestList({ adTests, getStatusColor, selectExperiment, selectTest, isLoading = false }: AdTestListProps & { isLoading?: boolean }) {
+  const router = useRouter();
+  
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -48,6 +52,15 @@ export default function AdTestList({ adTests, getStatusColor, selectExperiment, 
       </Card>
     );
   }
+
+  const updateType = async (id: string, type: string) => {
+    const { data, error } = await supabase
+      .from('ad_deployments')
+      .update({ type: type })
+      .eq('id', id)
+      .select()
+      .single();
+  };
 
   return (
     <div className="space-y-4">
@@ -102,7 +115,9 @@ export default function AdTestList({ adTests, getStatusColor, selectExperiment, 
                       variant="outline"
                       size="sm"
                       className="text-gray-600 hover:text-gray-800"
-                      onClick={() => selectExperiment(test.creation)}
+                      onClick={() => {
+                        router.push(`/create/generate/${test.experiment_id}`);
+                      }}
                     >
                       <ArrowLeft className="h-3 w-3 mr-1" />
                       See Associated Creation
@@ -111,7 +126,9 @@ export default function AdTestList({ adTests, getStatusColor, selectExperiment, 
                       variant="ghost"
                       size="sm"
                       className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                      onClick={() => selectTest(test.id)}
+                      onClick={() => {
+                        router.push(`/create/testing/${test.id}`);
+                      }}
                     >
                       {test.status === 'Deployed' ? 'View Deployment' : test.status === 'Running' ? 'View Progress' : test.status === 'Created' ? 'Review & Deploy Test' : 'View'}
                       <ChevronRight className="h-4 w-4 ml-1" />
@@ -127,7 +144,7 @@ export default function AdTestList({ adTests, getStatusColor, selectExperiment, 
                 size="sm"
                 variant="ghost"
                 className="text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-100 shadow-sm whitespace-nowrap font-semibold"
-                onClick={() => selectTest(test.id)}
+                onClick={() => updateType(test.id, 'Standard')}
               >
                 <GalleryHorizontalEnd className="w-4 h-4 mr-2" />
                 Move to Standard Deployment

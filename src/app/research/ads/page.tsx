@@ -9,119 +9,119 @@ import AgeTargeting from '@/components/research/ads/AgeTargeting';
 import GenderTargeting from '@/components/research/ads/GenderTargeting';
 import PoliticalLeanings from '@/components/research/ads/PoliticalLeanings';
 import GeoTargeting from '@/components/research/ads/GeoTargeting';
+import { supabase } from '@/lib/supabaseClient';
+import { PageHeader } from '@/components/ui/pageHeader';
+import { getPoliticalIcon } from '@/lib/helperUtils/create/utils';
+import { FaMeta } from 'react-icons/fa6';
+import { FaGoogle } from 'react-icons/fa';
 
 export default function AdsDashboardPage() {
-  const [topAdvertisers, setTopAdvertisers] = useState([]);
-  const [recentAds, setRecentAds] = useState([]);
-  const [adFormats, setAdFormats] = useState([]);
-  const [ageTargeting, setAgeTargeting] = useState([]);
-  const [genderTargeting, setGenderTargeting] = useState([]);
-  const [geoTargeting, setGeoTargeting] = useState([]);
-  const [politicalLeanings, setPoliticalLeanings] = useState([]);
-
-  const [isLoadingAdvertisers, setIsLoadingAdvertisers] = useState(true);
-  const [isLoadingRecentAds, setIsLoadingRecentAds] = useState(true);
-  const [isLoadingAdFormats, setIsLoadingAdFormats] = useState(true);
-  const [isLoadingAgeTargeting, setIsLoadingAgeTargeting] = useState(true);
-  const [isLoadingGenderTargeting, setIsLoadingGenderTargeting] = useState(true);
-  const [isLoadingPoliticalLeanings, setIsLoadingPoliticalLeanings] = useState(true);
-  const [isLoadingGeoTargeting, setIsLoadingGeoTargeting] = useState(true);
+  const [data, setData] = useState({
+    topAdvertisers: [],
+    recentAds: [],
+    adFormats: [],
+    ageTargeting: [],
+    genderTargeting: [],
+    geoTargeting: [],
+    politicalLeanings: []
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchAllData();
+    fetchData();
   }, []);
 
-  const fetchAllData = async () => {
-    fetchTopAdvertisers();
-    fetchRecentAds();
-    fetchAdFormats();
-    fetchAgeTargeting();
-    fetchGenderTargeting();
-    fetchPoliticalLeanings();
-    fetchGeoTargeting();
-  }
-
-  const fetchTopAdvertisers = async () => {
+  const fetchData = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch('/api/research/ads/top-advertisers');
-      const data = await response.json();
-      setTopAdvertisers(data);
+      const { data: latestData, error } = await supabase
+        .from('ai_ads_data')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (!latestData || !latestData.created_at) {
+        await updateData();
+      } else {
+        const now = new Date();
+        const lastUpdate = new Date(latestData.created_at);
+        const hoursSinceLastUpdate = (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
+
+        if (hoursSinceLastUpdate < 24) {
+          console.log('Using cached data');
+          setData({
+            topAdvertisers: latestData.top_advertisers,
+            recentAds: latestData.recent_ads,
+            adFormats: latestData.ad_formats,
+            ageTargeting: latestData.age_targeting,
+            genderTargeting: latestData.gender_targeting,
+            geoTargeting: latestData.geo_targeting,
+            politicalLeanings: latestData.political_leanings
+          });
+        } else {
+          await updateData();
+        }
+      }
     } catch (error) {
-      console.error('Error fetching top advertisers:', error);
+      console.error('Error fetching data:', error);
+      await updateData();
     } finally {
-      setIsLoadingAdvertisers(false);
+      setIsLoading(false);
     }
   };
 
-  const fetchRecentAds = async () => {
+  const updateData = async () => {
     try {
-      const response = await fetch('/api/research/ads/recent-ads');
-      const data = await response.json();
-      setRecentAds(data);
-    } catch (error) {
-      console.error('Error fetching recent ads:', error);
-    } finally {
-      setIsLoadingRecentAds(false);
-    }
-  };
+      const [
+        topAdvertisers,
+        recentAds,
+        adFormats,
+        ageTargeting,
+        genderTargeting,
+        geoTargeting,
+        politicalLeanings
+      ] = await Promise.all([
+        fetch('/api/research/ads/top-advertisers').then(res => res.json()),
+        fetch('/api/research/ads/recent-ads').then(res => res.json()),
+        fetch('/api/research/ads/ad-formats').then(res => res.json()),
+        fetch('/api/research/ads/age-targeting').then(res => res.json()),
+        fetch('/api/research/ads/gender-targeting').then(res => res.json()),
+        fetch('/api/research/ads/geo-targeting').then(res => res.json()),
+        fetch('/api/research/ads/political-leanings').then(res => res.json())
+      ]);
 
-  const fetchAdFormats = async () => {
-    try {
-      const response = await fetch('/api/research/ads/ad-formats');
-      const data = await response.json();
-      setAdFormats(data);
-    } catch (error) {
-      console.error('Error fetching ad formats:', error);
-    } finally {
-      setIsLoadingAdFormats(false);
-    }
-  };
+      const newData = {
+        top_advertisers: topAdvertisers,
+        recent_ads: recentAds,
+        ad_formats: adFormats,
+        age_targeting: ageTargeting,
+        gender_targeting: genderTargeting,
+        geo_targeting: geoTargeting,
+        political_leanings: politicalLeanings
+      };
 
-  const fetchAgeTargeting = async () => {
-    try {
-      const response = await fetch('/api/research/ads/age-targeting');
-      const data = await response.json();
-      setAgeTargeting(data);
-    } catch (error) {
-      console.error('Error fetching age targeting:', error);
-    } finally {
-      setIsLoadingAgeTargeting(false);
-    }
-  };
+      const { error } = await supabase
+        .from('ai_ads_data')
+        .insert(newData);
 
-  const fetchGenderTargeting = async () => {
-    try {
-      const response = await fetch('/api/research/ads/gender-targeting');
-      const data = await response.json();
-      setGenderTargeting(data);
-    } catch (error) {
-      console.error('Error fetching gender targeting:', error);
-    } finally {
-      setIsLoadingGenderTargeting(false);
-    }
-  };
+      if (error) throw error;
 
-  const fetchGeoTargeting = async () => {
-    try {
-      const response = await fetch('/api/research/ads/geo-targeting');
-      const data = await response.json();
-      setGeoTargeting(data);
+      setData({
+        topAdvertisers,
+        recentAds,
+        adFormats,
+        ageTargeting,
+        genderTargeting,
+        geoTargeting,
+        politicalLeanings
+      });
     } catch (error) {
-      console.error('Error fetching geo targeting:', error);
-    } finally {
-      setIsLoadingGeoTargeting(false);
-    }
-  };
-
-  const fetchPoliticalLeanings = async () => {
-    try {
-      const response = await fetch('/api/research/ads/political-leanings');
-      const data = await response.json();
-      setPoliticalLeanings(data);
-    } catch (error) {
-      console.error('Error fetching political leanings:', error);
-    } finally {
-      setIsLoadingPoliticalLeanings(false);
+      console.error('Error updating data:', error);
     }
   };
 
@@ -129,33 +129,38 @@ export default function AdsDashboardPage() {
     <Navbar>
       <main className="bg-gray-100 min-h-screen">
         <div className="max-w-[1500px] mx-auto">
-          <header className="py-6 sm:py-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
-              <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                What Ads Are Running?
-              </h1>
-            </div>
-          </header>
+          <PageHeader
+            text="What ads are my competitors running?"
+            rightItem={
+              <>
+                {getPoliticalIcon("Democrat", 6)}
+                {getPoliticalIcon("Republican", 6)}
+                {getPoliticalIcon("Independent", 6)}
+                <FaMeta className={`w-6 h-6`} />
+                <FaGoogle className={`w-6 h-6`} />
+              </>
+            }
+          />
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <TopAdvertisers advertisers={topAdvertisers} isLoading={isLoadingAdvertisers} />
-            <RecentAds ads={recentAds} isLoading={isLoadingRecentAds} />
+            <TopAdvertisers advertisers={data.topAdvertisers} isLoading={isLoading} />
+            <RecentAds ads={data.recentAds} isLoading={isLoading} />
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
             <div className="col-span-1">
-              <AdFormats formats={adFormats} isLoading={isLoadingAdFormats} />
+              <AdFormats formats={data.adFormats} isLoading={isLoading} />
             </div>
             <div className="col-span-2">
-              <PoliticalLeanings leanings={politicalLeanings} isLoading={isLoadingPoliticalLeanings} />
+              <PoliticalLeanings leanings={data.politicalLeanings} isLoading={isLoading} />
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-            <AgeTargeting targeting={ageTargeting} isLoading={isLoadingAgeTargeting} />
-            <GenderTargeting targeting={genderTargeting} isLoading={isLoadingGenderTargeting} />
-            <GeoTargeting targeting={geoTargeting} isLoading={isLoadingGeoTargeting} />
-          </div>
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+            <AgeTargeting targeting={data.ageTargeting} isLoading={isLoading} />
+            <GenderTargeting targeting={data.genderTargeting} isLoading={isLoading} />
+            <GeoTargeting targeting={data.geoTargeting} isLoading={isLoading} />
+          </div> */}
         </div>
       </main>
     </Navbar>

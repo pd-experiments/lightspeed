@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Navbar from '@/components/ui/Navbar';
 import { AdDeploymentWithCreation } from '@/lib/types/customTypes';
-import AdDeploymentList from '@/components/create/deployment/AdDeploymentList';
+import AdDeploymentList from '@/components/deployment/AdDeploymentList';
+import { PageHeader } from '@/components/ui/pageHeader';
+import { Rocket } from 'lucide-react';
 
 export default function DeploymentPage() {
   const [deployments, setDeployments] = useState<AdDeploymentWithCreation[]>([]);
@@ -47,13 +49,17 @@ export default function DeploymentPage() {
     <Navbar>
       <main className="min-h-screen">
         <div className="max-w-[1500px] mx-auto">
-          <header className="py-6 sm:py-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
-              <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                Take a look at your deployed advertisements!
-              </h1>
-            </div>
-          </header>
+          <PageHeader
+            text="Take a look at your deployed advertisements!"
+            rightItem={
+              <div className="flex items-center space-x-2 mr-2">
+                <Rocket className="w-5 h-5" />
+                <span className="text-sm font-medium">
+                  {deployments.length} Deployments
+                </span>
+              </div>
+            }
+          />
           <AdDeploymentList deployments={deployments} getStatusColor={getStatusColor} isLoading={isLoading} />
         </div>
       </main>

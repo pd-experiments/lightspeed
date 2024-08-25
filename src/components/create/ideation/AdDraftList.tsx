@@ -57,8 +57,8 @@ export default function AdDraftList({ adDrafts, getPoliticalLeaningColor, getSta
                 <Badge className={`${getPoliticalLeaningColor(ad.political_leaning)} text-xs`}>
                   {_.startCase(_.toLower(ad.political_leaning))}
                 </Badge>
-                <Badge className={`${getStatusColor(ad.status)} text-xs`}>
-                  {_.startCase(_.toLower(ad.status))}
+                <Badge className={`${getStatusColor(ad.status || '')} text-xs`}>
+                  {_.startCase(_.toLower(ad.status || ''))}
                 </Badge>
               </div>
             </div>

@@ -24,7 +24,7 @@ export type Database = {
           platforms: Database["public"]["Enums"]["ad_platform"][]
           political_leaning: Database["public"]["Enums"]["political_leaning"]
           start_date: string
-          status: Database["public"]["Enums"]["ad_status"]
+          status: Database["public"]["Enums"]["ad_status"] | null
           target_audience: Json
           title: string
           updated_at: string | null
@@ -44,7 +44,7 @@ export type Database = {
           platforms: Database["public"]["Enums"]["ad_platform"][]
           political_leaning: Database["public"]["Enums"]["political_leaning"]
           start_date: string
-          status?: Database["public"]["Enums"]["ad_status"]
+          status?: Database["public"]["Enums"]["ad_status"] | null
           target_audience: Json
           title: string
           updated_at?: string | null
@@ -64,7 +64,7 @@ export type Database = {
           platforms?: Database["public"]["Enums"]["ad_platform"][]
           political_leaning?: Database["public"]["Enums"]["political_leaning"]
           start_date?: string
-          status?: Database["public"]["Enums"]["ad_status"]
+          status?: Database["public"]["Enums"]["ad_status"] | null
           target_audience?: Json
           title?: string
           updated_at?: string | null
@@ -87,7 +87,7 @@ export type Database = {
           link: string
           placement: string
           platform: string
-          status: string
+          status: Database["public"]["Enums"]["deployment_status"]
           type: Database["public"]["Enums"]["deployment_type"]
           updated_at: string | null
           version_id: string
@@ -107,7 +107,7 @@ export type Database = {
           link: string
           placement: string
           platform: string
-          status: string
+          status?: Database["public"]["Enums"]["deployment_status"]
           type?: Database["public"]["Enums"]["deployment_type"]
           updated_at?: string | null
           version_id: string
@@ -127,7 +127,7 @@ export type Database = {
           link?: string
           placement?: string
           platform?: string
-          status?: string
+          status?: Database["public"]["Enums"]["deployment_status"]
           type?: Database["public"]["Enums"]["deployment_type"]
           updated_at?: string | null
           version_id?: string
@@ -1425,15 +1425,14 @@ export type Database = {
         | "LinkedIn"
         | "TikTok"
         | "YouTube"
-      ad_status:
-        | "Draft"
-        | "In Review"
-        | "Active"
-        | "Configured"
-        | "Generated"
-        | "Test"
-        | "Deployed"
+      ad_status: "Draft" | "In Review" | "Configured" | "Generated"
       campaign_objective: "awareness" | "consideration" | "conversion"
+      deployment_status:
+        | "Created"
+        | "Deployed"
+        | "Running"
+        | "Paused"
+        | "Complete"
       deployment_type: "Test" | "Standard"
       govtType: "FEDERAL" | "STATE" | "LOCAL"
       outlineElementType: "VIDEO" | "TRANSITION"

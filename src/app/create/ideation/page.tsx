@@ -224,58 +224,6 @@ export default function IdeationPage() {
     updateExperiment({ [name]: value });
   };
 
-  const handleSubmit = async () => {
-    const { data, error } = adExperiment.id
-      ? await supabase
-          .from('ad_creations')
-          .update(adExperiment)
-          .eq('id', adExperiment.id)
-          .select()
-          .single()
-      : await supabase
-          .from('ad_creations')
-          .insert(adExperiment)
-          .select()
-          .single();
-  
-    if (error) {
-      console.error('Error saving ad experiment:', error);
-    } else if (data) {
-      if (adExperiment.id) {
-        setAdDrafts(adDrafts.map(ad => ad.id === data.id ? data : ad));
-      } else {
-        setAdDrafts([data, ...adDrafts]);
-      }
-      setIsCreatingExperiment(false);
-      setCurrentStep(0);
-      setAdExperiment({
-        title: '',
-        description: '',
-        objective: 'awareness',
-        budget: 0,
-        duration: 0,
-        start_date: new Date().toISOString(),
-        end_date: new Date().toISOString(),
-        target_audience: {
-          age: [],
-          gender: [],
-          interests: [],
-          location: '',
-        },
-        ad_content: {
-          headline: '',
-          body: '',
-          callToAction: '',
-          image: null,
-        },
-        platforms: [],
-        political_leaning: 'center',
-        key_components: [],
-        status: 'Draft',
-      });
-    }
-  };
-
   type StepProps = {
     adExperiment: AdCreationInsert;
     handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;

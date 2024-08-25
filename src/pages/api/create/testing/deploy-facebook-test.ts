@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
+import { supabase } from '@/lib/supabaseClient';
 
 const accessToken = process.env.FACEBOOK_ACCESS_TOKEN;
 const adAccountId = process.env.FACEBOOK_AD_ACCOUNT_ID;
@@ -52,25 +53,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { experimentId, version } = req.body;
-    const { imageUrl, caption, link, adsetId } = version.config;
+    const { deploymentId } = req.body;
 
-    const adCreativeId = await createAdCreative(imageUrl, caption, link);
+    // Fetch deployment and associated creation data
+    const { data: deployment, error: deploymentError } = await supabase
+      .from('ad_deployments')
+      .select(`
+        *,
+        creation:ad_creations(*)
+      `)
+      .eq('id', deploymentId)
+      .single();
+
+    if (deploymentError) throw new Error('Failed to fetch deployment data');
+
+    const { image_url, caption, link, adset_id } = deployment;
+    const experimentId = deployment.experiment_id;
+
+    const adCreativeId = await createAdCreative(image_url, caption, link);
     if (!adCreativeId) {
       throw new Error('Failed to create ad creative');
     }
 
-    const adId = await createAd(adCreativeId, adsetId, `Ad for Experiment ${experimentId}`);
+    const adId = await createAd(adCreativeId, adset_id, `Ad for Experiment ${experimentId}`);
     if (!adId) {
       throw new Error('Failed to create ad');
     }
+
+    // Update deployment status
+    const { error: updateError } = await supabase
+      .from('ad_deployments')
+      .update({ status: 'Deployed' })
+      .eq('id', deploymentId);
+
+    if (updateError) throw new Error('Failed to update deployment status');
 
     res.status(200).json({ 
       success: true, 
       message: 'Facebook ad deployed successfully',
       adId: adId,
       platform: 'Facebook',
-      versionId: version.versionId
+      deploymentId: deploymentId
     });
   } catch (error: any) {
     console.error('Error deploying Facebook ad:', error);

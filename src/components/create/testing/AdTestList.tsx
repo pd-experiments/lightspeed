@@ -48,7 +48,7 @@ export default function AdTestList({ adTests, getStatusColor, selectExperiment, 
       </Card>
     );
   }
-  
+
   return (
     <div className="space-y-4">
       {adTests.map((test) => (
@@ -62,7 +62,7 @@ export default function AdTestList({ adTests, getStatusColor, selectExperiment, 
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-lg font-semibold text-gray-800">Test #{test.id.slice(0, 8)}</h3>
                   <div className="flex-shrink-0 flex space-x-2">
-                    <Badge className={`${getStatusColor(test.creation.status)} text-xs shadow-sm`}>
+                    <Badge className={`${getStatusColor(test.creation.status || '')} text-xs shadow-sm`}>
                       {test.status}
                     </Badge>
                   </div>
@@ -113,7 +113,7 @@ export default function AdTestList({ adTests, getStatusColor, selectExperiment, 
                       className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
                       onClick={() => selectTest(test.id)}
                     >
-                      {test.status === 'Deployed' ? 'View Deployment' : test.status === 'Running' ? 'View Progress' : test.status === 'Created' ? 'Deploy Test' : 'View'}
+                      {test.status === 'Deployed' ? 'View Deployment' : test.status === 'Running' ? 'View Progress' : test.status === 'Created' ? 'Review & Deploy Test' : 'View'}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>

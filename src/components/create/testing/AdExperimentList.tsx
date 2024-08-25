@@ -48,7 +48,7 @@ export default function AdExperimentList({ adExperiments, getStatusColor, getFlo
       </Card>
     );
   }
-  
+
   return (
     <div className="space-y-4">
       {adExperiments.filter((experiment) => experiment.flow == "Generation" || experiment.flow == "Testing").map((experiment) => (
@@ -72,7 +72,7 @@ export default function AdExperimentList({ adExperiments, getStatusColor, getFlo
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-lg font-semibold text-gray-900 mr-2">{experiment.title}</h3>
                   <div className="flex-shrink-0 flex space-x-2">
-                    <Badge className={`${getStatusColor(experiment.status)} text-xs shadow-sm`}>
+                    <Badge className={`${getStatusColor(experiment.status || '')} text-xs shadow-sm`}>
                       {experiment.status}
                     </Badge>
                     <Badge className={`${getFlowColor(experiment.flow)} text-xs shadow-sm`}>
@@ -112,8 +112,7 @@ export default function AdExperimentList({ adExperiments, getStatusColor, getFlo
                   >
                     {experiment.status === 'Configured' ? 'Generate' :
                     experiment.status === 'Generated' && experiment.flow === 'Testing' ? 
-                      (experiment.tests?.length > 0 ? 'See Testing Configuration' : 'Continue Testing') :
-                    experiment.status === 'Test' ? 'Continue Building Tests' : 'View'}
+                      (experiment.tests?.length > 0 ? 'See Testing Configuration' : 'Continue Testing') : 'View'}
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Tag, FileText, DollarSign, Calendar, Bot, Loader2 } from "lucide-react";
+import { Users, Tag, FileText, DollarSign, Calendar, Bot, Loader2, X } from "lucide-react";
 import { AdExperimentInsert } from "@/lib/types/customTypes";
 
 export function AdSuggestions({ suggestions, onSelect, isLoading, error }: { suggestions: AdExperimentInsert[], onSelect: (suggestion: AdExperimentInsert) => void, isLoading: boolean, error: boolean }) {

@@ -88,11 +88,14 @@ export default function IdeationPage() {
     setIsLoadingSuggestions(true);
     try {
       const response = await fetch('/api/create/ideation/generate-ad-suggestions');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       setAdSuggestions(data);
     } catch (error) {
       console.error('Error fetching ad suggestions:', error);
-      setIsLoadingSuggestions(false);
+      setAdSuggestions([]);
       setAdSuggestionsError(true);
     } finally {
       setIsLoadingSuggestions(false);

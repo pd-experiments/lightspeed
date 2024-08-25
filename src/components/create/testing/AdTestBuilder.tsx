@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdCreation, AdVersion } from '@/lib/types/customTypes';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { PlayCircle, CheckCircle, Settings, Blocks } from 'lucide-react';
+import { PlayCircle, CheckCircle, Settings, Blocks, Megaphone } from 'lucide-react';
 import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -282,11 +282,17 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card className="bg-white shadow-sm flex flex-col h-full">
-        <CardHeader className="border-b p-3 bg-blue-500 rounded-t-md">
+        {/* <CardHeader className="border-b p-3 bg-blue-500 rounded-t-md">
           <CardTitle className="text-sm font-medium flex items-center text-white">
             <Settings className="w-4 h-4 mr-2 text-white" />
             Configuration
           </CardTitle>
+        </CardHeader> */}
+        <CardHeader className="border-b bg-gray-50 p-4 rounded-t-md">
+            <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
+            <Settings className="w-5 h-5 mr-2 text-blue-500" />
+            Test Configuration
+            </CardTitle>
         </CardHeader>
         <CardContent className="p-4 flex flex-col flex-grow overflow-y-auto">
           {defaultValue && (
@@ -465,11 +471,17 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
         </CardContent>
       </Card>
       <Card className="bg-white shadow-sm">
-        <CardHeader className="border-b p-3 bg-blue-500 rounded-t-md">
+        {/* <CardHeader className="border-b p-3 bg-blue-500 rounded-t-md">
           <CardTitle className="text-sm font-medium flex items-center text-white">
             <PlayCircle className="w-4 h-4 mr-2 text-white" />
             Versions
           </CardTitle>
+        </CardHeader> */}
+        <CardHeader className="border-b bg-gray-50 p-4 rounded-t-md">
+            <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
+            <Megaphone className="w-5 h-5 mr-2 text-blue-500" />
+            Versions
+            </CardTitle>
         </CardHeader>
         <CardContent className="p-4">
           {defaultPlatform ? (

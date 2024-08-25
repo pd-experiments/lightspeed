@@ -67,7 +67,7 @@ export default function UniversalSearchPage() {
             </Button>
           </div>
 
-          <UniversalSearchResults results={searchResults} isLoading={isLoading} />
+          <UniversalSearchResults query={searchQuery} results={searchResults} isLoading={isLoading} />
         </div>
       </main>
     </Navbar>

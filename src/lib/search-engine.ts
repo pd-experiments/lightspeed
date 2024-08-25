@@ -18,7 +18,7 @@ type NewsArticle = Database["public"]["Tables"]["news"]["Row"];
 
 export async function NLPLightspeedSearch(query: string) {
   const completion = await openai_client.beta.chat.completions.parse({
-    model: "gpt-4o-2024-08-06",
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
@@ -117,7 +117,7 @@ export async function LightspeedSearch(
     }
   }
 
-  adsQuery.returns<EnhancedGoogleAd[]>().limit(5);
+  adsQuery.returns<EnhancedGoogleAd[]>().limit(10);
   const { data: adData, error: adError } = await adsQuery;
   if (adError) throw adError;
   searchResults.ads = adData as EnhancedGoogleAd[];
@@ -128,19 +128,24 @@ export async function LightspeedSearch(
   // Get TikToks
   const tiktoksQuery = supabase.from("tiktok_videos").select("*");
 
-  if (specificPoliticalEventEmbeddings) {
-    // TODO: Implement after creating embeddings for TikToks
+  if (query.politicalKeywords && query.politicalKeywords.length > 0) {
+    // Build the OR logic for keywords
+    const filters = query.politicalKeywords
+      .map((keyword) => `keywords.cs.\{${keyword}\}`)
+      .join(",");
+
+    tiktoksQuery.or(filters);
   }
 
-  tiktoksQuery.returns<TikTok[]>().limit(5);
+  tiktoksQuery.returns<TikTok[]>().limit(10);
   const { data: tiktokData, error: tiktokError } = await tiktoksQuery;
   if (tiktokError) throw tiktokError;
-  // searchResults.tikToks = tiktokData as TikTok[];
+  searchResults.tikToks = tiktokData as TikTok[];
 
   // Get Instagram Threads
   const igThreadsQuery = supabase.from("threads").select("*");
 
-  igThreadsQuery.returns<IGThread[]>().limit(5);
+  igThreadsQuery.returns<IGThread[]>().limit(10);
   const { data: igThreadData, error: igThreadError } = await igThreadsQuery;
   if (igThreadError) throw igThreadError;
   // searchResults.threads = igThreadData as IGThread[];
@@ -148,7 +153,7 @@ export async function LightspeedSearch(
   // Get News Articles
   const newsArticlesQuery = supabase.from("news").select("*");
 
-  newsArticlesQuery.returns<NewsArticle[]>().limit(5);
+  newsArticlesQuery.returns<NewsArticle[]>().limit(10);
   const { data: newsArticleData, error: newsArticleError } =
     await newsArticlesQuery;
   if (newsArticleError) throw newsArticleError;

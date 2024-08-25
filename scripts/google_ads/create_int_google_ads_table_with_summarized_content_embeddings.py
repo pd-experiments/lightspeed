@@ -21,7 +21,7 @@ import multiprocessing as mp
 from tqdm import tqdm
 import whisper
 import yt_dlp
-from models import (
+from scripts.google_ads.models import (
     EmbeddedGoogleAd,
     Transcript,
     VersionedGoogleAd,

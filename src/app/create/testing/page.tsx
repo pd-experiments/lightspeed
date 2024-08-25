@@ -70,6 +70,14 @@ export default function TestingPage() {
 
           <PageHeader 
             text="Let's review our ad tests!"
+            rightItem={
+              <div className="flex items-center space-x-2 mr-2">
+                <Beaker className="w-5 h-5" />
+                <span className="text-sm font-medium">
+                  {adTests.length} Tests
+                </span>
+              </div>
+            }
           />
 
           <div className="mt-3 mb-6">

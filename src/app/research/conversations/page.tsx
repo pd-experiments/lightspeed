@@ -12,6 +12,7 @@ import ContentThemes from '@/components/research/conversations/ContentThemes';
 import InfluentialFigures from '@/components/research/conversations/InfluentialFigures';
 import { supabase } from '@/lib/supabaseClient';
 import { PageHeader } from '@/components/ui/pageHeader';
+import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
 
 export default function DashboardPage() {
   const [data, setData] = useState({
@@ -105,6 +106,14 @@ export default function DashboardPage() {
         <div className="max-w-[1500px] mx-auto">
           <PageHeader
             text="What&apos;s everyone talking about?"
+            rightItem={
+              <>
+                {getPlatformIcon("TikTok", 6)}
+                {getPlatformIcon("Threads", 6)}
+                {getPlatformIcon("Facebook", 6)}
+                {getPlatformIcon("Instagram Post", 6)}
+              </>
+            }
           />
           
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">

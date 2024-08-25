@@ -6,6 +6,7 @@ import Navbar from '@/components/ui/Navbar';
 import { AdDeploymentWithCreation } from '@/lib/types/customTypes';
 import AdDeploymentList from '@/components/deployment/AdDeploymentList';
 import { PageHeader } from '@/components/ui/pageHeader';
+import { Rocket } from 'lucide-react';
 
 export default function DeploymentPage() {
   const [deployments, setDeployments] = useState<AdDeploymentWithCreation[]>([]);
@@ -50,6 +51,14 @@ export default function DeploymentPage() {
         <div className="max-w-[1500px] mx-auto">
           <PageHeader
             text="Take a look at your deployed advertisements!"
+            rightItem={
+              <div className="flex items-center space-x-2 mr-2">
+                <Rocket className="w-5 h-5" />
+                <span className="text-sm font-medium">
+                  {deployments.length} Deployments
+                </span>
+              </div>
+            }
           />
           <AdDeploymentList deployments={deployments} getStatusColor={getStatusColor} isLoading={isLoading} />
         </div>

@@ -11,6 +11,9 @@ import PoliticalLeanings from '@/components/research/ads/PoliticalLeanings';
 import GeoTargeting from '@/components/research/ads/GeoTargeting';
 import { supabase } from '@/lib/supabaseClient';
 import { PageHeader } from '@/components/ui/pageHeader';
+import { getPoliticalIcon } from '@/lib/helperUtils/create/utils';
+import { FaMeta } from 'react-icons/fa6';
+import { FaGoogle } from 'react-icons/fa';
 
 export default function AdsDashboardPage() {
   const [data, setData] = useState({
@@ -127,7 +130,16 @@ export default function AdsDashboardPage() {
       <main className="bg-gray-100 min-h-screen">
         <div className="max-w-[1500px] mx-auto">
           <PageHeader
-            text="What Ads Are Running?"
+            text="What ads are my competitors running?"
+            rightItem={
+              <>
+                {getPoliticalIcon("Democrat", 6)}
+                {getPoliticalIcon("Republican", 6)}
+                {getPoliticalIcon("Independent", 6)}
+                <FaMeta className={`w-6 h-6`} />
+                <FaGoogle className={`w-6 h-6`} />
+              </>
+            }
           />
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -144,11 +156,11 @@ export default function AdsDashboardPage() {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
             <AgeTargeting targeting={data.ageTargeting} isLoading={isLoading} />
             <GenderTargeting targeting={data.genderTargeting} isLoading={isLoading} />
             <GeoTargeting targeting={data.geoTargeting} isLoading={isLoading} />
-          </div>
+          </div> */}
         </div>
       </main>
     </Navbar>

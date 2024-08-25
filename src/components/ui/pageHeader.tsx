@@ -10,7 +10,7 @@ interface PageHeaderProps {
 export function PageHeader({ text, leftItem, rightItem, icons = [] }: PageHeaderProps) {
   return (
     <header className="py-6 sm:py-8 border-b border-gray-200 mb-5">
-      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1500px] mx-auto">
         <div className="flex flex-col sm:flex-row items-center justify-between">
           <div className="flex items-center space-x-4 mb-4 sm:mb-0">
             {leftItem}

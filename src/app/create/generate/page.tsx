@@ -6,7 +6,7 @@ import Navbar from '@/components/ui/Navbar';
 import { Badge } from '@/components/ui/badge';
 import { AdCreation, AdDeployment } from '@/lib/types/customTypes';
 import { useRouter } from 'next/navigation';
-import { WalletCards } from 'lucide-react';
+import { Sparkle, WalletCards } from 'lucide-react';
 import AdExperimentList from '@/components/create/generate/AdExperimentList';
 import { PageHeader } from '@/components/ui/pageHeader';
 
@@ -72,7 +72,7 @@ export default function GeneratePage() {
     return colors[flow as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const deployedCount = adExperiments.filter(experiment => 
+  const creationsCount = adExperiments.filter(experiment => 
     experiment.flow === 'Generation' || experiment.flow === "Testing" || experiment.flow === 'Deployment'
   ).length;
 
@@ -83,10 +83,10 @@ export default function GeneratePage() {
           <PageHeader 
             text="Let's whip up some ad creatives!"
             rightItem={
-              <div className="flex items-center space-x-2">
-                <WalletCards className="w-5 h-5" />
+              <div className="flex items-center space-x-2 mr-2">
+                <Sparkle className="w-5 h-5" />
                 <span className="text-sm font-medium">
-                  {deployedCount} Deployed
+                  {creationsCount} Creations
                 </span>
               </div>
             }

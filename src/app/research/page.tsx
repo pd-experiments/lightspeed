@@ -5,10 +5,11 @@ import Navbar from "@/components/ui/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { getPlatformIcon } from "@/lib/helperUtils/create/utils";
+import { getPlatformIcon, getNewsIcon } from "@/lib/helperUtils/create/utils";
 import UniversalSearchResults from "@/components/research/universalsearch/UniversalSearchResults";
 import { SearchResults } from "@/lib/types/lightspeed-search";
 import { PageHeader } from "@/components/ui/pageHeader";
+import { FaMeta, FaGoogle } from "react-icons/fa6";
 
 export default function UniversalSearchPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -49,6 +50,12 @@ export default function UniversalSearchPage() {
                 {getPlatformIcon("Threads", 6)}
                 {getPlatformIcon("Facebook", 6)}
                 {getPlatformIcon("Instagram Post", 6)}
+                {getNewsIcon("FOX", 6)}
+                {getNewsIcon("CNN", 6)}
+                {getNewsIcon("NYT", 6)}
+                {getNewsIcon("Reuters", 6)}
+                <FaMeta className="w-6 h-6" />
+                <FaGoogle className="w-6 h-6" />
               </>
             }
           />

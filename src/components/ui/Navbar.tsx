@@ -17,6 +17,14 @@ import {
   ChevronUp
 } from "lucide-react";
 import { FaBinoculars } from "react-icons/fa";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useRouter } from "next/navigation";
 
 interface NavItem {
   title: string;
@@ -42,9 +50,6 @@ const navItems: NavItem[] = [
       { title: "Ideate", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/ideation" },
       { title: "Generate & Test", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/testing" },
       { title: "Deploy", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/deployment" },
-      { title: "Clip Search", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/clipsearch" },
-      { title: "Television", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/television" },
-      { title: "Compliance", icon: <Dot className="w-4 h-4 mr-2" />, href: "/create/compliance" },
     ],
   },
   {
@@ -55,11 +60,13 @@ const navItems: NavItem[] = [
 ];
 
 export default function Navbar({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const pathname = usePathname();
   const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === "true";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -76,7 +83,23 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
     setOpenMenus(initialOpenMenus);
   }, []);
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  useEffect(() => {
+    const checkMobile = () => {
+      const newIsMobile = window.innerWidth < 768;
+      if (newIsMobile !== isMobile) {
+        setIsMobile(newIsMobile);
+        setIsAnimating(true);
+      }
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [isMobile]);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+    setIsAnimating(true);
+  };
 
   const toggleExpanded = useCallback((title: string) => {
     setOpenMenus(prev => ({
@@ -85,25 +108,28 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
+  const [isAnimating, setIsAnimating] = useState(false);
+
   const renderNavItems = (items: NavItem[], level = 0) => {
     return items.map((item, index) => (
       <div key={index} className={`ml-${level * 4}`}>
         {item.href ? (
-          <Link href={item.href} className="block">
-            <motion.div
-              className={`flex items-center px-3 py-2 rounded-md ${
-                pathname === item.href ? "bg-gray-100" : ""
-              }`}
-              whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-              animate={{
-                backgroundColor: pathname === item.href ? "rgba(0, 0, 0, 0.05)" : "rgba(0, 0, 0, 0)",
-              }}
-              onClick={() => isMobile && setIsMenuOpen(false)}
-            >
-              {item.icon}
-              {item.title}
-            </motion.div>
-          </Link>
+          <motion.div
+            className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
+              pathname === item.href ? "bg-gray-100" : ""
+            }`}
+            whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
+            animate={{
+              backgroundColor: pathname === item.href ? "rgba(0, 0, 0, 0.05)" : "rgba(0, 0, 0, 0)",
+            }}
+            onClick={() => {
+              router.push(item.href ?? "");
+              if (isMobile) setIsMenuOpen(false);
+            }}
+          >
+            {item.icon}
+            {item.title}
+          </motion.div>
         ) : (
           <div>
             <motion.div
@@ -120,17 +146,15 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
               )}
             </motion.div>
             <AnimatePresence initial={false}>
-              {/* {(openMenus[item.title] ?? false) && item.subItems && ( */}
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  {renderNavItems(item.subItems, level + 1)}
-                </motion.div>
-              {/* )} */}
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                {renderNavItems(item.subItems ?? [], level + 1)}
+              </motion.div>
             </AnimatePresence>
           </div>
         )}
@@ -141,12 +165,23 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden">
       <header className="fixed top-0 left-0 right-0 flex items-center justify-between p-4 bg-white z-30">
-        <Link href="/" className="flex items-center">
+        <div className="flex items-center cursor-pointer" onClick={() => router.push("/")}>
           <CloudLightningIcon className="w-8 h-8 mr-2" />
           <h2 className="text-2xl font-semibold">lightspeed ads</h2>
-        </Link>
-        <div className="flex items-center">
-          <Settings className="w-6 h-6 mr-4 cursor-pointer" />
+        </div>
+        <div className="flex items-center space-x-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Settings className="h-6 w-6" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => router.push("/compliance")}>
+                Compliance
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
           <button onClick={toggleMenu} className="ml-4 md:hidden">
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -157,10 +192,12 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
         <AnimatePresence>
           {(isMenuOpen || !isMobile) && (
             <motion.nav
-              initial={isMobile ? { y: -500 } : { x: -300 }}
-              animate={isMobile ? { y: 0 } : { x: 0 }}
-              exit={isMobile ? { y: -500 } : { x: -300 }}
+              key="nav"
+              initial={isAnimating ? (isMobile ? { y: -500 } : { x: -300 }) : false}
+              animate={isAnimating ? (isMobile ? { y: 0 } : { x: 0 }) : {}}
+              exit={isAnimating ? (isMobile ? { y: -500 } : { x: -300 }) : {}}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onAnimationComplete={() => setIsAnimating(false)}
               className={`bg-white shadow-sm p-4 z-20 ${
                 isMobile
                   ? "fixed top-16 left-0 right-0 bottom-0 overflow-y-auto"
@@ -173,21 +210,22 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
                   <>
                     <hr className="my-2 border-gray-200" />
                     <div className="text-xs text-gray-500 my-2">DEV MODE</div>
-                    <Link href="/todo" className="block">
-                      <motion.div
-                        className={`flex items-center px-3 py-2 rounded-md ${
-                          pathname === "/todo" ? "bg-gray-100" : ""
-                        }`}
-                        whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-                        animate={{
-                          backgroundColor: pathname === "/todo" ? "rgba(0, 0, 0, 0.05)" : "rgba(0, 0, 0, 0)",
-                        }}
-                        onClick={() => isMobile && setIsMenuOpen(false)}
-                      >
-                        <CheckCircleIcon className="w-4 h-4 mr-2" />
-                        Todo
-                      </motion.div>
-                    </Link>
+                    <motion.div
+                      className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
+                        pathname === "/todo" ? "bg-gray-100" : ""
+                      }`}
+                      whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
+                      animate={{
+                        backgroundColor: pathname === "/todo" ? "rgba(0, 0, 0, 0.05)" : "rgba(0, 0, 0, 0)",
+                      }}
+                      onClick={() => {
+                        router.push("/todo");
+                        if (isMobile) setIsMenuOpen(false);
+                      }}
+                    >
+                      <CheckCircleIcon className="w-4 h-4 mr-2" />
+                      Todo
+                    </motion.div>
                   </>
                 )}
               </div>

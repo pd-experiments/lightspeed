@@ -5,10 +5,21 @@ import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/lib/types/schema';
 import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, Users, Calendar, Tag, ChevronRight, FileText, ChevronLeft, Info, DollarSign, Share, Lightbulb, GalleryHorizontalEnd } from 'lucide-react';
+import { PlusIcon, Users, Calendar, Tag, ChevronRight, FileText, ChevronLeft, Info, DollarSign, Share, Lightbulb, GalleryHorizontalEnd, Network, Video } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent} from '@/components/ui/card';
 import _ from 'lodash';
+import { Tables } from '@/lib/types/schema';
+import { calculateOutlineDuration } from '@/lib/helperUtils/outline/utils';
+
+type Outline = Tables<'outline'>;
+interface OutlineWithDetails extends Outline {
+  elementCount: number;
+  totalDuration: number;
+}
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import OutlineList from '@/components/create/outline/OutlineList';
 
 import { AdSuggestions } from '@/components/create/ideation/AdSuggestions';
 
@@ -18,12 +29,12 @@ import TargetAudienceStep from '@/components/create/ideation/TargetAudienceStep'
 import AdContentStep from '@/components/create/ideation/AdContentStep';
 import PlatformsAndLeaningStep from '@/components/create/ideation/PlatformsAndLeaningStep';
 import { useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
-
-type AdExperiment = Database['public']['Tables']['ad_experiments']['Row'];
-type AdExperimentInsert = Database['public']['Tables']['ad_experiments']['Insert'];
+import { AdExperimentInsert, AdExperiment } from '@/lib/types/customTypes';
+import { OutlineCreator } from '@/components/create/outline/OutlineCreator';
+import ClipSearchComponent from '@/components/ClipSearchComponent';
 
 export default function IdeationPage() {
+  const [mode, setMode] = useState<'social-media' | 'television'>('social-media');
   const [isCreatingExperiment, setIsCreatingExperiment] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [adDrafts, setAdDrafts] = useState<AdExperiment[]>([]);
@@ -54,6 +65,7 @@ export default function IdeationPage() {
   });
   const [adSuggestions, setAdSuggestions] = useState<AdExperimentInsert[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [adSuggestionsError, setAdSuggestionsError] = useState(false);
 
   useEffect(() => {
     fetchAdDrafts();
@@ -76,10 +88,15 @@ export default function IdeationPage() {
     setIsLoadingSuggestions(true);
     try {
       const response = await fetch('/api/create/ideation/generate-ad-suggestions');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       setAdSuggestions(data);
     } catch (error) {
       console.error('Error fetching ad suggestions:', error);
+      setAdSuggestions([]);
+      setAdSuggestionsError(true);
     } finally {
       setIsLoadingSuggestions(false);
     }
@@ -184,7 +201,7 @@ export default function IdeationPage() {
   const handleNestedInputChange = (category: 'target_audience' | 'ad_content', name: string, value: any) => {
     const updatedExperiment = {
       ...adExperiment,
-      [category]: { ...adExperiment[category], [name]: value },
+      [category]: { ...(adExperiment[category] as object || {}), [name]: value },
     };
     setAdExperiment(updatedExperiment);
     updateExperiment({ [category]: updatedExperiment[category] });
@@ -265,6 +282,29 @@ export default function IdeationPage() {
 
   const CurrentStepComponent = steps[currentStep].component;
 
+  const [outlines, setOutlines] = useState<OutlineWithDetails[]>([]);
+  const [isLoadingOutlines, setIsLoadingOutlines] = useState<boolean>(true);
+
+  useEffect(() => {
+    async function fetchOutlines() {
+      setIsLoadingOutlines(true);
+      const response = await fetch('/api/create/outlines/get-all-outlines');
+      const data = await response.json();
+      
+      const outlinesWithDetails = await Promise.all(data.outlines.map(async (outline: Outline) => {
+        const elementsResponse = await fetch(`/api/create/outlines/get-elements?outline_id=${outline.id}`);
+        const elementsData = await elementsResponse.json();
+        const elementCount = elementsData.length;
+        const totalDuration = calculateOutlineDuration(elementsData);
+        return { ...outline, elementCount, totalDuration };
+      }));
+
+      setOutlines(outlinesWithDetails);
+      setIsLoadingOutlines(false);
+    }
+    fetchOutlines();
+  }, []);
+
   return (
     <Navbar>
       <main className="min-h-screen">
@@ -278,18 +318,35 @@ export default function IdeationPage() {
                     : 'Create New Ad Experiment'
                   : 'Would you like to start creating your ad experiment?'}
               </h1>
-              {!isCreatingExperiment ? (
-                <Button onClick={createEmptyAdExperiment}>
-                  <Lightbulb className="mr-2 h-4 w-4" /> Create New Ad Experiment
-                </Button>
+              
+              {mode === "social-media" ? (
+                !isCreatingExperiment ? (
+                  <Button onClick={createEmptyAdExperiment}>
+                    <Lightbulb className="mr-2 h-4 w-4" /> Create New Ad Experiment
+                  </Button>
+                ) : (
+                  <Button variant="ghost" className="text-gray-600" onClick={() => setIsCreatingExperiment(false)}>
+                    <ChevronLeft className="mr-2 h-5 w-5" /> Back to Experiments
+                  </Button>
+                )
               ) : (
-                <Button variant="ghost" className="text-gray-600" onClick={() => setIsCreatingExperiment(false)}>
-                  <ChevronLeft className="mr-2 h-5 w-5" /> Back to Experiments
-                </Button>
+                <OutlineCreator />
               )}
             </div>
           </header>
-          
+
+          <Tabs className="w-full" value={mode} onValueChange={(value) => setMode(value as 'social-media' | 'television')}>
+          <TabsList className="inline-flex h-14 items-center w-full space-x-1">
+            <TabsTrigger value="social-media" className={`w-full bg-white rounded-t-md rounded-b-none ${mode === 'social-media' ? 'bg-white text-blue-500 border-b border-blue-500' : 'bg-gray-200'} data-[state=active]:text-blue-600 inline-flex items-center justify-center whitespace-nowrap px-6 py-2.5`}>
+              <Network className="h-4 w-4 mr-2" />
+              Social Media & Short Form
+            </TabsTrigger>
+            <TabsTrigger value="television" className={`w-full bg-white rounded-t-md rounded-b-none ${mode === 'television' ? 'bg-white text-blue-500 border-b border-blue-500' : 'bg-gray-200'} data-[state=active]:text-blue-600 inline-flex items-center justify-center whitespace-nowrap px-6 py-2.5`}>
+              <Video className="h-4 w-4 mr-2" />
+              Standard Video & Television
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="social-media">
           {isCreatingExperiment ? (
             <div className="mt-8">
               <div className="flex justify-between mb-8">
@@ -343,6 +400,7 @@ export default function IdeationPage() {
                     setIsCreatingExperiment(true);
                     setCurrentStep(0);
                   }}
+                  error={adSuggestionsError}
                 />
               </div>
               <div className="space-y-4">
@@ -365,11 +423,11 @@ export default function IdeationPage() {
                         <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
                           <div className="flex items-center">
                             <Calendar className="w-3 h-3 mr-1" />
-                            {new Date(ad.created_at).toLocaleDateString()}
+                            {ad.created_at ? new Date(ad.created_at).toLocaleDateString() : 'N/A'}                         
                           </div>
                           <div className="flex items-center">
                             <Users className="w-3 h-3 mr-1" />
-                            {ad.target_audience.location}
+                            {ad.target_audience?.location || 'N/A'}    
                           </div>
                           <div className="flex items-center">
                             <Tag className="w-3 h-3 mr-1" />
@@ -389,7 +447,7 @@ export default function IdeationPage() {
                             variant="ghost"
                             size="sm"
                             className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                            onClick={() => loadAdExperiment(ad.id)}
+                            onClick={() => loadAdExperiment(Number(ad.id))}
                           >
                             {ad.status === 'Draft' ? 'Keep Working' : ad.status === 'In Review' ? 'Review' : 'Modify'}
                             <ChevronRight className="h-4 w-4 ml-1" />
@@ -403,10 +461,10 @@ export default function IdeationPage() {
                             size="sm"
                             variant="ghost"
                             className="text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-100 shadow-sm whitespace-nowrap font-semibold"
-                            onClick={() => loadAdExperiment(ad.id)}
+                            onClick={() => loadAdExperiment(Number(ad.id))}
                           >
                             <GalleryHorizontalEnd className="w-4 h-4 mr-2" />
-                            Move to Generation
+                            Move to Generation Flow
                           </Button>
                         </div>
                       )}
@@ -415,6 +473,32 @@ export default function IdeationPage() {
               </div>
             </div>
           )}
+          </TabsContent>
+          <TabsContent value="television">
+            <Tabs defaultValue="outlines" className="w-full">
+                <TabsList className="inline-flex h-12 items-center justify-center rounded-full bg-gray-100 p-1 mb-4">
+                  <TabsTrigger 
+                    value="outlines" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    Outlines
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="clip-search" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    Clip Search
+                  </TabsTrigger>
+                </TabsList>
+              <TabsContent value="outlines">
+                <OutlineList initialOutlines={outlines} loading={isLoadingOutlines} />
+              </TabsContent>
+              <TabsContent value="clip-search">
+                <ClipSearchComponent />
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+          </Tabs>
         </div>
       </main>
     </Navbar>

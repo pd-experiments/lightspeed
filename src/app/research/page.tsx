@@ -43,7 +43,7 @@ export default function UniversalSearchPage() {
           <header className="py-3 sm:py-6">
             <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
               <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
-                Universal Search: Explore All Data Sources
+                Search through troves of [previously] siloed data
               </h1>
               <div className="flex flex-row items-center gap-2">
                 {getPlatformIcon("TikTok", 6)}

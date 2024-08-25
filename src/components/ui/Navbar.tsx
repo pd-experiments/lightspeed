@@ -42,7 +42,7 @@ const navItems: NavItem[] = [
     title: "Research",
     icon: <TextSelect className="w-4 h-4 mr-2" />,
     subItems: [
-      { title: "Search", icon: <Dot className="w-4 h-4 mr-2" />, href: "/research/adsearch" },
+      { title: "Search", icon: <Dot className="w-4 h-4 mr-2" />, href: "/research" },
       { title: "Advertisements", icon: <Dot className="w-4 h-4 mr-2" />, href: "/research/ads" },
       { title: "Conversations", icon: <Dot className="w-4 h-4 mr-2" />, href: "/research/conversations" },
     ],

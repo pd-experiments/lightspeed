@@ -1,19 +1,19 @@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AdExperimentInsert } from '@/lib/types/customTypes';
+import { AdCreationInsert } from '@/lib/types/customTypes';
 
 interface PlatformsAndLeaningStepProps {
-  adExperiment: AdExperimentInsert;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  adCreation: AdCreationInsert;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   handleMultiSelectChange: (name: 'platforms' | 'key_components', value: string[]) => void;
 }
 
-export default function PlatformsAndLeaningStep({ adExperiment, handleInputChange, handleMultiSelectChange }: PlatformsAndLeaningStepProps) {
+export default function PlatformsAndLeaningStep({ adCreation, handleInputChange, handleMultiSelectChange }: PlatformsAndLeaningStepProps) {
   return (
     <div className="space-y-4">
       <Select 
         onValueChange={(value) => handleMultiSelectChange('platforms', [value])}
-        value={adExperiment.platforms[0]}
+        value={adCreation.platforms[0]}
       >
         <SelectTrigger>
           <SelectValue placeholder="Platforms" />
@@ -28,7 +28,7 @@ export default function PlatformsAndLeaningStep({ adExperiment, handleInputChang
       </Select>
       <Select 
         onValueChange={(value) => handleInputChange({ target: { name: 'political_leaning', value } } as React.ChangeEvent<HTMLSelectElement>)}
-        value={adExperiment.political_leaning}
+        value={adCreation.political_leaning}
       >
         <SelectTrigger>
           <SelectValue placeholder="Political Leaning" />
@@ -43,7 +43,7 @@ export default function PlatformsAndLeaningStep({ adExperiment, handleInputChang
       </Select>
       <Input
         name="key_components"
-        value={adExperiment.key_components.join(', ')}
+        value={adCreation.key_components.join(', ')}
         onChange={(e) => handleMultiSelectChange('key_components', e.target.value.split(', '))}
         placeholder="Key Components (comma-separated)"
         required

@@ -1,10 +1,10 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { AdExperiment } from '@/lib/types/customTypes';
+import { AdCreation } from '@/lib/types/customTypes';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 
 interface AdPerformanceResultsProps {
-  experiment: AdExperiment;
+  experiment: AdCreation;
 }
 
 export default function AdPerformanceResults({ experiment }: AdPerformanceResultsProps) {

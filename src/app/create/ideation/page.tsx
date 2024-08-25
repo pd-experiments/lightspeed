@@ -202,7 +202,7 @@ export default function IdeationPage() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const updatedExperiment = { ...adExperiment, [name]: value };
     setAdExperiment(updatedExperiment);
@@ -225,17 +225,17 @@ export default function IdeationPage() {
   };
 
   type StepProps = {
-    adExperiment: AdCreationInsert;
-    handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    adCreation: AdCreationInsert;
+    handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
     handleNestedInputChange: (category: 'target_audience' | 'ad_content', name: string, value: any) => void;
     handleMultiSelectChange: (name: 'platforms' | 'key_components', value: string[]) => void;
   };
-
+  
   const steps: { title: string; component: React.ComponentType<StepProps>; icon: React.ReactNode }[] = [
-    { title: 'Basic Information', component: BasicInformationStep, icon: <Info className="h-6 w-6" /> },
+    { title: 'Basic Information', component: (props: StepProps) => <BasicInformationStep adCreation={props.adCreation} handleInputChange={props.handleInputChange} />, icon: <Info className="h-6 w-6" /> },
     { title: 'Budget and Timeline', component: BudgetAndTimelineStep, icon: <DollarSign className="h-6 w-6" /> },
     { title: 'Target Audience', component: TargetAudienceStep, icon: <Users className="h-6 w-6" /> },
-    { title: 'Ad Content', component: (props: StepProps) => <AdContentStep adCreation={props.adExperiment} handleNestedInputChange={props.handleNestedInputChange} />, icon: <FileText className="h-6 w-6" /> },
+    { title: 'Ad Content', component: (props: StepProps) => <AdContentStep adCreation={props.adCreation} handleNestedInputChange={props.handleNestedInputChange} />, icon: <FileText className="h-6 w-6" /> },
     { title: 'Platforms and Political Leaning', component: PlatformsAndLeaningStep, icon: <Share className="h-6 w-6" /> },
   ];
 
@@ -326,7 +326,7 @@ export default function IdeationPage() {
               </div>
               <div className="bg-white rounded-lg p-6 mb-8">
                 <CurrentStepComponent
-                  adExperiment={adExperiment}
+                  adCreation={adExperiment}
                   handleInputChange={handleInputChange}
                   handleNestedInputChange={handleNestedInputChange}
                   handleMultiSelectChange={handleMultiSelectChange}

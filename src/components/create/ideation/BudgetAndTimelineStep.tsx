@@ -1,18 +1,18 @@
 import { Input } from '@/components/ui/input';
-import { AdExperimentInsert } from '@/lib/types/customTypes';
+import { AdCreationInsert } from '@/lib/types/customTypes';
 
 interface BudgetAndTimelineStepProps {
-  adExperiment: AdExperimentInsert;
+  adCreation: AdCreationInsert;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function BudgetAndTimelineStep({ adExperiment, handleInputChange }: BudgetAndTimelineStepProps) {
+export default function BudgetAndTimelineStep({ adCreation, handleInputChange }: BudgetAndTimelineStepProps) {
   return (
     <div className="space-y-4">
       <Input
         type="number"
         name="budget"
-        value={adExperiment.budget}
+        value={adCreation.budget}
         onChange={handleInputChange}
         placeholder="Budget"
         required
@@ -20,7 +20,7 @@ export default function BudgetAndTimelineStep({ adExperiment, handleInputChange 
       <Input
         type="number"
         name="duration"
-        value={adExperiment.duration}
+        value={adCreation.duration}
         onChange={handleInputChange}
         placeholder="Duration (days)"
         required
@@ -28,14 +28,14 @@ export default function BudgetAndTimelineStep({ adExperiment, handleInputChange 
       <Input
         type="date"
         name="start_date"
-        value={adExperiment.start_date.split('T')[0]}
+        value={adCreation.start_date.split('T')[0]}
         onChange={handleInputChange}
         required
       />
       <Input
         type="date"
         name="end_date"
-        value={adExperiment.end_date.split('T')[0]}
+        value={adCreation.end_date.split('T')[0]}
         onChange={handleInputChange}
         required
       />

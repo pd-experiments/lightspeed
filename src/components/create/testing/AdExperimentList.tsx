@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { AdCreation } from '@/lib/types/customTypes';
 import { Users, DollarSign, ChevronRight, FileText, Share, Beaker } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AdExperimentListProps {
   adExperiments: (AdCreation & { tests: string[] })[];
@@ -12,7 +13,42 @@ interface AdExperimentListProps {
   selectExperiment: (experiment: AdCreation) => void;
 }
 
-export default function AdExperimentList({ adExperiments, getStatusColor, getFlowColor, selectExperiment }: AdExperimentListProps) {
+export default function AdExperimentList({ adExperiments, getStatusColor, getFlowColor, selectExperiment, isLoading = false }: AdExperimentListProps & { isLoading?: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-start space-x-4">
+                <Skeleton className="w-24 h-24 rounded-md" />
+                <div className="flex-grow space-y-2">
+                  <Skeleton className="h-5 w-1/3" />
+                  <Skeleton className="h-4 w-full" />
+                  <div className="flex flex-wrap gap-2">
+                    {[...Array(3)].map((_, i) => (
+                      <Skeleton key={i} className="h-4 w-20" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (adExperiments.length === 0) {
+    return (
+      <Card className="hover:shadow-lg transition-shadow duration-300">
+        <CardContent className="p-6 text-center">
+          <p className="text-gray-500">No ad experiments available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   return (
     <div className="space-y-4">
       {adExperiments.filter((experiment) => experiment.flow == "Generation" || experiment.flow == "Testing").map((experiment) => (

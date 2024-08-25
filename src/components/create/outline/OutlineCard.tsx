@@ -39,7 +39,7 @@ export function OutlineCard({ outline, elementCount, totalDuration, onDelete, sc
   };
 
   return (
-    <Link href={`/create/television/${outline.id}`}>
+    <Link href={`/create/ideation/television/${outline.id}`}>
       <div className="bg-white rounded-lg shadow-lg p-4 hover:shadow-md transition-shadow duration-300">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-sm font-semibold text-gray-800 line-clamp-1">{outline.title}</h3>

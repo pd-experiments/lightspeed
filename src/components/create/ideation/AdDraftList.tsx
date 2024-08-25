@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AdCreation } from '@/lib/types/customTypes';
 import { Calendar, Users, Tag, FileText, DollarSign, ChevronRight, GalleryHorizontalEnd } from 'lucide-react';
 import _ from 'lodash';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AdDraftListProps {
   adDrafts: AdCreation[];
@@ -12,7 +13,39 @@ interface AdDraftListProps {
   loadAdExperiment: (id: number) => void;
 }
 
-export default function AdDraftList({ adDrafts, getPoliticalLeaningColor, getStatusColor, loadAdExperiment }: AdDraftListProps) {
+export default function AdDraftList({ adDrafts, getPoliticalLeaningColor, getStatusColor, loadAdExperiment, isLoading = false }: AdDraftListProps & { isLoading?: boolean }) {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, index) => (
+            <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+              <CardContent className="p-3">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-1/3" />
+                  <Skeleton className="h-4 w-full" />
+                  <div className="flex flex-wrap gap-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Skeleton key={i} className="h-4 w-20" />
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      );
+    }
+  
+    if (adDrafts.length === 0) {
+      return (
+        <Card className="hover:shadow-lg transition-shadow duration-300">
+          <CardContent className="p-3 text-center">
+            <p className="text-gray-500">No ad drafts available.</p>
+          </CardContent>
+        </Card>
+      );
+    }
+
   return (
     <div className="space-y-4">
       {adDrafts.filter((experiment) => experiment.flow == "Ideation").map((ad) => (

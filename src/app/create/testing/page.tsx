@@ -21,14 +21,19 @@ export default function GenerateTestPage() {
   const [adTests, setAdTests] = useState<AdDeploymentWithCreation[]>([]);
   const router = useRouter();
 
+  const [isLoadingAdExperiments, setIsLoadingAdExperiments] = useState(false);
+  const [isLoadingAdTests, setIsLoadingAdTests] = useState(false);
+
   useEffect(() => {
     fetchAdExperiments();
     fetchAdTests();
   }, []);
 
   const fetchAdExperiments = async () => {
-    const { data, error } = await supabase
-      .from('ad_creations')
+    setIsLoadingAdExperiments(true);
+    try {
+      const { data, error } = await supabase
+        .from('ad_creations')
       .select(`
         *,
         tests:ad_deployments(id)
@@ -44,9 +49,17 @@ export default function GenerateTestPage() {
         tests: experiment.tests?.map((test: AdDeployment) => test.id) || []
       })) || []);
     }
+    } catch (error) {
+      console.error('Error fetching ad experiments:', error);
+      setAdExperiments([]);
+    } finally {
+      setIsLoadingAdExperiments(false);
+    }
   };
 
   const fetchAdTests = async () => {
+    setIsLoadingAdTests(true);
+    try {
     const { data, error } = await supabase
       .from('ad_deployments')
       .select(`
@@ -56,10 +69,16 @@ export default function GenerateTestPage() {
       .eq('type', 'Test')
       .order('created_at', { ascending: false });
   
-    if (error) {
+      if (error) {
+        console.error('Error fetching ad tests:', error);
+      } else {
+        setAdTests(data || []);
+      }
+    } catch (error) {
       console.error('Error fetching ad tests:', error);
-    } else {
-      setAdTests(data || []);
+      setAdTests([]);
+    } finally {
+      setIsLoadingAdTests(false);
     }
   };
 
@@ -122,6 +141,7 @@ export default function GenerateTestPage() {
             getStatusColor={getStatusColor}
             getFlowColor={getFlowColor}
             selectExperiment={selectExperiment}
+            isLoading={isLoadingAdExperiments}
           />
 
           <div className="mt-12 mb-6">
@@ -142,6 +162,7 @@ export default function GenerateTestPage() {
             getStatusColor={getStatusColor}
             selectExperiment={selectExperiment}
             selectTest={selectTest}
+            isLoading={isLoadingAdTests}
           />
         </div>
       </main>

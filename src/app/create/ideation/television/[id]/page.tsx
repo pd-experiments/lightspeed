@@ -157,13 +157,13 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
       <div className="w-full max-w-[1500px] mx-auto">
         <div className="w-full flex justify-between mb-4">
           <Button variant="link" className="p-0 h-auto font-normal">
-            <Link href="/create/television" className="flex items-center">
+            <Link href="/create/ideation" className="flex items-center">
               <ChevronLeft className="mr-1 h-4 w-4" />
-              <span>Back to Outlines</span>
+              <span>Back to Ideation Dashboard</span>
             </Link>
           </Button>
-          <Button variant="link" className="p-0 h-auto font-normal">
-            <Link href={`/create/television/${outlineId}/script?title=${encodeURIComponent(outline?.title || '')}`} className="flex items-center">
+          <Button disabled={outline?.status !==  "SCRIPT_FINALIZED" && outline?.status !==  "COMPLIANCE_CHECK" && outline?.status !==  "PERSONALIZATION"} variant="link" className="p-0 h-auto font-normal">
+            <Link href={`/create/ideation/television/${outlineId}/script?title=${encodeURIComponent(outline?.title || '')}`} className="flex items-center">
               <span>View Script</span>
               <ChevronLeft className="ml-1 h-4 w-4 transform rotate-180" />
             </Link>

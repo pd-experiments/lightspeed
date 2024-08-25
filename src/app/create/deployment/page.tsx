@@ -8,12 +8,14 @@ import AdDeploymentList from '@/components/create/deployment/AdDeploymentList';
 
 export default function DeploymentPage() {
   const [deployments, setDeployments] = useState<AdDeploymentWithCreation[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchDeployments();
   }, []);
 
   const fetchDeployments = async () => {
+    setIsLoading(true);
     const { data, error } = await supabase
       .from('ad_deployments')
       .select(`
@@ -28,6 +30,7 @@ export default function DeploymentPage() {
     } else {
       setDeployments(data || []);
     }
+    setIsLoading(false);
   };
 
   const getStatusColor = (status: string) => {
@@ -51,7 +54,7 @@ export default function DeploymentPage() {
               </h1>
             </div>
           </header>
-          <AdDeploymentList deployments={deployments} getStatusColor={getStatusColor} />
+          <AdDeploymentList deployments={deployments} getStatusColor={getStatusColor} isLoading={isLoading} />
         </div>
       </main>
     </Navbar>

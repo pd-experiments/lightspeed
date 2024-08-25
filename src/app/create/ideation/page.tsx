@@ -68,11 +68,15 @@ export default function IdeationPage() {
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [adSuggestionsError, setAdSuggestionsError] = useState(false);
 
+  const [isLoadingAdDrafts, setIsLoadingAdDrafts] = useState(false);
+
   useEffect(() => {
     fetchAdDrafts();
   }, []);
 
   const fetchAdDrafts = async () => {
+    setIsLoadingAdDrafts(true);
+    try {
     const { data, error } = await supabase
       .from('ad_creations')
       .select('*')
@@ -82,6 +86,12 @@ export default function IdeationPage() {
       console.error('Error fetching ad drafts:', error);
     } else {
       setAdDrafts(data || []);
+    }
+    } catch (error) {
+      console.error('Error fetching ad drafts:', error);
+      setAdDrafts([]);
+    } finally {
+      setIsLoadingAdDrafts(false);
     }
   };
 
@@ -409,6 +419,7 @@ export default function IdeationPage() {
                 getPoliticalLeaningColor={getPoliticalLeaningColor}
                 getStatusColor={getStatusColor}
                 loadAdExperiment={loadAdExperiment}
+                isLoading={isLoadingAdDrafts}
               />
             </div>
           )}

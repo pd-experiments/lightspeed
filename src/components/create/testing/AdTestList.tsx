@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AdDeploymentWithCreation, Platform } from '@/lib/types/customTypes';
 import { Calendar, Users, DollarSign, BarChart, ChevronRight, Zap, ArrowLeft, Tag, GalleryHorizontalEnd } from 'lucide-react';
 import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AdTestListProps {
   adTests: AdDeploymentWithCreation[];
@@ -12,7 +13,42 @@ interface AdTestListProps {
   selectTest: (testId: string) => void;
 }
 
-export default function AdTestList({ adTests, getStatusColor, selectExperiment, selectTest }: AdTestListProps) {
+export default function AdTestList({ adTests, getStatusColor, selectExperiment, selectTest, isLoading = false }: AdTestListProps & { isLoading?: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-start space-x-4">
+                <Skeleton className="w-10 h-10 rounded-full" />
+                <div className="flex-grow space-y-2">
+                  <Skeleton className="h-5 w-1/3" />
+                  <Skeleton className="h-4 w-full" />
+                  <div className="flex flex-wrap gap-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Skeleton key={i} className="h-4 w-20" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (adTests.length === 0) {
+    return (
+      <Card className="hover:shadow-lg transition-shadow duration-300">
+        <CardContent className="p-6 text-center">
+          <p className="text-gray-500">No ad tests available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   return (
     <div className="space-y-4">
       {adTests.map((test) => (

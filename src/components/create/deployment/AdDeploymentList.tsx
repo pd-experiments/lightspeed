@@ -5,13 +5,46 @@ import { AdDeploymentWithCreation } from '@/lib/types/customTypes';
 import { Calendar, Users, DollarSign, BarChart, ChevronRight, FileText, Zap, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import _ from 'lodash';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AdDeploymentListProps {
   deployments: AdDeploymentWithCreation[];
   getStatusColor: (status: string) => string;
 }
 
-export default function AdDeploymentList({ deployments, getStatusColor }: AdDeploymentListProps) {
+export default function AdDeploymentList({ deployments, getStatusColor, isLoading = false }: AdDeploymentListProps & { isLoading?: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+            <CardContent className="p-3">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-1/3" />
+                <Skeleton className="h-4 w-full" />
+                <div className="flex flex-wrap gap-2">
+                  {[...Array(6)].map((_, i) => (
+                    <Skeleton key={i} className="h-4 w-20" />
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (deployments.length === 0) {
+    return (
+      <Card className="hover:shadow-lg transition-shadow duration-300">
+        <CardContent className="p-3 text-center">
+          <p className="text-gray-500">No deployments created.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   return (
     <div className="space-y-4">
       {deployments.map((deployment) => (

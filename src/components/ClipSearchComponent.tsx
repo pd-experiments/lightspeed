@@ -126,8 +126,6 @@ export default function ClipSearchComponent() {
 
   return (
     <div className="w-full max-w-7xl">
-      <h1 className="text-3xl font-bold mb-6">Clip Search</h1>
-      <p className="text-base text-gray-700 mb-6">Search for video content from across the country.</p>
       <GlobalSearch
         isLoading={isLoadingPage}
         searchQuery={searchQuery}

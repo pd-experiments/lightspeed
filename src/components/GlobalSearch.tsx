@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import SearchInput from '@/components/ui/SearchInput';
 import { OutlineSelector } from '@/components/create/outline/OutlineSelector';
 import ClipCard from '@/components/create/clipsearch/ClipCard';
@@ -10,6 +10,8 @@ import { Database } from '@/lib/types/schema';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaginatedDataTable } from './ui/paginated-data-table';
 import { Row } from '@tanstack/react-table';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { GalleryHorizontal, Settings } from 'lucide-react';
 
 type Outline = Database['public']['Tables']['outline']['Row'];
 
@@ -42,6 +44,8 @@ export function GlobalSearchTab({
   playerRef,
   isLoading,
 }: GlobalSearchTabProps) {
+  const [activeView, setActiveView] = useState('cards');
+
   const formatText = (text: string) => {
     return text
       .split(". ")
@@ -56,7 +60,7 @@ export function GlobalSearchTab({
   };
 
   return (
-    <div className="mb-4 mt-10">
+    <div className="mb-4 mt-3">
     <div className="mb-4">
       <div className="flex items-center space-x-2">
         <div className="flex-grow">
@@ -99,14 +103,27 @@ export function GlobalSearchTab({
       )}
     </div>
     <div className="rounded-md overflow-hidden">
-      <Tabs defaultValue="cards">
-        <TabsList className="rounded-md">
-          <TabsTrigger value="cards">Card View</TabsTrigger>
-          <TabsTrigger value="table">Table View</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="cards" value={activeView} onValueChange={setActiveView}>
+        <div className="flex justify-end mb-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="bg-white">
+                <GalleryHorizontal className="h-4 w-4 mr-2" /> View
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setActiveView('cards')}>
+                Card View
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setActiveView('table')}>
+                Table View
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         <TabsContent value="cards">
           {isLoading ? (
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {[...Array(8)].map((_, index) => (
                 <Skeleton key={index} className="h-64 w-full" />
               ))}
@@ -116,7 +133,7 @@ export function GlobalSearchTab({
               No results found.
             </div>
           ) : (
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {searchResults.map((item, index) => (
                 isSearching ? (
                   <Skeleton key={index} className="h-64 w-full" />

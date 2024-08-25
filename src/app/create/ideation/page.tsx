@@ -302,10 +302,14 @@ export default function IdeationPage() {
           </header>
 
           <Tabs className="w-full" value={mode} onValueChange={(value) => setMode(value as 'social-media' | 'television')}>
-            <TabsList className="flex justify-center w-full grid-cols-2 gap-0">
-              <TabsTrigger value="social-media" className="w-full">Social Media</TabsTrigger>
-              <TabsTrigger value="television" className="w-full">Television</TabsTrigger>
-            </TabsList>      
+          <TabsList className="inline-flex h-14 items-center w-full space-x-1">
+            <TabsTrigger value="social-media" className={`w-full bg-white rounded-t-md rounded-b-none ${mode === 'social-media' ? 'bg-white text-blue-500 border-b border-blue-500' : 'bg-gray-200'} data-[state=active]:text-blue-600 inline-flex items-center justify-center whitespace-nowrap px-6 py-2.5`}>
+              Social Media
+            </TabsTrigger>
+            <TabsTrigger value="television" className={`w-full bg-white rounded-t-md rounded-b-none ${mode === 'television' ? 'bg-white text-blue-500 border-b border-blue-500' : 'bg-gray-200'} data-[state=active]:text-blue-600 inline-flex items-center justify-center whitespace-nowrap px-6 py-2.5`}>
+              Television
+            </TabsTrigger>
+          </TabsList>
           <TabsContent value="social-media">
           {isCreatingExperiment ? (
             <div className="mt-8">
@@ -436,15 +440,25 @@ export default function IdeationPage() {
           </TabsContent>
           <TabsContent value="television">
             <Tabs defaultValue="clip-search" className="w-full">
-              <TabsList>  
-                <TabsTrigger value="clip-search">Clip Search</TabsTrigger>
-                <TabsTrigger value="outlines">Outlines</TabsTrigger>
-              </TabsList>
-              <TabsContent value="clip-search">
-                <ClipSearchComponent />
-              </TabsContent>
+              <TabsList className="inline-flex h-12 items-center justify-center rounded-full bg-gray-100 p-1 mb-4">
+                  <TabsTrigger 
+                    value="clip-search" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    Clip Search
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="outlines" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    Outlines
+                  </TabsTrigger>
+                </TabsList>
               <TabsContent value="outlines">
                 <OutlineList />
+              </TabsContent>
+              <TabsContent value="clip-search">
+                <ClipSearchComponent />
               </TabsContent>
             </Tabs>
           </TabsContent>

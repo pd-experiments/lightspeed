@@ -138,8 +138,7 @@ export default function ComplianceReportPage({ params }: { params: { id: string 
   };
 
   return (
-    <>
-      <Navbar />
+    <Navbar>
       <main className="flex min-h-screen flex-col items-center justify-between p-24">
         <div className="w-full max-w-7xl">
           <Button variant="link" className="mb-4 p-0 h-auto font-normal">
@@ -190,6 +189,6 @@ export default function ComplianceReportPage({ params }: { params: { id: string 
           )}
         </div>
       </main>
-    </>
+    </Navbar>
   );
 }

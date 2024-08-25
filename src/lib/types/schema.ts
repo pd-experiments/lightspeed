@@ -9,6 +9,137 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ad_experiments: {
+        Row: {
+          ad_content: Json
+          budget: number
+          created_at: string | null
+          description: string | null
+          duration: number
+          end_date: string
+          flow: Database["public"]["Enums"]["ad_flow"]
+          id: string
+          key_components: string[]
+          objective: Database["public"]["Enums"]["campaign_objective"]
+          platforms: Database["public"]["Enums"]["ad_platform"][]
+          political_leaning: Database["public"]["Enums"]["political_leaning"]
+          start_date: string
+          status: Database["public"]["Enums"]["ad_status"]
+          target_audience: Json
+          title: string
+          updated_at: string | null
+          version_data: Json | null
+        }
+        Insert: {
+          ad_content: Json
+          budget: number
+          created_at?: string | null
+          description?: string | null
+          duration: number
+          end_date: string
+          flow?: Database["public"]["Enums"]["ad_flow"]
+          id?: string
+          key_components: string[]
+          objective: Database["public"]["Enums"]["campaign_objective"]
+          platforms: Database["public"]["Enums"]["ad_platform"][]
+          political_leaning: Database["public"]["Enums"]["political_leaning"]
+          start_date: string
+          status?: Database["public"]["Enums"]["ad_status"]
+          target_audience: Json
+          title: string
+          updated_at?: string | null
+          version_data?: Json | null
+        }
+        Update: {
+          ad_content?: Json
+          budget?: number
+          created_at?: string | null
+          description?: string | null
+          duration?: number
+          end_date?: string
+          flow?: Database["public"]["Enums"]["ad_flow"]
+          id?: string
+          key_components?: string[]
+          objective?: Database["public"]["Enums"]["campaign_objective"]
+          platforms?: Database["public"]["Enums"]["ad_platform"][]
+          political_leaning?: Database["public"]["Enums"]["political_leaning"]
+          start_date?: string
+          status?: Database["public"]["Enums"]["ad_status"]
+          target_audience?: Json
+          title?: string
+          updated_at?: string | null
+          version_data?: Json | null
+        }
+        Relationships: []
+      }
+      ad_tests: {
+        Row: {
+          adset_id: string | null
+          audience: string
+          bid_strategy: string
+          budget: number
+          caption: string
+          created_at: string | null
+          duration: number
+          experiment_id: string | null
+          id: string
+          image_url: string | null
+          link: string
+          placement: string
+          platform: string
+          status: string
+          updated_at: string | null
+          version_id: string
+          video_url: string | null
+        }
+        Insert: {
+          adset_id?: string | null
+          audience: string
+          bid_strategy: string
+          budget: number
+          caption: string
+          created_at?: string | null
+          duration: number
+          experiment_id?: string | null
+          id?: string
+          image_url?: string | null
+          link: string
+          placement: string
+          platform: string
+          status: string
+          updated_at?: string | null
+          version_id: string
+          video_url?: string | null
+        }
+        Update: {
+          adset_id?: string | null
+          audience?: string
+          bid_strategy?: string
+          budget?: number
+          caption?: string
+          created_at?: string | null
+          duration?: number
+          experiment_id?: string | null
+          id?: string
+          image_url?: string | null
+          link?: string
+          placement?: string
+          platform?: string
+          status?: string
+          updated_at?: string | null
+          version_id?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_tests_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "ad_experiments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_docs: {
         Row: {
           created_at: string | null
@@ -129,6 +260,7 @@ export type Database = {
           keywords: string[]
           political_leaning: string | null
           summary: string
+          summary_embeddings: string | null
           tone: string[] | null
           versioned_ad_id: string
         }
@@ -136,6 +268,7 @@ export type Database = {
           keywords: string[]
           political_leaning?: string | null
           summary: string
+          summary_embeddings?: string | null
           tone?: string[] | null
           versioned_ad_id: string
         }
@@ -143,6 +276,7 @@ export type Database = {
           keywords?: string[]
           political_leaning?: string | null
           summary?: string
+          summary_embeddings?: string | null
           tone?: string[] | null
           versioned_ad_id?: string
         }
@@ -172,6 +306,7 @@ export type Database = {
           last_shown: string | null
           political_leaning: string | null
           summary: string | null
+          summary_embeddings: string | null
           targeted_ages: string[] | null
           tone: string[] | null
           version: number | null
@@ -191,6 +326,7 @@ export type Database = {
           last_shown?: string | null
           political_leaning?: string | null
           summary?: string | null
+          summary_embeddings?: string | null
           targeted_ages?: string[] | null
           tone?: string[] | null
           version?: number | null
@@ -210,6 +346,7 @@ export type Database = {
           last_shown?: string | null
           political_leaning?: string | null
           summary?: string | null
+          summary_embeddings?: string | null
           targeted_ages?: string[] | null
           tone?: string[] | null
           version?: number | null
@@ -733,6 +870,60 @@ export type Database = {
           },
         ]
       }
+      tiktok_embeddings: {
+        Row: {
+          author: string | null
+          caption: string | null
+          caption_embedding: number[] | null
+          comments: Json | null
+          created_at: string | null
+          hashtags: string[] | null
+          id: string
+          keywords: string[] | null
+          political_leaning: string | null
+          summary: string | null
+          summary_embedding: number[] | null
+          tone: string[] | null
+          topic: string | null
+          video_id: string | null
+          views: number | null
+        }
+        Insert: {
+          author?: string | null
+          caption?: string | null
+          caption_embedding?: number[] | null
+          comments?: Json | null
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          keywords?: string[] | null
+          political_leaning?: string | null
+          summary?: string | null
+          summary_embedding?: number[] | null
+          tone?: string[] | null
+          topic?: string | null
+          video_id?: string | null
+          views?: number | null
+        }
+        Update: {
+          author?: string | null
+          caption?: string | null
+          caption_embedding?: number[] | null
+          comments?: Json | null
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          keywords?: string[] | null
+          political_leaning?: string | null
+          summary?: string | null
+          summary_embedding?: number[] | null
+          tone?: string[] | null
+          topic?: string | null
+          video_id?: string | null
+          views?: number | null
+        }
+        Relationships: []
+      }
       tiktok_videos: {
         Row: {
           author: string
@@ -937,6 +1128,19 @@ export type Database = {
           video_id: string | null
         }[]
       }
+      get_tiktok_video_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          video_id: string
+          author: string
+          created_at: string
+          caption: string
+          hashtags: string[]
+          topic: string
+          views: number
+          comments: Json
+        }[]
+      }
       halfvec_avg: {
         Args: {
           "": number[]
@@ -984,6 +1188,32 @@ export type Database = {
           "": unknown
         }
         Returns: unknown
+      }
+      int_ads__google_ads_enhanced__semantic_search: {
+        Args: {
+          query_embedding: string
+          match_threshold: number
+        }
+        Returns: {
+          advertisement_url: string
+          advertiser_name: string | null
+          advertiser_url: string | null
+          content: string | null
+          days_ran_for: number | null
+          first_shown: string | null
+          format: string | null
+          gender_targeting: Json | null
+          geo_targeting: Json | null
+          id: string
+          keywords: string[] | null
+          last_shown: string | null
+          political_leaning: string | null
+          summary: string | null
+          summary_embeddings: string | null
+          targeted_ages: string[] | null
+          tone: string[] | null
+          version: number | null
+        }[]
       }
       ivfflat_bit_support: {
         Args: {
@@ -1062,20 +1292,47 @@ export type Database = {
             }
             Returns: unknown
           }
-      match_documents: {
-        Args: {
-          query_embedding: string
-          match_threshold: number
-          match_count: number
-          video_uuid_specific: string
-        }
-        Returns: {
-          video_uuid: string
-          timestamp: string
-          text: string
-          similarity: number
-        }[]
-      }
+      match_documents:
+        | {
+            Args: {
+              query_embedding: string
+              match_threshold: number
+            }
+            Returns: {
+              advertisement_url: string
+              advertiser_name: string | null
+              advertiser_url: string | null
+              content: string | null
+              days_ran_for: number | null
+              first_shown: string | null
+              format: string | null
+              gender_targeting: Json | null
+              geo_targeting: Json | null
+              id: string
+              keywords: string[] | null
+              last_shown: string | null
+              political_leaning: string | null
+              summary: string | null
+              summary_embeddings: string | null
+              targeted_ages: string[] | null
+              tone: string[] | null
+              version: number | null
+            }[]
+          }
+        | {
+            Args: {
+              query_embedding: string
+              match_threshold: number
+              match_count: number
+              video_uuid_specific: string
+            }
+            Returns: {
+              video_uuid: string
+              timestamp: string
+              text: string
+              similarity: number
+            }[]
+          }
       match_documents_grouped: {
         Args: {
           query_embedding: string
@@ -1157,6 +1414,23 @@ export type Database = {
       }
     }
     Enums: {
+      ad_flow: "Ideation" | "Generation" | "Testing" | "Deployment"
+      ad_platform:
+        | "Facebook"
+        | "Instagram"
+        | "Twitter"
+        | "LinkedIn"
+        | "TikTok"
+        | "YouTube"
+      ad_status:
+        | "Draft"
+        | "In Review"
+        | "Active"
+        | "Configured"
+        | "Generated"
+        | "Test"
+        | "Deployed"
+      campaign_objective: "awareness" | "consideration" | "conversion"
       govtType: "FEDERAL" | "STATE" | "LOCAL"
       outlineElementType: "VIDEO" | "TRANSITION"
       outlineStatus:
@@ -1167,6 +1441,12 @@ export type Database = {
         | "COMPLIANCE_CHECK"
         | "PERSONALIZATION"
       platformType: "INSTAGRAM" | "SNAPCHAT" | "FACEBOOK" | "TIKTOK"
+      political_leaning:
+        | "left"
+        | "center-left"
+        | "center"
+        | "center-right"
+        | "right"
       simpleUserType: "PRANAV" | "DINESH"
       todoStatusType: "TODO" | "IN_PROGRESS" | "DONE"
     }

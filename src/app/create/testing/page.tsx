@@ -13,6 +13,8 @@ import { useRouter } from 'next/navigation';
 import _ from 'lodash';
 import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
 import { Calendar, Users, DollarSign, BarChart, ChevronRight, FileText, Zap, ArrowLeft, Tag, WalletCards, Share, Beaker, GalleryHorizontalEnd } from 'lucide-react';
+import AdExperimentList from '@/components/create/testing/AdExperimentList';
+import AdTestList from '@/components/create/testing/AdTestList';
 
 export default function GenerateTestPage() {
   const [adExperiments, setAdExperiments] = useState<(AdCreation & { tests: string[] })[]>([]);  
@@ -114,79 +116,13 @@ export default function GenerateTestPage() {
             </div>
             <div className="h-px bg-gray-200 mt-2"></div>
           </div>
-          <div className="space-y-4">
-            {adExperiments.filter((experiment) => experiment.flow == "Generation" || experiment.flow == "Testing").map((experiment) => (
-              <Card key={experiment.id} className="hover:shadow-lg transition-shadow duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
-                      {experiment.ad_content?.image ? (
-                        <Image
-                          src={typeof experiment.ad_content.image === 'string' ? experiment.ad_content.image : URL.createObjectURL(experiment.ad_content.image)}
-                          alt="Ad preview"
-                          width={96}
-                          height={96}
-                          className="object-cover"
-                        />
-                      ) : (
-                        <FileText className="w-12 h-12 text-gray-400" />
-                      )}
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 mr-2">{experiment.title}</h3>
-                        <div className="flex-shrink-0 flex space-x-2">
-                          <Badge className={`${getStatusColor(experiment.status)} text-xs shadow-sm`}>
-                            {experiment.status}
-                          </Badge>
-                          <Badge className={`${getFlowColor(experiment.flow)} text-xs shadow-sm`}>
-                            Working on {experiment.flow}
-                          </Badge>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">{experiment.description}</p>
-                      <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
-                        <div className="flex items-center">
-                          <Users className="w-3 h-3 mr-1" />
-                          {experiment.target_audience?.location || 'No location'}
-                        </div>
-                        <div className="flex items-center">
-                          <Share className="w-3 h-3 mr-1" />
-                          <span className="truncate">{experiment.platforms.join(', ') || 'No platforms'}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <DollarSign className="w-3 h-3 mr-1" />
-                          <span className="font-semibold">${experiment.budget}</span>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex space-x-2">
-                          <Badge variant="outline" className={`text-xs ${experiment.version_data?.versions?.length || 0 > 0 ? 'bg-blue-500 text-white' : ''}`}>
-                            {experiment.version_data?.versions?.length || 0} Versions
-                          </Badge>
-                          <Badge variant="outline" className="text-xs bg-orange-500 bg-opacity-80 text-white hover:bg-orange-600 hover:bg-opacity-100">
-                            <Beaker className="w-3 h-3 mr-1" />{experiment.tests?.length || 0} Associated Tests
-                          </Badge>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                          onClick={() => selectExperiment(experiment)}
-                        >
-                          {experiment.status === 'Configured' ? 'Generate' :
-                          experiment.status === 'Generated' && experiment.flow === 'Testing' ? 
-                            (experiment.tests?.length > 0 ? 'See Testing Configuration' : 'Continue Testing') :
-                          experiment.status === 'Test' ? 'Continue Building Tests' : 'View'}
-                          <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+
+          <AdExperimentList
+            adExperiments={adExperiments}
+            getStatusColor={getStatusColor}
+            getFlowColor={getFlowColor}
+            selectExperiment={selectExperiment}
+          />
 
           <div className="mt-12 mb-6">
             <div className="flex items-center justify-between">
@@ -200,93 +136,13 @@ export default function GenerateTestPage() {
             </div>
             <div className="h-px bg-gray-200 mt-2"></div>
           </div>
-          <div className="space-y-4">
-            {adTests.map((test) => (
-              <Card key={test.id} className="hover:shadow-lg transition-shadow duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      {getPlatformIcon(test.platform as Platform, 10)}
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-lg font-semibold text-gray-800">Test #{test.id.slice(0, 8)}</h3>
-                        <div className="flex-shrink-0 flex space-x-2">
-                          <Badge className={`${getStatusColor(test.creation.status)} text-xs shadow-sm`}>
-                            {test.status}
-                          </Badge>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-600 line-clamp-1 mb-1">{test.creation.description}</p>
-                      <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-gray-500">
-                        <div className="flex flex-wrap items-center gap-4">
-                          <div className="flex items-center">
-                            <Calendar className="w-3 h-3 mr-1 text-gray-400" />
-                            {new Date(test.created_at || '').toLocaleDateString()}
-                          </div>
-                          <div className="flex items-center">
-                            <Tag className="w-3 h-3 mr-1 text-gray-400" />
-                            {test.platform}
-                          </div>
-                          {test.budget && (
-                            <div className="flex items-center">
-                              <DollarSign className="w-3 h-3 mr-1 text-gray-400" />
-                              <span className="font-semibold">${test.budget}</span>
-                            </div>
-                          )}
-                          <div className="flex items-center">
-                            <Users className="w-3 h-3 mr-1 text-gray-400" />
-                            {test.audience}
-                          </div>
-                          <div className="flex items-center">
-                            <Zap className="w-3 h-3 mr-1 text-gray-400" />
-                            <span>{test.bid_strategy}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <BarChart className="w-3 h-3 mr-1 text-gray-400" />
-                            <span>{test.placement}</span>
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-gray-600 hover:text-gray-800"
-                            onClick={() => selectExperiment(test.creation)}
-                          >
-                            <ArrowLeft className="h-3 w-3 mr-1" />
-                            See Associated Creation
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                            onClick={() => selectTest(test.id)}
-                          >
-                            {test.status === 'Deployed' ? 'View Deployment' : test.status === 'Running' ? 'View Progress' : test.status === 'Created' ? 'Deploy Test' : 'View'}
-                            <ChevronRight className="h-4 w-4 ml-1" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-                {test.type === 'Test' && test.status === 'Deployed' && (
-                  <div className="flex justify-end rounded-b-md bg-gray-100 p-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-100 shadow-sm whitespace-nowrap font-semibold"
-                      onClick={() =>  selectTest(test.id)}
-                    >
-                      <GalleryHorizontalEnd className="w-4 h-4 mr-2" />
-                      Move to Standard Deployment
-                    </Button>
-                  </div>
-                )}
-              </Card>
-            ))}
-          </div>
+
+          <AdTestList
+            adTests={adTests}
+            getStatusColor={getStatusColor}
+            selectExperiment={selectExperiment}
+            selectTest={selectTest}
+          />
         </div>
       </main>
     </Navbar>

@@ -235,7 +235,7 @@ export default function IdeationPage() {
     { title: 'Basic Information', component: BasicInformationStep, icon: <Info className="h-6 w-6" /> },
     { title: 'Budget and Timeline', component: BudgetAndTimelineStep, icon: <DollarSign className="h-6 w-6" /> },
     { title: 'Target Audience', component: TargetAudienceStep, icon: <Users className="h-6 w-6" /> },
-    { title: 'Ad Content', component: AdContentStep, icon: <FileText className="h-6 w-6" /> },
+    { title: 'Ad Content', component: (props: StepProps) => <AdContentStep adCreation={props.adExperiment} handleNestedInputChange={props.handleNestedInputChange} />, icon: <FileText className="h-6 w-6" /> },
     { title: 'Platforms and Political Leaning', component: PlatformsAndLeaningStep, icon: <Share className="h-6 w-6" /> },
   ];
 

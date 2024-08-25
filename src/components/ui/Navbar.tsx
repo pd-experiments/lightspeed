@@ -216,7 +216,7 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
               }`}
             >
               <div className="flex flex-col space-y-2">
-                {isDevMode && renderNavItems(navItems)}
+                {renderNavItems(navItems)}
                 {isDevMode && (
                   <>
                     <hr className="my-2 border-gray-200" />

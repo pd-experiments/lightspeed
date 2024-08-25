@@ -63,11 +63,15 @@ export type TargetAudience = {
     videoDescription?: string;
     inVideoScript?: string;
     hashtags: string[];
+    link?: string;
+    adsetId?: string;
+    videoUrl?: string;
+    imageUrl?: string;
   };
   
-  type Platform = 'Facebook' | 'Instagram Post' | 'Instagram Story' | 'Instagram Reel' | 'TikTok' | 'Threads';
+  export type Platform = 'Facebook' | 'Instagram Post' | 'Instagram Story' | 'Instagram Reel' | 'TikTok' | 'Threads';
   
-  type VersionData = {
+  export type VersionData = {
     versions: AdVersion[];
     config: {
       platforms: Platform[];

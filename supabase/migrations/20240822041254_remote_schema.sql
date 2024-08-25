@@ -17,7 +17,6 @@ create table "public"."int_ads__google_ads_enhanced" (
     "political_leaning" text
 );
 
-
 CREATE UNIQUE INDEX int_ads__google_ads_enhanced_pkey ON public.int_ads__google_ads_enhanced USING btree (id);
 
 alter table "public"."int_ads__google_ads_enhanced" add constraint "int_ads__google_ads_enhanced_pkey" PRIMARY KEY using index "int_ads__google_ads_enhanced_pkey";

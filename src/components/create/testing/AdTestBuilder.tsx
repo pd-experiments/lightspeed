@@ -13,7 +13,7 @@ import { AdExperiment, AdVersion } from '@/lib/types/customTypes';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PlayCircle, CheckCircle, Settings, Blocks } from 'lucide-react';
-import { FaFacebook, FaInstagram, FaTiktok, FaThreads } from 'react-icons/fa6';
+import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/lib/supabaseClient';
@@ -160,18 +160,6 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
     } catch (error) {
       console.error('Error saving ad test:', error);
       setTestStatus('idle');
-    }
-  };
-
-  const getPlatformIcon = (platform: Platform) => {
-    switch (platform) {
-      case 'Facebook': return <FaFacebook className="w-4 h-4" />;
-      case 'Instagram Post':
-      case 'Instagram Story':
-      case 'Instagram Reel':
-        return <FaInstagram className="w-4 h-4" />;
-      case 'TikTok': return <FaTiktok className="w-4 h-4" />;
-      case 'Threads': return <FaThreads className="w-4 h-4" />;
     }
   };
 

@@ -62,7 +62,7 @@ export default function AdSearchCard({
 }: {
   adSearchResult: EnhancedGoogleAd;
 }) {
-  const ageTargeting = parseAgeTargeting(adSearchResult.age_targeting);
+  // const ageTargeting = parseAgeTargeting(adSearchResult.age_targeting);
 
   return (
     <Card className="w-full hover:shadow-md transition-shadow bg-white">
@@ -144,7 +144,7 @@ export default function AdSearchCard({
           </div>
           <div className="flex items-center space-x-2">
             <Users className="w-4 h-4 text-gray-400" />
-            <div className="flex flex-wrap gap-2">
+            {/* <div className="flex flex-wrap gap-2">
               {ageTargeting.length > 0 ? (
                 <>
                   {ageTargeting.slice(0, 3).map((age, index) => (
@@ -168,7 +168,7 @@ export default function AdSearchCard({
               ) : (
                 <span className="text-xs text-gray-500">No age targeting data</span>
               )}
-            </div>
+            </div> */}
           </div>
         </div>
       </CardContent>

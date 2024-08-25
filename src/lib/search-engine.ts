@@ -41,7 +41,19 @@ export async function NLPLightspeedSearch(query: string) {
   if (structured_query) {
     const with_query = await LightspeedSearch(structured_query, true);
     const without_query = await LightspeedSearch(structured_query, false);
-    return { ads: [...(with_query.ads || []), ...(without_query.ads || [])] };
+
+    return {
+      ads: [...(with_query.ads || []), ...(without_query.ads || [])],
+      tikToks: [
+        ...(with_query.tikToks || []),
+        ...(without_query.tikToks || []),
+      ],
+      threads: [
+        ...(with_query.threads || []),
+        ...(without_query.threads || []),
+      ],
+      news: [...(with_query.news || []), ...(without_query.news || [])],
+    };
   }
   return [];
 }
@@ -126,7 +138,7 @@ export async function LightspeedSearch(
   });
 
   // Get TikToks
-  const tiktoksQuery = supabase.from("tiktok_videos").select("*");
+  const tiktoksQuery = supabase.from("tiktok_embeddings").select("*");
 
   if (query.politicalKeywords && query.politicalKeywords.length > 0) {
     // Build the OR logic for keywords
@@ -141,6 +153,9 @@ export async function LightspeedSearch(
   const { data: tiktokData, error: tiktokError } = await tiktoksQuery;
   if (tiktokError) throw tiktokError;
   searchResults.tikToks = tiktokData as TikTok[];
+  searchResults.tikToks = searchResults.tikToks.map((tiktok) => {
+    return { ...tiktok, caption_embedding: null, summary_embedding: null };
+  });
 
   // Get Instagram Threads
   const igThreadsQuery = supabase.from("threads").select("*");

@@ -97,3 +97,9 @@ export type AdCreation = Database['public']['Tables']['ad_creations']['Row'] & {
 
 
 export type AdTest = Database['public']['Tables']['ad_deployments']['Row'];
+
+export type AdDeployment = Database['public']['Tables']['ad_deployments']['Row'];
+
+export type AdDeploymentWithCreation = AdDeployment & {
+  creation: AdCreation;
+};

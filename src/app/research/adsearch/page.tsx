@@ -64,7 +64,7 @@ export default function AdSearchPage() {
   return (
     <Navbar>
       <main className="flex min-h-screen flex-col items-center justify-between p-24">
-        <div className="w-full max-w-7xl gap-6 flex flex-col">
+        <div className="w-full max-w-[1500px] gap-6 flex flex-col">
           <h1 className="text-3xl font-bold">Ad Search</h1>
           <p className="text-base text-gray-700 mb-6">
             Search for recent political ads.

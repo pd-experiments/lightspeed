@@ -140,7 +140,7 @@ export default function ComplianceReportPage({ params }: { params: { id: string 
   return (
     <Navbar>
       <main className="flex min-h-screen flex-col items-center justify-between p-24">
-        <div className="w-full max-w-7xl">
+        <div className="w-full max-w-[1500px]">
           <Button variant="link" className="mb-4 p-0 h-auto font-normal">
             <Link href="/compliance" className="flex items-center">
               <ChevronLeft className="mr-1 h-4 w-4" />

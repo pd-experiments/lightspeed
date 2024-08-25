@@ -73,7 +73,7 @@ export default function TestDetailsPage() {
   return (
     <Navbar>
       <main className="min-h-screen bg-gray-100">
-        <div className="max-w-7xl mx-auto p-4">
+        <div className="max-w-[1500px] mx-auto p-4">
           <header className="py-6 sm:py-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border-b border-gray-200">
               <div>

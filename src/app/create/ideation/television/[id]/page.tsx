@@ -154,7 +154,7 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
   return (
     <Navbar>
       <main className="min-h-screen flex flex-col items-center justify-between p-24">
-      <div className="w-full max-w-7xl mx-auto">
+      <div className="w-full max-w-[1500px] mx-auto">
         <div className="w-full flex justify-between mb-4">
           <Button variant="link" className="p-0 h-auto font-normal">
             <Link href="/create/television" className="flex items-center">

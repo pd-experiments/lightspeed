@@ -125,7 +125,7 @@ export default function ClipSearchComponent() {
   };
 
   return (
-    <div className="w-full max-w-7xl">
+    <div className="w-full max-w-[1500px]">
       <GlobalSearch
         isLoading={isLoadingPage}
         searchQuery={searchQuery}

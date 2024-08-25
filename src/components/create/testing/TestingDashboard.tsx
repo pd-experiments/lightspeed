@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { AdExperiment } from '@/lib/types/customTypes';
+import { AdCreation } from '@/lib/types/customTypes';
 import AdTestBuilder from '@/components/create/testing/AdTestBuilder';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface TestingDashboardProps {
-  experiment: AdExperiment;
+  experiment: AdCreation;
 }
 
 export default function TestingDashboard({ experiment }: TestingDashboardProps) {

@@ -142,6 +142,137 @@ export type Database = {
       };
       compliance_docs: {
         Row: {
+          ad_content: Json;
+          budget: number;
+          created_at: string | null;
+          description: string | null;
+          duration: number;
+          end_date: string;
+          flow: Database["public"]["Enums"]["ad_flow"];
+          id: string;
+          key_components: string[];
+          objective: Database["public"]["Enums"]["campaign_objective"];
+          platforms: Database["public"]["Enums"]["ad_platform"][];
+          political_leaning: Database["public"]["Enums"]["political_leaning"];
+          start_date: string;
+          status: Database["public"]["Enums"]["ad_status"];
+          target_audience: Json;
+          title: string;
+          updated_at: string | null;
+          version_data: Json | null;
+        };
+        Insert: {
+          ad_content: Json;
+          budget: number;
+          created_at?: string | null;
+          description?: string | null;
+          duration: number;
+          end_date: string;
+          flow?: Database["public"]["Enums"]["ad_flow"];
+          id?: string;
+          key_components: string[];
+          objective: Database["public"]["Enums"]["campaign_objective"];
+          platforms: Database["public"]["Enums"]["ad_platform"][];
+          political_leaning: Database["public"]["Enums"]["political_leaning"];
+          start_date: string;
+          status?: Database["public"]["Enums"]["ad_status"];
+          target_audience: Json;
+          title: string;
+          updated_at?: string | null;
+          version_data?: Json | null;
+        };
+        Update: {
+          ad_content?: Json;
+          budget?: number;
+          created_at?: string | null;
+          description?: string | null;
+          duration?: number;
+          end_date?: string;
+          flow?: Database["public"]["Enums"]["ad_flow"];
+          id?: string;
+          key_components?: string[];
+          objective?: Database["public"]["Enums"]["campaign_objective"];
+          platforms?: Database["public"]["Enums"]["ad_platform"][];
+          political_leaning?: Database["public"]["Enums"]["political_leaning"];
+          start_date?: string;
+          status?: Database["public"]["Enums"]["ad_status"];
+          target_audience?: Json;
+          title?: string;
+          updated_at?: string | null;
+          version_data?: Json | null;
+        };
+        Relationships: [];
+      };
+      ad_tests: {
+        Row: {
+          adset_id: string | null;
+          audience: string;
+          bid_strategy: string;
+          budget: number;
+          caption: string;
+          created_at: string | null;
+          duration: number;
+          experiment_id: string | null;
+          id: string;
+          image_url: string | null;
+          link: string;
+          placement: string;
+          platform: string;
+          status: string;
+          updated_at: string | null;
+          version_id: string;
+          video_url: string | null;
+        };
+        Insert: {
+          adset_id?: string | null;
+          audience: string;
+          bid_strategy: string;
+          budget: number;
+          caption: string;
+          created_at?: string | null;
+          duration: number;
+          experiment_id?: string | null;
+          id?: string;
+          image_url?: string | null;
+          link: string;
+          placement: string;
+          platform: string;
+          status: string;
+          updated_at?: string | null;
+          version_id: string;
+          video_url?: string | null;
+        };
+        Update: {
+          adset_id?: string | null;
+          audience?: string;
+          bid_strategy?: string;
+          budget?: number;
+          caption?: string;
+          created_at?: string | null;
+          duration?: number;
+          experiment_id?: string | null;
+          id?: string;
+          image_url?: string | null;
+          link?: string;
+          placement?: string;
+          platform?: string;
+          status?: string;
+          updated_at?: string | null;
+          version_id?: string;
+          video_url?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ad_tests_experiment_id_fkey";
+            columns: ["experiment_id"];
+            isOneToOne: false;
+            referencedRelation: "ad_experiments";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      compliance_docs: {
+        Row: {
           created_at: string | null;
           embeddings: Json | null;
           id: string;

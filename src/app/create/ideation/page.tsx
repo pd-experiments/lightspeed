@@ -5,10 +5,18 @@ import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/lib/types/schema';
 import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, Users, Calendar, Tag, ChevronRight, FileText, ChevronLeft, Info, DollarSign, Share, Lightbulb, GalleryHorizontalEnd } from 'lucide-react';
+import { PlusIcon, Users, Calendar, Tag, ChevronRight, FileText, ChevronLeft, Info, DollarSign, Share, Lightbulb, GalleryHorizontalEnd, Network, Video } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent} from '@/components/ui/card';
 import _ from 'lodash';
+import { Tables } from '@/lib/types/schema';
+import { calculateOutlineDuration } from '@/lib/helperUtils/outline/utils';
+
+type Outline = Tables<'outline'>;
+interface OutlineWithDetails extends Outline {
+  elementCount: number;
+  totalDuration: number;
+}
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import OutlineList from '@/components/create/outline/OutlineList';
@@ -271,6 +279,29 @@ export default function IdeationPage() {
 
   const CurrentStepComponent = steps[currentStep].component;
 
+  const [outlines, setOutlines] = useState<OutlineWithDetails[]>([]);
+  const [isLoadingOutlines, setIsLoadingOutlines] = useState<boolean>(true);
+
+  useEffect(() => {
+    async function fetchOutlines() {
+      setIsLoadingOutlines(true);
+      const response = await fetch('/api/create/outlines/get-all-outlines');
+      const data = await response.json();
+      
+      const outlinesWithDetails = await Promise.all(data.outlines.map(async (outline: Outline) => {
+        const elementsResponse = await fetch(`/api/create/outlines/get-elements?outline_id=${outline.id}`);
+        const elementsData = await elementsResponse.json();
+        const elementCount = elementsData.length;
+        const totalDuration = calculateOutlineDuration(elementsData);
+        return { ...outline, elementCount, totalDuration };
+      }));
+
+      setOutlines(outlinesWithDetails);
+      setIsLoadingOutlines(false);
+    }
+    fetchOutlines();
+  }, []);
+
   return (
     <Navbar>
       <main className="min-h-screen">
@@ -304,10 +335,12 @@ export default function IdeationPage() {
           <Tabs className="w-full" value={mode} onValueChange={(value) => setMode(value as 'social-media' | 'television')}>
           <TabsList className="inline-flex h-14 items-center w-full space-x-1">
             <TabsTrigger value="social-media" className={`w-full bg-white rounded-t-md rounded-b-none ${mode === 'social-media' ? 'bg-white text-blue-500 border-b border-blue-500' : 'bg-gray-200'} data-[state=active]:text-blue-600 inline-flex items-center justify-center whitespace-nowrap px-6 py-2.5`}>
-              Social Media
+              <Network className="h-4 w-4 mr-2" />
+              Social Media & Short Form
             </TabsTrigger>
             <TabsTrigger value="television" className={`w-full bg-white rounded-t-md rounded-b-none ${mode === 'television' ? 'bg-white text-blue-500 border-b border-blue-500' : 'bg-gray-200'} data-[state=active]:text-blue-600 inline-flex items-center justify-center whitespace-nowrap px-6 py-2.5`}>
-              Television
+              <Video className="h-4 w-4 mr-2" />
+              Standard Video & Television
             </TabsTrigger>
           </TabsList>
           <TabsContent value="social-media">
@@ -428,7 +461,7 @@ export default function IdeationPage() {
                             onClick={() => loadAdExperiment(Number(ad.id))}
                           >
                             <GalleryHorizontalEnd className="w-4 h-4 mr-2" />
-                            Move to Generation
+                            Move to Generation Flow
                           </Button>
                         </div>
                       )}
@@ -439,23 +472,23 @@ export default function IdeationPage() {
           )}
           </TabsContent>
           <TabsContent value="television">
-            <Tabs defaultValue="clip-search" className="w-full">
-              <TabsList className="inline-flex h-12 items-center justify-center rounded-full bg-gray-100 p-1 mb-4">
-                  <TabsTrigger 
-                    value="clip-search" 
-                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
-                  >
-                    Clip Search
-                  </TabsTrigger>
+            <Tabs defaultValue="outlines" className="w-full">
+                <TabsList className="inline-flex h-12 items-center justify-center rounded-full bg-gray-100 p-1 mb-4">
                   <TabsTrigger 
                     value="outlines" 
                     className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
                   >
                     Outlines
                   </TabsTrigger>
+                  <TabsTrigger 
+                    value="clip-search" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    Clip Search
+                  </TabsTrigger>
                 </TabsList>
               <TabsContent value="outlines">
-                <OutlineList />
+                <OutlineList initialOutlines={outlines} loading={isLoadingOutlines} />
               </TabsContent>
               <TabsContent value="clip-search">
                 <ClipSearchComponent />

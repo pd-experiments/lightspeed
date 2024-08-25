@@ -6,6 +6,7 @@ import { Calendar, Users, DollarSign, BarChart, ChevronRight, Zap, ArrowLeft, Ta
 import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
 
 interface AdTestListProps {
   adTests: AdDeploymentWithCreation[];
@@ -15,6 +16,8 @@ interface AdTestListProps {
 }
 
 export default function AdTestList({ adTests, getStatusColor, selectExperiment, selectTest, isLoading = false }: AdTestListProps & { isLoading?: boolean }) {
+  const router = useRouter();
+  
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -112,7 +115,9 @@ export default function AdTestList({ adTests, getStatusColor, selectExperiment, 
                       variant="outline"
                       size="sm"
                       className="text-gray-600 hover:text-gray-800"
-                      onClick={() => selectExperiment(test.creation)}
+                      onClick={() => {
+                        router.push(`/create/generate/${test.experiment_id}`);
+                      }}
                     >
                       <ArrowLeft className="h-3 w-3 mr-1" />
                       See Associated Creation
@@ -122,7 +127,7 @@ export default function AdTestList({ adTests, getStatusColor, selectExperiment, 
                       size="sm"
                       className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
                       onClick={() => {
-                        selectTest(test.id);
+                        router.push(`/create/testing/${test.id}`);
                       }}
                     >
                       {test.status === 'Deployed' ? 'View Deployment' : test.status === 'Running' ? 'View Progress' : test.status === 'Created' ? 'Review & Deploy Test' : 'View'}

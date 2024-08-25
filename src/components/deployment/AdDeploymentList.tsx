@@ -90,7 +90,7 @@ export default function AdDeploymentList({ deployments, getStatusColor, isLoadin
                 </div>
               </div>
               <div className="flex justify-end space-x-2">
-                <Link href={`/create/testing/${deployment.experiment_id}`}>
+                <Link href={`/create/generate/${deployment.experiment_id}`}>
                   <Button
                     variant="outline"
                     size="sm"

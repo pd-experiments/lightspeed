@@ -137,59 +137,61 @@ export default function DeploymentDetailsPage() {
 
           <Tabs defaultValue="overview" className="space-y-4">
             <div className="flex justify-between items-center">
-                <TabsList>
+              <TabsList>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="configuration">Configuration</TabsTrigger>
                 <TabsTrigger value="performance">Performance</TabsTrigger>
                 <TabsTrigger value="audience">Audience Insights</TabsTrigger>
                 <TabsTrigger value="content">Content Analysis</TabsTrigger>
-                </TabsList>
+              </TabsList>
 
-                <div className="mt-6 flex justify-end space-x-2">
-                    {!isEditing && deployment && deployment.status === 'Created' && (
+              {!isEditing && deployment && (
+                <div>
+                  {deployment.status === 'Created' && (
                     <Button 
-                        onClick={() => handleDeploymentAction('deploy')}
-                        disabled={loadingDeployAction}
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+                      onClick={() => handleDeploymentAction('deploy')}
+                      disabled={loadingDeployAction}
+                      className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
                     >
-                        {loadingDeployAction ? (
+                      {loadingDeployAction ? (
                         'Deploying...'
-                        ) : (
+                      ) : (
                         <>
-                            <CirclePlayIcon className="w-4 h-4 mr-2" />
-                            Deploy
+                          <CirclePlayIcon className="w-4 h-4 mr-2" />
+                          Deploy
                         </>
-                        )}
+                      )}
                     </Button>
-                    )}
-                    {!isEditing && deployment && deployment.status === 'Deployed' && (
+                  )}
+                  {deployment.status === 'Deployed' && (
                     <Button 
-                        onClick={() => handleDeploymentAction('pause')}
-                        className="bg-red-400 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+                      onClick={() => handleDeploymentAction('pause')}
+                      className="bg-red-400 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
                     >
-                        <CircleStopIcon className="w-4 h-4 mr-2" />
-                        Stop Deployment
+                      <CircleStopIcon className="w-4 h-4 mr-2" />
+                      Stop Deployment
                     </Button>
-                    )}
-                    {!isEditing && deployment && deployment.status === 'Running' && (
+                  )}
+                  {deployment.status === 'Running' && (
                     <Button 
-                        onClick={() => handleDeploymentAction('pause')}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+                      onClick={() => handleDeploymentAction('pause')}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
                     >
-                        <CircleStopIcon className="w-4 h-4 mr-2" />
-                        Pause Deployment
+                      <CircleStopIcon className="w-4 h-4 mr-2" />
+                      Pause Deployment
                     </Button>
-                    )}
-                    {!isEditing && deployment && deployment.status === 'Paused' && (
+                  )}
+                  {deployment.status === 'Paused' && (
                     <Button 
-                        onClick={() => handleDeploymentAction('redeploy')}
-                        className="bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+                      onClick={() => handleDeploymentAction('redeploy')}
+                      className="bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
                     >
-                        <CirclePlayIcon className="w-4 h-4 mr-2" />
-                        Redeploy
+                      <CirclePlayIcon className="w-4 h-4 mr-2" />
+                      Redeploy
                     </Button>
-                    )}
+                  )}
                 </div>
+              )}
             </div>
 
             <TabsContent value="overview">

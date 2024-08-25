@@ -81,7 +81,7 @@ export default function DirectoryPage() {
   return (
     <Navbar>
       <main className="flex min-h-screen flex-col items-center justify-between p-24">
-        <div className="w-full max-w-7xl">
+        <div className="w-full max-w-[1500px]">
           <h1 className="text-3xl font-bold mb-6">Directory</h1>
           <p className="text-base text-gray-700 mb-6">A comprehensive database of videos, articles, and popular culture content from across the country.</p>
           {selectedTranscript && currentVideoId && (

@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
+import { supabase } from '@/lib/supabaseClient';
 
 const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
 const instagramUserId = process.env.INSTAGRAM_USER_ID;
@@ -36,16 +37,30 @@ async function publishMedia(containerId: string): Promise<string | null> {
   }
 }
 
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    const { experimentId, version } = req.body;
-    const { imageUrl, caption } = version.config;
+    const { deploymentId } = req.body;
 
-    const containerId = await createMediaContainer(imageUrl, caption);
+    // Fetch deployment and associated creation data
+    const { data: deployment, error: deploymentError } = await supabase
+      .from('ad_deployments')
+      .select(`
+        *,
+        creation:ad_creations(*)
+      `)
+      .eq('id', deploymentId)
+      .single();
+
+    if (deploymentError) throw new Error('Failed to fetch deployment data');
+
+    const { image_url, caption } = deployment;
+
+    const containerId = await createMediaContainer(image_url, caption);
     if (!containerId) {
       throw new Error('Failed to create media container');
     }
@@ -55,12 +70,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error('Failed to publish media');
     }
 
+    // Update deployment status
+    const { error: updateError } = await supabase
+      .from('ad_deployments')
+      .update({ status: 'Deployed' })
+      .eq('id', deploymentId);
+
+    if (updateError) throw new Error('Failed to update deployment status');
+
     res.status(200).json({ 
       success: true, 
       message: 'Instagram post deployed successfully',
       postId: postId,
       platform: 'Instagram Post',
-      versionId: version.versionId
+      deploymentId: deploymentId
     });
   } catch (error: any) {
     console.error('Error deploying Instagram Post:', error);

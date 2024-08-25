@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import {
   PaginationComponent,
 } from "@/components/ui/pagination";
+import { getPlatformIcon } from "@/lib/helperUtils/create/utils";
 import { Database } from "@/lib/types/schema";
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -63,14 +64,23 @@ export default function AdSearchPage() {
 
   return (
     <Navbar>
-      <main className="flex min-h-screen flex-col items-center justify-between p-24">
-        <div className="w-full max-w-7xl gap-6 flex flex-col">
-          <h1 className="text-3xl font-bold">Ad Search</h1>
-          <p className="text-base text-gray-700 mb-6">
-            Search for recent political ads.
-          </p>
+      <main className="flex min-h-screen flex-col items-center">
+        <div className="w-full max-w-[1500px] gap-6 flex flex-col">
+          <header className="py-3 sm:py-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
+              <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
+                Search through troves of siloed data! 
+              </h1>
+              <div className="flex flex-row items-center gap-2">
+                {getPlatformIcon("TikTok", 6)}
+                {getPlatformIcon("Threads", 6)}
+                {getPlatformIcon("Facebook", 6)}
+                {getPlatformIcon("Instagram Post", 6)}
+              </div>
+            </div>
+          </header>
 
-          <div className="flex flex-row items-center gap-2 mb-3">
+          <div className="flex flex-row items-center gap-2">
             <Input
               placeholder="Type to search"
               value={searchQuery}

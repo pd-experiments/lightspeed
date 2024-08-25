@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Spinner } from '@/components/ui/Spinner';
 import { AlertTriangle, Megaphone, SparklesIcon } from 'lucide-react';
-import { FaFacebook, FaInstagram, FaTiktok, FaThreads } from 'react-icons/fa6';
-import { AdExperiment } from '@/lib/types/customTypes';
+import { AdCreation } from '@/lib/types/customTypes';
+import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
@@ -16,7 +16,7 @@ import { FacebookEmbed, InstagramPostEmbed, InstagramStoryEmbed, InstagramReelEm
 import { supabase } from '@/lib/supabaseClient';
 
 interface AdVersionGeneratorProps {
-  experiment: AdExperiment;
+  experiment: AdCreation;
 }
 
 type Platform = 'Facebook' | 'Instagram Post' | 'Instagram Story' | 'Instagram Reel' | 'TikTok' | 'Threads';
@@ -89,7 +89,7 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
           };
       
           const { error: supabaseError } = await supabase
-            .from('ad_experiments')
+            .from('ad_creations')
             .update({ status: 'Generated', version_data: versionData })
             .eq('id', experiment.id);
       
@@ -106,7 +106,7 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
 
     const fetchExistingVersions = async () => {
     const { data, error } = await supabase
-        .from('ad_experiments')
+        .from('ad_creations')
         .select('version_data')
         .eq('id', experiment.id)
         .single();
@@ -132,18 +132,6 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
   useEffect(() => {
         fetchExistingVersions();
   }, [experiment.id]);
-
-  const getPlatformIcon = (platform: Platform) => {
-    switch (platform) {
-      case 'Facebook': return <FaFacebook className="w-4 h-4" />;
-      case 'Instagram Post':
-      case 'Instagram Story':
-      case 'Instagram Reel':
-        return <FaInstagram className="w-4 h-4" />;
-      case 'TikTok': return <FaTiktok className="w-4 h-4" />;
-      case 'Threads': return <FaThreads className="w-4 h-4" />;
-    }
-  };
 
   return (
     <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">

@@ -9,7 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      ad_experiments: {
+      ad_creations: {
         Row: {
           ad_content: Json
           budget: number
@@ -24,7 +24,7 @@ export type Database = {
           platforms: Database["public"]["Enums"]["ad_platform"][]
           political_leaning: Database["public"]["Enums"]["political_leaning"]
           start_date: string
-          status: Database["public"]["Enums"]["ad_status"]
+          status: Database["public"]["Enums"]["ad_status"] | null
           target_audience: Json
           title: string
           updated_at: string | null
@@ -44,7 +44,7 @@ export type Database = {
           platforms: Database["public"]["Enums"]["ad_platform"][]
           political_leaning: Database["public"]["Enums"]["political_leaning"]
           start_date: string
-          status?: Database["public"]["Enums"]["ad_status"]
+          status?: Database["public"]["Enums"]["ad_status"] | null
           target_audience: Json
           title: string
           updated_at?: string | null
@@ -64,7 +64,7 @@ export type Database = {
           platforms?: Database["public"]["Enums"]["ad_platform"][]
           political_leaning?: Database["public"]["Enums"]["political_leaning"]
           start_date?: string
-          status?: Database["public"]["Enums"]["ad_status"]
+          status?: Database["public"]["Enums"]["ad_status"] | null
           target_audience?: Json
           title?: string
           updated_at?: string | null
@@ -72,7 +72,7 @@ export type Database = {
         }
         Relationships: []
       }
-      ad_tests: {
+      ad_deployments: {
         Row: {
           adset_id: string | null
           audience: string
@@ -87,7 +87,8 @@ export type Database = {
           link: string
           placement: string
           platform: string
-          status: string
+          status: Database["public"]["Enums"]["deployment_status"]
+          type: Database["public"]["Enums"]["deployment_type"]
           updated_at: string | null
           version_id: string
           video_url: string | null
@@ -106,7 +107,8 @@ export type Database = {
           link: string
           placement: string
           platform: string
-          status: string
+          status?: Database["public"]["Enums"]["deployment_status"]
+          type?: Database["public"]["Enums"]["deployment_type"]
           updated_at?: string | null
           version_id: string
           video_url?: string | null
@@ -125,7 +127,8 @@ export type Database = {
           link?: string
           placement?: string
           platform?: string
-          status?: string
+          status?: Database["public"]["Enums"]["deployment_status"]
+          type?: Database["public"]["Enums"]["deployment_type"]
           updated_at?: string | null
           version_id?: string
           video_url?: string | null
@@ -135,7 +138,7 @@ export type Database = {
             foreignKeyName: "ad_tests_experiment_id_fkey"
             columns: ["experiment_id"]
             isOneToOne: false
-            referencedRelation: "ad_experiments"
+            referencedRelation: "ad_creations"
             referencedColumns: ["id"]
           },
         ]
@@ -1422,15 +1425,15 @@ export type Database = {
         | "LinkedIn"
         | "TikTok"
         | "YouTube"
-      ad_status:
-        | "Draft"
-        | "In Review"
-        | "Active"
-        | "Configured"
-        | "Generated"
-        | "Test"
-        | "Deployed"
+      ad_status: "Draft" | "In Review" | "Configured" | "Generated"
       campaign_objective: "awareness" | "consideration" | "conversion"
+      deployment_status:
+        | "Created"
+        | "Deployed"
+        | "Running"
+        | "Paused"
+        | "Complete"
+      deployment_type: "Test" | "Standard"
       govtType: "FEDERAL" | "STATE" | "LOCAL"
       outlineElementType: "VIDEO" | "TRANSITION"
       outlineStatus:

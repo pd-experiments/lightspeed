@@ -9,11 +9,11 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AdExperiment, AdVersion } from '@/lib/types/customTypes';
+import { AdCreation, AdVersion } from '@/lib/types/customTypes';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PlayCircle, CheckCircle, Settings, Blocks } from 'lucide-react';
-import { FaFacebook, FaInstagram, FaTiktok, FaThreads } from 'react-icons/fa6';
+import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/lib/supabaseClient';
@@ -22,7 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Spinner } from '@/components/ui/Spinner';
 
 interface AdTestBuilderProps {
-  experiment: AdExperiment;
+  experiment: AdCreation;
 }
 
 type Platform = 'Facebook' | 'Instagram Post' | 'Instagram Story' | 'Instagram Reel' | 'TikTok' | 'Threads';
@@ -57,7 +57,7 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
 
   const fetchExistingVersions = async () => {
     const { data, error } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .select('version_data')
       .eq('id', experiment.id)
       .single();
@@ -123,7 +123,7 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
     try {
       for (const { platform, versionId, config } of selectedVersions) {
         const { data, error } = await supabase
-          .from('ad_tests')
+          .from('ad_deployments')
           .insert({
             experiment_id: experiment.id,
             platform,
@@ -140,6 +140,7 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
             adset_id: config.adsetId,
             status: 'Created',
             created_at: new Date().toISOString(),
+            type: 'Test'
           })
           .select();
 
@@ -148,7 +149,7 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
       }
 
       await supabase
-        .from('ad_experiments')
+        .from('ad_creations')
         .update({ 
           status: 'Test Created',
           flow: 'Testing'
@@ -160,18 +161,6 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
     } catch (error) {
       console.error('Error saving ad test:', error);
       setTestStatus('idle');
-    }
-  };
-
-  const getPlatformIcon = (platform: Platform) => {
-    switch (platform) {
-      case 'Facebook': return <FaFacebook className="w-4 h-4" />;
-      case 'Instagram Post':
-      case 'Instagram Story':
-      case 'Instagram Reel':
-        return <FaInstagram className="w-4 h-4" />;
-      case 'TikTok': return <FaTiktok className="w-4 h-4" />;
-      case 'Threads': return <FaThreads className="w-4 h-4" />;
     }
   };
 

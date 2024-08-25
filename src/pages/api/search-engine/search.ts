@@ -24,6 +24,7 @@ export default async function handler(
   try {
     // const results: SearchResults = await LightspeedSearch(query);
     const results = await NLPLightspeedSearch(query);
+    console.log("Results:", results);
     res.status(200).json(results);
   } catch (error) {
     console.error("Error executing search query:", error);

@@ -11,6 +11,7 @@ import { Card, CardContent} from '@/components/ui/card';
 import _ from 'lodash';
 import { Tables } from '@/lib/types/schema';
 import { calculateOutlineDuration } from '@/lib/helperUtils/outline/utils';
+import AdDraftList from '@/components/create/ideation/AdDraftList';
 
 type Outline = Tables<'outline'>;
 interface OutlineWithDetails extends Outline {
@@ -29,7 +30,7 @@ import TargetAudienceStep from '@/components/create/ideation/TargetAudienceStep'
 import AdContentStep from '@/components/create/ideation/AdContentStep';
 import PlatformsAndLeaningStep from '@/components/create/ideation/PlatformsAndLeaningStep';
 import { useCallback } from 'react';
-import { AdExperimentInsert, AdExperiment } from '@/lib/types/customTypes';
+import { AdCreationInsert, AdCreation } from '@/lib/types/customTypes';
 import { OutlineCreator } from '@/components/create/outline/OutlineCreator';
 import ClipSearchComponent from '@/components/ClipSearchComponent';
 
@@ -37,8 +38,8 @@ export default function IdeationPage() {
   const [mode, setMode] = useState<'social-media' | 'television'>('social-media');
   const [isCreatingExperiment, setIsCreatingExperiment] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [adDrafts, setAdDrafts] = useState<AdExperiment[]>([]);
-  const [adExperiment, setAdExperiment] = useState<AdExperimentInsert>({
+  const [adDrafts, setAdDrafts] = useState<AdCreation[]>([]);
+  const [adExperiment, setAdExperiment] = useState<AdCreationInsert>({
     title: '',
     description: '',
     objective: 'awareness',
@@ -63,17 +64,21 @@ export default function IdeationPage() {
     key_components: [],
     status: 'Draft',
   });
-  const [adSuggestions, setAdSuggestions] = useState<AdExperimentInsert[]>([]);
+  const [adSuggestions, setAdSuggestions] = useState<AdCreationInsert[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [adSuggestionsError, setAdSuggestionsError] = useState(false);
+
+  const [isLoadingAdDrafts, setIsLoadingAdDrafts] = useState(false);
 
   useEffect(() => {
     fetchAdDrafts();
   }, []);
 
   const fetchAdDrafts = async () => {
+    setIsLoadingAdDrafts(true);
+    try {
     const { data, error } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -81,6 +86,12 @@ export default function IdeationPage() {
       console.error('Error fetching ad drafts:', error);
     } else {
       setAdDrafts(data || []);
+    }
+    } catch (error) {
+      console.error('Error fetching ad drafts:', error);
+      setAdDrafts([]);
+    } finally {
+      setIsLoadingAdDrafts(false);
     }
   };
 
@@ -108,7 +119,7 @@ export default function IdeationPage() {
 
   const createEmptyAdExperiment = async () => {
     const { data: existingDrafts } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .select('title')
       .like('title', 'Untitled%')
       .order('title', { ascending: false });
@@ -116,13 +127,13 @@ export default function IdeationPage() {
     const nextNumber = existingDrafts ? existingDrafts.length + 1 : 1;
     const newTitle = `Untitled #${nextNumber}`;
 
-    const newAdExperiment: AdExperimentInsert = {
+    const newAdExperiment: AdCreationInsert = {
       ...adExperiment,
       title: newTitle,
     };
 
     const { data, error } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .insert(newAdExperiment)
       .select()
       .single();
@@ -139,7 +150,7 @@ export default function IdeationPage() {
 
   const loadAdExperiment = async (id: number) => {
     const { data, error } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .select('*')
       .eq('id', id)
       .single();
@@ -173,11 +184,11 @@ export default function IdeationPage() {
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const updateExperiment = async (updatedExperiment: Partial<AdExperimentInsert>) => {
+  const updateExperiment = async (updatedExperiment: Partial<AdCreationInsert>) => {
     if (!adExperiment.id) return;
 
     const { data, error } = await supabase
-      .from('ad_experiments')
+      .from('ad_creations')
       .update(updatedExperiment)
       .eq('id', adExperiment.id)
       .select()
@@ -213,60 +224,8 @@ export default function IdeationPage() {
     updateExperiment({ [name]: value });
   };
 
-  const handleSubmit = async () => {
-    const { data, error } = adExperiment.id
-      ? await supabase
-          .from('ad_experiments')
-          .update(adExperiment)
-          .eq('id', adExperiment.id)
-          .select()
-          .single()
-      : await supabase
-          .from('ad_experiments')
-          .insert(adExperiment)
-          .select()
-          .single();
-  
-    if (error) {
-      console.error('Error saving ad experiment:', error);
-    } else if (data) {
-      if (adExperiment.id) {
-        setAdDrafts(adDrafts.map(ad => ad.id === data.id ? data : ad));
-      } else {
-        setAdDrafts([data, ...adDrafts]);
-      }
-      setIsCreatingExperiment(false);
-      setCurrentStep(0);
-      setAdExperiment({
-        title: '',
-        description: '',
-        objective: 'awareness',
-        budget: 0,
-        duration: 0,
-        start_date: new Date().toISOString(),
-        end_date: new Date().toISOString(),
-        target_audience: {
-          age: [],
-          gender: [],
-          interests: [],
-          location: '',
-        },
-        ad_content: {
-          headline: '',
-          body: '',
-          callToAction: '',
-          image: null,
-        },
-        platforms: [],
-        political_leaning: 'center',
-        key_components: [],
-        status: 'Draft',
-      });
-    }
-  };
-
   type StepProps = {
-    adExperiment: AdExperimentInsert;
+    adExperiment: AdCreationInsert;
     handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     handleNestedInputChange: (category: 'target_audience' | 'ad_content', name: string, value: any) => void;
     handleMultiSelectChange: (name: 'platforms' | 'key_components', value: string[]) => void;
@@ -308,7 +267,7 @@ export default function IdeationPage() {
   return (
     <Navbar>
       <main className="min-h-screen">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1500px] mx-auto">
           <header className="py-6 sm:py-8">
             <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-b border-gray-200">
               <h1 className="text-2xl font-medium text-gray-900 mb-4 sm:mb-0">
@@ -403,74 +362,13 @@ export default function IdeationPage() {
                   error={adSuggestionsError}
                 />
               </div>
-              <div className="space-y-4">
-                {adDrafts.filter((experiment) => experiment.flow == "Ideation").map((ad) => (
-                  <Card key={ad.id} className="hover:shadow-lg transition-shadow duration-300">
-                    <CardContent className="p-3">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-base font-semibold truncate">{ad.title}</h3>
-                        <div className="flex space-x-1">
-                          <Badge className={`${getPoliticalLeaningColor(ad.political_leaning)} text-xs`}>
-                            {_.startCase(_.toLower(ad.political_leaning))}
-                          </Badge>
-                          <Badge className={`${getStatusColor(ad.status)} text-xs`}>
-                            {_.startCase(_.toLower(ad.status))}
-                          </Badge>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-600 line-clamp-1 mb-1">{ad.description}</p>
-                      <div className="flex justify-between items-end">
-                        <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
-                          <div className="flex items-center">
-                            <Calendar className="w-3 h-3 mr-1" />
-                            {ad.created_at ? new Date(ad.created_at).toLocaleDateString() : 'N/A'}                         
-                          </div>
-                          <div className="flex items-center">
-                            <Users className="w-3 h-3 mr-1" />
-                            {ad.target_audience?.location || 'N/A'}    
-                          </div>
-                          <div className="flex items-center">
-                            <Tag className="w-3 h-3 mr-1" />
-                            <span className="truncate">{ad.key_components.join(', ')}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <FileText className="w-3 h-3 mr-1" />
-                            <span className="truncate">{ad.platforms.join(', ')}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <DollarSign className="w-3 h-3 mr-1" />
-                            <span className="font-semibold">${ad.budget}</span>
-                          </div>
-                        </div>
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                            onClick={() => loadAdExperiment(Number(ad.id))}
-                          >
-                            {ad.status === 'Draft' ? 'Keep Working' : ad.status === 'In Review' ? 'Review' : 'Modify'}
-                            <ChevronRight className="h-4 w-4 ml-1" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                      {ad.status === 'Configured' && (
-                        <div className="flex justify-end rounded-b-md bg-gray-100 p-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-100 shadow-sm whitespace-nowrap font-semibold"
-                            onClick={() => loadAdExperiment(Number(ad.id))}
-                          >
-                            <GalleryHorizontalEnd className="w-4 h-4 mr-2" />
-                            Move to Generation Flow
-                          </Button>
-                        </div>
-                      )}
-                  </Card>
-                ))}
-              </div>
+              <AdDraftList
+                adDrafts={adDrafts}
+                getPoliticalLeaningColor={getPoliticalLeaningColor}
+                getStatusColor={getStatusColor}
+                loadAdExperiment={loadAdExperiment}
+                isLoading={isLoadingAdDrafts}
+              />
             </div>
           )}
           </TabsContent>

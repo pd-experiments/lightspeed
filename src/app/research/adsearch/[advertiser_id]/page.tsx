@@ -95,7 +95,7 @@ export default function AdvertiserDetailsPage({
     advertiserData && (
       <Navbar>
         <main className="flex min-h-screen flex-col items-center justify-between p-24">
-          <div className="w-full max-w-7xl gap-6 flex flex-col">
+          <div className="w-full max-w-[1500px] gap-6 flex flex-col">
             {/* Title bar */}
             <div className="flex flex-row gap-4 justify-between">
               <div className="flex flex-col gap-2">

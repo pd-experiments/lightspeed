@@ -8,18 +8,22 @@ import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Beaker, Clock, FileText, ArrowLeft, ChevronRight, ChevronLeft, Tag } from 'lucide-react';
+import { Beaker, Clock, FileText, ArrowLeft, ChevronRight, ChevronLeft, Tag, Building2, CirclePlayIcon, CircleStopIcon } from 'lucide-react';
 import { Calendar, Globe, Target, Users, DollarSign, BarChart2, Zap } from 'lucide-react';
 import _ from 'lodash';
 import Link from 'next/link';
-
-type AdTest = Database['public']['Tables']['ad_tests']['Row'];
+import { AdTest } from '@/lib/types/customTypes';
+import axios from 'axios';
+import { toast } from "sonner"
 
 export default function TestDetailsPage() {
   const [test, setTest] = useState<AdTest | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingTestDetails, setLoadingTestDetails] = useState(true);
+  const [loadingDeployTest, setLoadingDeployTest] = useState(false);
   const params = useParams();
   const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTest, setEditedTest] = useState<AdTest | null>(null);
 
   useEffect(() => {
     fetchTestDetails();
@@ -27,17 +31,60 @@ export default function TestDetailsPage() {
 
   const fetchTestDetails = async () => {
     const { data, error } = await supabase
-      .from('ad_tests')
+      .from('ad_deployments')
       .select('*')
-      .eq('id', params.id)
+      .eq('type', 'Test')
+      .eq('id', params?.id)
       .single();
-
+  
     if (error) {
       console.error('Error fetching test details:', error);
     } else {
       setTest(data);
+      setEditedTest(data);
     }
-    setLoading(false);
+    setLoadingTestDetails(false);
+  };
+
+  const saveEditedTest = async () => {
+    if (!editedTest) return;
+  
+    try {
+      const { data, error } = await supabase
+        .from('ad_deployments')
+        .update(editedTest)
+        .eq('id', editedTest.id);
+  
+      if (error) throw error;
+  
+      setTest(editedTest);
+      setIsEditing(false);
+      toast.success('Test updated successfully');
+    } catch (error) {
+      toast.error(`Failed to update test: ${String(error)}`);
+    }
+  };
+
+  const deployTest = async () => {
+    try {
+      setLoadingDeployTest(true);
+      const platform = test?.platform.toLowerCase().replace(' ', '-');
+      const encodedPlatform = encodeURIComponent(platform || '');
+      const response = await axios.post(`/api/create/testing/deploy-${encodedPlatform}-test`, {
+        deploymentId: test?.id
+      });
+  
+      if (response.data.success) {
+        toast.success(`${test?.platform} test deployed successfully`);
+        await fetchTestDetails();
+      } else {
+        throw new Error(response.data.error || 'Failed to deploy test');
+      }
+    } catch (error) {
+      toast.error(`Failed to deploy ${test?.platform} test: ${String(error)}`);
+    } finally {
+      setLoadingDeployTest(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -50,14 +97,6 @@ export default function TestDetailsPage() {
     };
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!test) {
-    return <div>Test not found</div>;
-  }
 
   const getIconForKey = (key: string) => {
     const iconMap: { [key: string]: React.ReactNode } = {
@@ -73,16 +112,16 @@ export default function TestDetailsPage() {
   return (
     <Navbar>
       <main className="min-h-screen bg-gray-100">
-        <div className="max-w-7xl mx-auto p-4">
+        <div className="max-w-[1500px] mx-auto p-4">
           <header className="py-6 sm:py-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border-b border-gray-200">
               <div>
                 <div className="flex items-center mb-4 sm:mb-0">
                   <h1 className="text-2xl font-medium text-gray-900 mr-3">
-                    Let&apos;s see how Test #{test.id.slice(0, 8)} is doing!
+                    Let&apos;s see how Test #{test?.id.slice(0, 8)} is doing!
                   </h1>
-                  <Badge className={`${getStatusColor(test.status)} text-sm font-medium px-3 py-1`}>
-                    {test.status}
+                  <Badge className={`${getStatusColor(test?.status || '')} text-sm font-medium px-3 py-1`}>
+                    {test?.status}
                   </Badge>
                 </div>
               </div>
@@ -96,10 +135,15 @@ export default function TestDetailsPage() {
 
           <div className="space-y-8">
             <Card className="bg-white shadow-sm flex flex-col h-full space-y-3">
-              <CardHeader className="border-b bg-gray-50 p-4 rounded-t-md">
-                  <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
-                  Test Overview
-                  </CardTitle>
+              <CardHeader className="border-b bg-white p-6 rounded-t-lg shadow-sm">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-3">
+                    <Beaker className="w-5 h-5 text-orange-500" />
+                    <CardTitle className="text-xl font-semibold text-gray-800">
+                      Test Overview
+                    </CardTitle>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="border-l-4 border-blue-500">
@@ -107,7 +151,7 @@ export default function TestDetailsPage() {
                     <Clock className="w-8 h-8 mr-4 text-blue-500" />
                     <div>
                       <p className="text-sm font-medium text-gray-500">Created</p>
-                      <p className="text-lg font-semibold text-gray-900">{new Date(test.created_at || '').toLocaleString()}</p>
+                      <p className="text-lg font-semibold text-gray-900">{new Date(test?.created_at || '').toLocaleString()}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -116,7 +160,7 @@ export default function TestDetailsPage() {
                     <Globe className="w-8 h-8 mr-4 text-purple-500" />
                     <div>
                       <p className="text-sm font-medium text-gray-500">Platform</p>
-                      <p className="text-lg font-semibold text-gray-900">{test.platform}</p>
+                      <p className="text-lg font-semibold text-gray-900">{test?.platform}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -124,21 +168,75 @@ export default function TestDetailsPage() {
             </Card>
 
             <Card className="bg-white shadow-sm flex flex-col h-full space-y-3">
-              <CardHeader className="border-b bg-gray-50 p-4 rounded-t-md">
-                  <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
-                  Test Configuration
-                  </CardTitle>
+              <CardHeader className="border-b bg-white p-6 rounded-t-lg shadow-sm">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-3">
+                    <Building2 className="w-5 h-5 text-blue-500" />
+                    <CardTitle className="text-xl font-semibold text-gray-800">
+                      Test Configuration
+                    </CardTitle>
+                  </div>
+                  <div className="flex space-x-2">
+                    {!isEditing && test && test.status === 'Created' && (
+                      <Button 
+                        onClick={deployTest}
+                        disabled={loadingDeployTest}
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+                      >
+                        {loadingDeployTest ? (
+                          'Deploying...'
+                        ) : (
+                          <>
+                            <CirclePlayIcon className="w-4 h-4 mr-2" />
+                            Deploy Test
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    {!isEditing && test && test.status === 'Running' && (
+                      <Button className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg">
+                        <CircleStopIcon className="w-4 h-4 mr-2" />
+                        Pause Test
+                      </Button>
+                    )}
+                    {!isEditing && test && test.status === 'Paused' && (
+                      <Button className="bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg">
+                        <CirclePlayIcon className="w-4 h-4 mr-2" />
+                        Redeploy Test
+                      </Button>
+                    )}
+                    {isEditing ? (
+                      <Button onClick={saveEditedTest} className="bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg">
+                        Save Changes
+                      </Button>
+                    ) : (
+                      <Button onClick={() => setIsEditing(true)} className="bg-gray-500 hover:bg-gray-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg">
+                        Edit
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {Object.entries(test).map(([key, value]) => {
+                {editedTest && Object.entries(editedTest).map(([key, value]) => {
                   if (['id', 'created_at', 'updated_at', 'experiment_id', 'status', 'platform'].includes(key)) return null;
+                  const isEditable = !['version_id', 'type'].includes(key);
                   return (
                     <Card key={key} className="border-l-4 border-gray-300 hover:border-blue-500 transition-colors duration-300">
                       <CardContent className="flex items-start p-4">
                         {getIconForKey(key)}
-                        <div className="ml-4">
+                        <div className="ml-4 w-full">
                           <p className="text-sm font-medium text-gray-500">{_.startCase(key)}</p>
-                          <p className="text-lg font-semibold text-gray-900">{String(value)}</p>
+                          {isEditing && isEditable ? (
+                            <input
+                              type="text"
+                              value={String(value)}
+                              onChange={(e) => setEditedTest({...editedTest, [key]: e.target.value})}
+                              className="text-lg font-semibold text-gray-900 w-full border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                            />
+                          ) : (
+                            <p className="text-lg font-semibold text-gray-900">{String(value)}</p>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -146,13 +244,6 @@ export default function TestDetailsPage() {
                 })}
               </CardContent>
             </Card>
-
-            <div className="flex justify-end">
-              <Button className="flex items-center bg-blue-500 hover:bg-blue-600 text-white">
-                {test.status === 'Created' ? 'Deploy Test' : test.status === 'Running' ? 'View Progress' : 'View Results'}
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </div>
       </main>

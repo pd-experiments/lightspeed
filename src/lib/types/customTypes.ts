@@ -63,11 +63,15 @@ export type TargetAudience = {
     videoDescription?: string;
     inVideoScript?: string;
     hashtags: string[];
+    link?: string;
+    adsetId?: string;
+    videoUrl?: string;
+    imageUrl?: string;
   };
   
-  type Platform = 'Facebook' | 'Instagram Post' | 'Instagram Story' | 'Instagram Reel' | 'TikTok' | 'Threads';
+  export type Platform = 'Facebook' | 'Instagram Post' | 'Instagram Story' | 'Instagram Reel' | 'TikTok' | 'Threads';
   
-  type VersionData = {
+  export type VersionData = {
     versions: AdVersion[];
     config: {
       platforms: Platform[];
@@ -79,17 +83,23 @@ export type TargetAudience = {
     };
   };
 
-export type AdExperimentInsert = Database['public']['Tables']['ad_experiments']['Insert'] & {
+export type AdCreationInsert = Database['public']['Tables']['ad_creations']['Insert'] & {
     ad_content: AdContent;
     target_audience: TargetAudience;
     version_data?: VersionData;
   };
 
-export type AdExperiment = Database['public']['Tables']['ad_experiments']['Row'] & {
+export type AdCreation = Database['public']['Tables']['ad_creations']['Row'] & {
     ad_content: AdContent;
     target_audience: TargetAudience;
     version_data?: VersionData;
   };
 
 
-export type AdTest = Database['public']['Tables']['ad_tests']['Row'];
+export type AdTest = Database['public']['Tables']['ad_deployments']['Row'];
+
+export type AdDeployment = Database['public']['Tables']['ad_deployments']['Row'];
+
+export type AdDeploymentWithCreation = AdDeployment & {
+  creation: AdCreation;
+};

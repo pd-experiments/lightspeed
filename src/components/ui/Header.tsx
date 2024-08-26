@@ -35,7 +35,6 @@ export function Header() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
           <button onClick={toggleMenu} className="md:hidden">
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>

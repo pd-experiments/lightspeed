@@ -115,7 +115,7 @@ export default function TestDetailsPage() {
       <main className="min-h-screen bg-gray-100">
         <div className="max-w-[1500px] mx-auto p-4">
           <PageHeader 
-            text={`Let&apos;s see how Test #${test?.id.slice(0, 8)} is doing!`}
+            text={`Let's see how Test #${test?.id.slice(0, 8)} is doing!`}
             icons={[
               <Badge key="status" className={`${getStatusColor(test?.status || '')} text-sm font-medium px-3 py-1`}>
                 {test?.status}

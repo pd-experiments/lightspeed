@@ -2,10 +2,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { AdCreation } from '@/lib/types/customTypes';
-import { Users, DollarSign, ChevronRight, FileText, Share, Beaker } from 'lucide-react';
+import { AdCreation, Platform } from '@/lib/types/customTypes';
+import { Users, DollarSign, ChevronRight, FileText, Share, Beaker, Calendar } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from 'next/navigation';
+import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
+import _ from 'lodash';
 
 interface AdExperimentListProps {
   adExperiments: (AdCreation & { tests: string[] })[];
@@ -52,49 +54,52 @@ export default function AdExperimentList({ adExperiments, getStatusColor, getFlo
     );
   }
 
+  const renderPlatformIcons = (platforms: string[]) => {
+    const uniquePlatforms = new Set(platforms.map(p => p.startsWith('Instagram') ? 'Instagram Post' : p));
+    return Array.from(uniquePlatforms).map((platform, index) => (
+        getPlatformIcon(platform as Platform, 6)
+    ));
+  };
+
   return (
     <div className="space-y-4">
       {adExperiments.filter((experiment) => experiment.flow == "Generation" || experiment.flow == "Testing").map((experiment) => (
-        <Card key={experiment.id} className="hover:shadow-lg transition-shadow duration-300">
-          <CardContent className="p-6">
+        <Card key={experiment.id} className="hover:shadow-lg transition-shadow duration-300 border-l-4 border-blue-500">
+          <CardContent className="p-4">
             <div className="flex items-start space-x-4">
-              <div className="w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
-                {experiment.ad_content?.image ? (
-                  <Image
-                    src={typeof experiment.ad_content.image === 'string' ? experiment.ad_content.image : URL.createObjectURL(experiment.ad_content.image)}
-                    alt="Ad preview"
-                    width={96}
-                    height={96}
-                    className="object-cover"
-                  />
-                ) : (
-                  <FileText className="w-12 h-12 text-gray-400" />
-                )}
+              <div className="bg-blue-100 p-2 rounded-full flex-shrink-0 space-y-2">
+                {renderPlatformIcons(experiment.platforms)}
               </div>
               <div className="flex-grow">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900 mr-2">{experiment.title}</h3>
-                  <div className="flex-shrink-0 flex space-x-2">
+                  <div>
+                    <h3 className="text-lg font-semibold truncate">{experiment.title}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-1">{experiment.description}</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
                     <Badge className={`${getStatusColor(experiment.status || '')} text-xs shadow-sm`}>
-                      {experiment.status}
+                      {_.startCase(_.toLower(experiment.status || ''))}
                     </Badge>
                     <Badge className={`${getFlowColor(experiment.flow)} text-xs shadow-sm`}>
-                      Working on {experiment.flow}
+                      {experiment.flow}
                     </Badge>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-2">{experiment.description}</p>
-                <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
-                  <div className="flex items-center">
-                    <Users className="w-3 h-3 mr-1" />
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-4 text-sm">
+                  <div className="flex items-center text-gray-600">
+                    <Calendar className="w-4 h-4 mr-2 text-blue-500" />
+                    {experiment.created_at ? new Date(experiment.created_at).toLocaleDateString() : 'N/A'}
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <Users className="w-4 h-4 mr-2 text-blue-500" />
                     {experiment.target_audience?.location || 'No location'}
                   </div>
-                  <div className="flex items-center">
-                    <Share className="w-3 h-3 mr-1" />
-                    <span className="truncate">{experiment.platforms.join(', ') || 'No platforms'}</span>
+                  <div className="flex items-center text-gray-600">
+                    <Share className="w-4 h-4 mr-2 text-blue-500" />
+                    <span className="truncate">{experiment.platforms.join(', ')}</span>
                   </div>
-                  <div className="flex items-center">
-                    <DollarSign className="w-3 h-3 mr-1" />
+                  <div className="flex items-center text-gray-600">
+                    <DollarSign className="w-4 h-4 mr-2 text-blue-500" />
                     <span className="font-semibold">${experiment.budget}</span>
                   </div>
                 </div>
@@ -106,6 +111,13 @@ export default function AdExperimentList({ adExperiments, getStatusColor, getFlo
                     <Badge variant="outline" className="text-xs bg-orange-500 bg-opacity-80 text-white hover:bg-orange-600 hover:bg-opacity-100">
                       <Beaker className="w-3 h-3 mr-1" />{experiment.tests?.length || 0} Associated Tests
                     </Badge>
+                    <Badge variant="outline" className={`text-xs ${experiment.ad_content?.image ? 'bg-green-500 text-white' : 'bg-red-300 text-white'}`}>
+                      {experiment.ad_content?.image ? (
+                        "Image(s) Attached"
+                      ) : (
+                        "Image(s) Not Attached"
+                      )}
+                      </Badge>
                   </div>
                   <Button
                     variant="ghost"

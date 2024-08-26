@@ -59,15 +59,13 @@ export default function ComplianceReportList() {
   const DocTypeSchema = z.enum(['FEDERAL', 'STATE', 'LOCAL']);
   type DocType = z.infer<typeof DocTypeSchema>;
   
-  const ColorMapSchema = z.record(DocTypeSchema, z.string());
-  
   const docTypes: DocType[] = ['FEDERAL', 'STATE', 'LOCAL'];
   
-  const colorMap = ColorMapSchema.parse({
+  const colorMap = {
     'FEDERAL': 'bg-blue-500',
     'STATE': 'bg-green-500',
     'LOCAL': 'bg-yellow-500'
-  });
+  };
   
   const groupedOutlines = docTypes.reduce((acc, type) => {
     acc[type] = outlines.filter(outline => outline.compliance_doc_details?.type === type);
@@ -75,49 +73,42 @@ export default function ComplianceReportList() {
   }, {} as Record<DocType, OutlineWithDoc[]>);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-50 rounded-lg">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-gray-50 rounded-md p-3 px-5 min-h-[500px] max-h-[500px] overflow-y-auto">
       {loading ? (
         docTypes.map((type, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-sm p-4">
-            <div className="flex items-center mb-4">
-              <div className={`w-2 h-2 rounded-full ${colorMap[type]} mr-2`}></div>
+          <div key={index} className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${colorMap[type]}`}></div>
               <h2 className="text-sm font-medium text-gray-700">{type}</h2>
             </div>
-            <div className="space-y-3">
-              {Array.from({ length: 2 }).map((_, idx) => (
-                <Skeleton key={idx} className="h-24 w-full rounded-md" />
-              ))}
-            </div>
+            {Array.from({ length: 2 }).map((_, idx) => (
+              <Skeleton key={idx} className="h-24 w-full rounded-md" />
+            ))}
           </div>
         ))
       ) : (
-        <>
-          {docTypes.map((type) => (
-            <div key={type} className="bg-white rounded-lg shadow-sm p-4">
-              <div className="flex items-center mb-4">
-                <div className={`w-2 h-2 rounded-full ${colorMap[type]} mr-2`}></div>
-                <h2 className="text-sm font-medium text-gray-700">{type}</h2>
-              </div>
-              <div className="space-y-3">
-                {groupedOutlines[type]?.length > 0 ? (
-                  groupedOutlines[type].map((outline) => (
-                    <Link key={outline.id} href={`/compliance/${outline.id}`}> 
-                      <ComplianceReportCard 
-                        key={outline.id}
-                        outline={outline}
-                        onDelete={() => setOutlines(outlines.filter(r => r.id !== outline.id))}
-                      />
-                    </Link>
-                  ))
-                ) : (
-                  <div className="flex items-center justify-center h-24 border border-dashed border-gray-200 rounded-md">
-                    <p className="text-sm text-gray-400">No reports</p>
-                  </div>
-                )}
-              </div>
+        docTypes.map((type) => (
+          <div key={type} className="space-y-4">
+            <div className="flex items-center space-x-2 p-2 pb-4">
+              <div className={`w-2 h-2 rounded-full ${colorMap[type]}`}></div>
+              <h2 className="text-sm font-medium text-gray-700">{type}</h2>
             </div>
-          ))}
-        </>
+            {groupedOutlines[type]?.length > 0 ? (
+              groupedOutlines[type].map((outline) => (
+                <Link key={outline.id} href={`/compliance/${outline.id}`}> 
+                  <ComplianceReportCard 
+                    outline={outline}
+                    onDelete={() => setOutlines(outlines.filter(r => r.id !== outline.id))}
+                  />
+                </Link>
+              ))
+            ) : (
+              <div className="flex items-center justify-center h-24 border border-dashed border-gray-200 rounded-md">
+                <p className="text-sm text-gray-400">No reports</p>
+              </div>
+            )}
+          </div>
+        ))
       )}
     </div>
   );

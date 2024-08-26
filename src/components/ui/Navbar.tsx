@@ -170,8 +170,8 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <header className="fixed top-0 left-0 right-0 flex items-center justify-between p-4 bg-white z-30">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <header className="flex items-center justify-between p-4 bg-white z-30">
         <div className="flex items-center cursor-pointer" onClick={() => router.push("/")}>
           {/* <CloudLightningIcon className="w-8 h-8 mr-2" /> */}
           <US 
@@ -202,7 +202,7 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       </header>
-      <div className="flex pt-16 flex-1">
+      <div className="flex flex-1 overflow-hidden">
         <AnimatePresence>
           {(isMenuOpen || !isMobile) && (
             <motion.nav
@@ -246,7 +246,9 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
             </motion.nav>
           )}
         </AnimatePresence>
-        <main className={`flex-1 p-8 bg-gray-100 overflow-y-auto ${isMobile ? 'w-full' : 'ml-64'} rounded-tl-3xl z-[1000000]`}>
+        <main className={`flex-1 p-4 md:p-8 bg-gray-100 overflow-y-auto ${
+          isMobile ? 'w-full' : 'ml-64'
+        } transition-all duration-300 ease-in-out`}>
           {children}
         </main>
       </div>

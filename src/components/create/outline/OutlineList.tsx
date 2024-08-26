@@ -59,6 +59,7 @@ export default function OutlineList({ initialOutlines, loading }: { initialOutli
               <div className={`w-2 h-2 rounded-full ${colorMap[status]}`}></div>
               <h2 className="text-sm font-medium text-gray-700">{_.startCase(_.toLower(status))}</h2>
             </div>
+            <div className="flex flex-col gap-2">
             {groupedOutlines[status]?.length > 0 ? (
               groupedOutlines[status].map((outline) => (
                 <OutlineCard 
@@ -75,6 +76,7 @@ export default function OutlineList({ initialOutlines, loading }: { initialOutli
                 <p className="text-sm text-gray-400">No outlines</p>
               </div>
             )}
+            </div>
           </div>
         ))
       )}

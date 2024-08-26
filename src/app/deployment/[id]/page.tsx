@@ -119,7 +119,7 @@ export default function DeploymentDetailsPage() {
       <main className="min-h-screen bg-gray-100">
         <div className="max-w-[1500px] mx-auto p-4">
           <PageHeader
-            text={`Let&apos;s see how "${deployment?.creation?.title}" is doing!`}
+            text={`Let's see how "${deployment?.creation?.title}" is doing!`}
             icons={[
               <Badge key="status" className={`${getStatusColor(deployment?.status || '')} text-sm font-medium px-3 py-1`}>
                 {deployment?.status}

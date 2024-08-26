@@ -41,8 +41,8 @@ export function AdSuggestions({ suggestions, onSelect, isLoading, error }: { sug
       <Carousel className="w-full">
         <CarouselContent>
           {suggestions.map((suggestion, index) => (
-            <CarouselItem key={index} className="basis-full">
-              <Card className="hover:shadow-lg transition-shadow duration-300 shadow-md bg-blue-50">
+            <CarouselItem key={index} className="basis-full shadow-lg">
+              <Card className="hover:shadow-lg transition-shadow duration-300 bg-blue-50">
                 <CardContent className="p-3">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-base font-semibold truncate">{suggestion.title}</h3>

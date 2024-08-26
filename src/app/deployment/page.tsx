@@ -24,7 +24,8 @@ export default function DeploymentPage() {
         *,
         creation:ad_creations(*)
       `)
-      .eq('type', 'Standard')
+      .in('status', ['Deployed', 'Running', 'Paused', 'Complete'])
+      // .eq('type', 'Standard')
       .order('created_at', { ascending: false });
 
     if (error) {

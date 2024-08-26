@@ -2,11 +2,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AdCreation, Platform } from '@/lib/types/customTypes';
-import { Calendar, Users, Tag, FileText, DollarSign, ChevronRight, GalleryHorizontalEnd, Newspaper } from 'lucide-react';
+import { Calendar, Users, Tag, FileText, DollarSign, ChevronRight, GalleryHorizontalEnd, Newspaper, MousePointerClickIcon, Check } from 'lucide-react';
 import _ from 'lodash';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from 'next/navigation';
 import { getPlatformIcon, getPoliticalIcon } from '@/lib/helperUtils/create/utils';
+import { supabase } from '@/lib/supabaseClient';
 
 interface AdDraftListProps {
   adDrafts: AdCreation[];
@@ -79,80 +80,107 @@ export default function AdDraftList({ adDrafts, getPoliticalLeaningColor, getSta
           getPlatformIcon(platform as Platform, 6)
       ));
     };
-  
+
+    const updateAdStatus = async (adId: string, status: string) => {
+      await supabase.from('ad_creations').update({ status: status }).eq('id', adId);
+    };
 
     return (
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {adDrafts.filter((experiment) => experiment.flow == "Ideation").map((ad) => (
           <Card key={ad.id} className={`hover:shadow-lg transition-shadow duration-300 border-l-4 border-blue-500 ${getPoliticalLeaningBorderColor(ad.political_leaning || '')}`}>
-            <CardContent className="p-4">
-              <div className="flex items-start space-x-4">
-                <div className="bg-blue-100 p-2 rounded-full flex-shrink-0 space-y-2">
-                  {ad.platforms.length > 0 ? (
-                    renderPlatformIcons(ad.platforms)
-                  ) : (
-                    <Newspaper className="w-6 h-6 text-blue-500" />
-                  )}
-                </div>
-                <div className="flex-grow">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="text-lg font-semibold truncate">{ad.title}</h3>
-                      <p className="text-sm text-gray-600 line-clamp-1">{ad.description}</p>
-                    </div>
-                    <div className="flex space-x-1">
-                      <Badge className={`${getPoliticalLeaningColor(ad.political_leaning)} text-xs`}>
-                        {_.startCase(_.toLower(ad.political_leaning))}
-                      </Badge>
-                      <Badge className={`${getStatusColor(ad.status || '')} text-xs`}>
-                        {_.startCase(_.toLower(ad.status || ''))}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 text-sm">
-                    <div className="flex items-center text-gray-600">
-                      <Calendar className="w-4 h-4 mr-2 text-blue-500" />
-                      {ad.created_at ? new Date(ad.created_at).toLocaleDateString() : 'No date specified'}
-                    </div>
-                    <div className="flex items-center text-gray-600">
-                      <Users className="w-4 h-4 mr-2 text-blue-500" />
-                      {ad.target_audience?.location || 'No location specified'}
-                    </div>
-                    <div className="flex items-center text-gray-600">
-                      <Tag className="w-4 h-4 mr-2 text-blue-500" />
-                      <span className="truncate">{ad.key_components.join(', ') || 'No key components specified'}</span>
-                    </div>
-                    <div className="flex items-center text-gray-600">
-                      <FileText className="w-4 h-4 mr-2 text-blue-500" />
-                      <span className="truncate">{ad.platforms.join(', ') || 'No platforms specified'}</span>
-                    </div>
-                    <div className="flex items-center text-gray-600">
-                      <DollarSign className="w-4 h-4 mr-2 text-blue-500" />
-                      <span className="font-semibold">{'$' + ad.budget || 'No budget specified'}</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-blue-600 hover:text-blue-800 whitespace-nowrap"
-                      onClick={() => router.push(`/create/ideation/${ad.id}`)}
-                    >
-                      {ad.status === 'Draft' ? 'Keep Working' : ad.status === 'In Review' ? 'Review' : 'Modify'}
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                    {ad.status === 'Configured' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-blue-600 hover:text-blue-800 whitespace-nowrap bg-blue-50 hover:bg-blue-100 font-semibold"
-                        onClick={() => loadAdExperiment(Number(ad.id))}
-                      >
-                        <GalleryHorizontalEnd className="w-4 h-4 mr-2" />
-                        Move to Generation
-                      </Button>
+            <CardContent className="p-4 flex flex-col h-full">
+              <div className="flex-grow">
+                <div className="flex items-start space-x-4 mb-4">
+                  <div className="bg-blue-100 p-2 rounded-full flex-shrink-0">
+                    {ad.platforms.length > 0 ? (
+                      <div className="flex flex-wrap gap-1 justify-center items-center">
+                        {renderPlatformIcons(ad.platforms)}
+                      </div>
+                    ) : (
+                      <Newspaper className="w-6 h-6 text-blue-500" />
                     )}
                   </div>
+                  <div className="flex-grow min-w-0">
+                    <h3 className="text-lg font-semibold truncate">{ad.title}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-2 break-words">{ad.description}</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1 mb-4">
+                  <Badge className={`${getPoliticalLeaningColor(ad.political_leaning)} text-xs`}>
+                    {_.startCase(_.toLower(ad.political_leaning))}
+                  </Badge>
+                  <Badge className={`${getStatusColor(ad.status || '')} text-xs`}>
+                    {_.startCase(_.toLower(ad.status || ''))}
+                  </Badge>
+                  {ad.status === "Draft" && (
+                    <Badge
+                      variant="outline"
+                      className="text-blue-600 hover:text-blue-800 whitespace-nowrap bg-blue-50 hover:bg-blue-100 font-semibold px-2 py-1 cursor-pointer transition-all duration-200 ease-in-out hover:scale-105 hover:shadow-md"
+                      onClick={() => updateAdStatus(ad.id, "In Review")}
+                    >
+                      <FileText className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="text-xs">Ready for Review?</span>
+                      <MousePointerClickIcon className="w-3 h-3 ml-1 flex-shrink-0" />
+                    </Badge>
+                  )}
+                  {ad.status === "In Review" && (
+                    <Badge
+                      variant="outline"
+                      className="text-green-600 hover:text-green-800 whitespace-nowrap bg-green-50 hover:bg-green-100 font-semibold px-2 py-1 cursor-pointer transition-all duration-200 ease-in-out hover:scale-105 hover:shadow-md"
+                      onClick={() => updateAdStatus(ad.id, "Configured")}
+                    >
+                      <Check className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="text-xs">Mark as Configured</span>
+                      <MousePointerClickIcon className="w-3 h-3 ml-1 flex-shrink-0" />
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 gap-2 mb-4 text-sm">
+                  <div className="flex items-center text-gray-600">
+                    <Calendar className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
+                    <span className="truncate">{ad.created_at ? new Date(ad.created_at).toLocaleDateString() : 'No date specified'}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <Users className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
+                    <span className="truncate">{ad.target_audience?.location || 'No location specified'}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <Tag className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
+                    <span className="truncate">{ad.key_components.join(', ') || 'No key components specified'}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <FileText className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
+                    <span className="truncate">{ad.platforms.join(', ') || 'No platforms specified'}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <DollarSign className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
+                    <span className="font-semibold truncate">{'$' + ad.budget || 'No budget specified'}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-auto pt-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-blue-600 hover:text-blue-800 whitespace-normal w-full justify-between text-left"
+                  onClick={() => router.push(`/create/ideation/${ad.id}`)}
+                >
+                  <span>{ad.status === 'Draft' ? 'Keep Working' : ad.status === 'In Review' ? 'Review' : 'Modify'}</span>
+                  <ChevronRight className="h-4 w-4 ml-1 flex-shrink-0" />
+                </Button>
+                <div className="flex flex-col space-y-2 justify-end">
+                  {ad.status === 'Configured' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-blue-600 hover:text-blue-800 whitespace-nowrap bg-blue-50 hover:bg-blue-100 font-semibold px-2 py-1"
+                      onClick={() => loadAdExperiment(Number(ad.id))}
+                    >
+                      <GalleryHorizontalEnd className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="text-xs">Move to Generation</span>
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>

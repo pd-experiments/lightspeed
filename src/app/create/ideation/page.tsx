@@ -250,8 +250,8 @@ export default function IdeationPage() {
             text={isCreatingExperiment
               ? adExperiment.id
                 ? `${adExperiment.title}`
-                : 'Create New Ad Experiment'
-              : 'Would you like to start creating your ad experiment?'}
+                : 'Create New Ad Draft'
+              : 'Would you like to start drafting your next ad campaign?'}
             rightItem={
               <>
                 <div className="flex items-center space-x-2 mr-2">

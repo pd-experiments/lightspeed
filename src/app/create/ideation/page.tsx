@@ -2,17 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Database } from '@/lib/types/schema';
 import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, Users, Calendar, Tag, ChevronRight, FileText, ChevronLeft, Info, DollarSign, Share, Lightbulb, GalleryHorizontalEnd, Network, Video, Paperclip } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent} from '@/components/ui/card';
+import { ChevronLeft, Lightbulb, Network, Video, Paperclip } from 'lucide-react';
 import _ from 'lodash';
 import { Tables } from '@/lib/types/schema';
 import { calculateOutlineDuration } from '@/lib/helperUtils/outline/utils';
 import AdDraftList from '@/components/create/ideation/AdDraftList';
 import { PageHeader } from '@/components/ui/pageHeader';
+import { useRouter } from 'next/navigation';
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import OutlineList from '@/components/create/outline/OutlineList';
+import { AdSuggestions } from '@/components/create/ideation/AdSuggestions';
+import { useCallback } from 'react';
+import { AdCreationInsert, AdCreation } from '@/lib/types/customTypes';
+import { OutlineCreator } from '@/components/create/outline/OutlineCreator';
+import ClipSearchComponent from '@/components/ClipSearchComponent';
 
 type Outline = Tables<'outline'>;
 interface OutlineWithDetails extends Outline {
@@ -20,25 +26,11 @@ interface OutlineWithDetails extends Outline {
   totalDuration: number;
 }
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import OutlineList from '@/components/create/outline/OutlineList';
-
-import { AdSuggestions } from '@/components/create/ideation/AdSuggestions';
-
-import BasicInformationStep from '@/components/create/ideation/BasicInformationStep';
-import BudgetAndTimelineStep from '@/components/create/ideation/BudgetAndTimelineStep';
-import TargetAudienceStep from '@/components/create/ideation/TargetAudienceStep';
-import AdContentStep from '@/components/create/ideation/AdContentStep';
-import PlatformsAndLeaningStep from '@/components/create/ideation/PlatformsAndLeaningStep';
-import { useCallback } from 'react';
-import { AdCreationInsert, AdCreation } from '@/lib/types/customTypes';
-import { OutlineCreator } from '@/components/create/outline/OutlineCreator';
-import ClipSearchComponent from '@/components/ClipSearchComponent';
-
 export default function IdeationPage() {
+  const router = useRouter();
+
   const [mode, setMode] = useState<'social-media' | 'television'>('social-media');
   const [isCreatingExperiment, setIsCreatingExperiment] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
   const [adDrafts, setAdDrafts] = useState<AdCreation[]>([]);
   const [adExperiment, setAdExperiment] = useState<AdCreationInsert>({
     title: '',
@@ -186,7 +178,7 @@ export default function IdeationPage() {
       setAdDrafts([data, ...adDrafts]);
       setAdExperiment(data);
       setIsCreatingExperiment(true);
-      setCurrentStep(0);
+      router.push(`/create/ideation/${data.id}`);
     }
   };
 
@@ -202,7 +194,6 @@ export default function IdeationPage() {
     } else if (data) {
       setAdExperiment(data);
       setIsCreatingExperiment(true);
-      setCurrentStep(0);
     }
   };
 
@@ -225,63 +216,6 @@ export default function IdeationPage() {
     };
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
-
-  const updateExperiment = async (updatedExperiment: Partial<AdCreationInsert>) => {
-    if (!adExperiment.id) return;
-
-    const { data, error } = await supabase
-      .from('ad_creations')
-      .update(updatedExperiment)
-      .eq('id', adExperiment.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating ad experiment:', error);
-    } else if (data) {
-      setAdExperiment(data);
-      setAdDrafts(adDrafts.map(ad => ad.id === data.id ? data : ad));
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    const updatedExperiment = { ...adExperiment, [name]: value };
-    setAdExperiment(updatedExperiment);
-    updateExperiment({ [name]: value });
-  };
-
-  const handleNestedInputChange = (category: 'target_audience' | 'ad_content', name: string, value: any) => {
-    const updatedExperiment = {
-      ...adExperiment,
-      [category]: { ...(adExperiment[category] as object || {}), [name]: value },
-    };
-    setAdExperiment(updatedExperiment);
-    updateExperiment({ [category]: updatedExperiment[category] });
-  };
-
-  const handleMultiSelectChange = (name: 'platforms' | 'key_components', value: string[]) => {
-    const updatedExperiment = { ...adExperiment, [name]: value };
-    setAdExperiment(updatedExperiment);
-    updateExperiment({ [name]: value });
-  };
-
-  type StepProps = {
-    adCreation: AdCreationInsert;
-    handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
-    handleNestedInputChange: (category: 'target_audience' | 'ad_content', name: string, value: any) => void;
-    handleMultiSelectChange: (name: 'platforms' | 'key_components', value: string[]) => void;
-  };
-  
-  const steps: { title: string; component: React.ComponentType<StepProps>; icon: React.ReactNode }[] = [
-    { title: 'Basic Information', component: (props: StepProps) => <BasicInformationStep adCreation={props.adCreation} handleInputChange={props.handleInputChange} />, icon: <Info className="h-6 w-6" /> },
-    { title: 'Budget and Timeline', component: BudgetAndTimelineStep, icon: <DollarSign className="h-6 w-6" /> },
-    { title: 'Target Audience', component: TargetAudienceStep, icon: <Users className="h-6 w-6" /> },
-    { title: 'Ad Content', component: (props: StepProps) => <AdContentStep adCreation={props.adCreation} handleNestedInputChange={props.handleNestedInputChange} />, icon: <FileText className="h-6 w-6" /> },
-    { title: 'Platforms and Political Leaning', component: PlatformsAndLeaningStep, icon: <Share className="h-6 w-6" /> },
-  ];
-
-  const CurrentStepComponent = steps[currentStep].component;
 
   const [outlines, setOutlines] = useState<OutlineWithDetails[]>([]);
   const [isLoadingOutlines, setIsLoadingOutlines] = useState<boolean>(true);
@@ -368,7 +302,6 @@ export default function IdeationPage() {
                     onSelect={(suggestion) => {
                       setAdExperiment(suggestion);
                       setIsCreatingExperiment(true);
-                      setCurrentStep(0);
                     }}
                     error={adSuggestionsError}
                   />

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Info, DollarSign, Users, FileText, Share } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Info, DollarSign, Users, FileText, Share, Zap } from 'lucide-react';
 import { AdCreationInsert, AdCreation } from '@/lib/types/customTypes';
 import BasicInformationStep from '@/components/create/ideation/BasicInformationStep';
 import BudgetAndTimelineStep from '@/components/create/ideation/BudgetAndTimelineStep';
@@ -13,6 +13,7 @@ import AdContentStep from '@/components/create/ideation/AdContentStep';
 import PlatformsAndLeaningStep from '@/components/create/ideation/PlatformsAndLeaningStep';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/ui/pageHeader';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function IdeationStepperPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -61,37 +62,22 @@ export default function IdeationStepperPage({ params }: { params: { id: string }
     }
   };
 
-  const updateExperiment = async (updatedExperiment: Partial<AdCreationInsert>) => {
+  const updateExperiment = async (field: string, value: any) => {
     if (!adExperiment.id) return;
-
+  
+    const updatedExperiment = { ...adExperiment, [field]: value };
+    setAdExperiment(updatedExperiment);
+  
     const { data, error } = await supabase
       .from('ad_creations')
-      .update(updatedExperiment)
+      .update({ [field]: value })
       .eq('id', adExperiment.id)
       .select()
       .single();
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    const updatedExperiment = { ...adExperiment, [name]: value };
-    setAdExperiment(updatedExperiment);
-    updateExperiment({ [name]: value });
-  };
-
-  const handleNestedInputChange = (category: 'target_audience' | 'ad_content', name: string, value: any) => {
-    const updatedExperiment = {
-      ...adExperiment,
-      [category]: { ...(adExperiment[category] as object || {}), [name]: value },
-    };
-    setAdExperiment(updatedExperiment);
-    updateExperiment({ [category]: updatedExperiment[category] });
-  };
-
-  const handleMultiSelectChange = (name: 'platforms' | 'key_components', value: string[]) => {
-    const updatedExperiment = { ...adExperiment, [name]: value };
-    setAdExperiment(updatedExperiment);
-    updateExperiment({ [name]: value });
+  
+    if (error) {
+      console.error('Error updating experiment:', error);
+    }
   };
 
   const steps = [
@@ -109,11 +95,30 @@ export default function IdeationStepperPage({ params }: { params: { id: string }
       <main className="min-h-screen">
         <div className="max-w-[1500px] mx-auto mt-8">
           <PageHeader 
-            text={`Let's set up &quot;{adExperiment.title}&quot;!`}
+            text={`Let's set up "${adExperiment.title}"!`}
             rightItem={
+              <>
               <Button variant="ghost" className="text-gray-600" onClick={() => router.push('/create/ideation')}>
                 <ChevronLeft className="mr-2 h-5 w-5" /> Back to Ideation Dashboard
               </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      key="quickSetup"
+                      // onClick={handleQuickSetup}
+                      variant="outline"
+                      className="w-full flex items-center text-white hover:text-gray-100 shadow-md hover:bg-blue-500 bg-gradient-to-r from-blue-400 to-purple-500"
+                    >
+                      <Zap className="mr-2 h-4 w-4" /> Try Quick Setup
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>0 to 1 your ad creative with just a few questions</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              </>
             }
           />
 
@@ -134,13 +139,12 @@ export default function IdeationStepperPage({ params }: { params: { id: string }
               </div>
             ))}
           </div>
+
           <div className="bg-white rounded-lg p-6 mb-8">
-            <CurrentStepComponent
-              adCreation={adExperiment}
-              handleInputChange={handleInputChange}
-              handleNestedInputChange={handleNestedInputChange}
-              handleMultiSelectChange={handleMultiSelectChange}
-            />
+              <CurrentStepComponent
+                adCreation={adExperiment}
+                onUpdate={updateExperiment}
+              />
           </div>
           <div className="flex justify-between">
             <Button

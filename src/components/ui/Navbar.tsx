@@ -9,37 +9,44 @@ import {
   MagnifyingGlassCircleIcon,
 } from "@heroicons/react/20/solid"
 import { type NavItemType, pageValidator } from "./Sidebar"
-import { Beaker, PencilLine, Rocket, Sparkle, TextSelect } from "lucide-react"
+import { Beaker, Megaphone, Newspaper, PencilLine, Rocket, Sparkle, TextSelect } from "lucide-react"
 import { Header } from "./Header"
 
 const navItems: NavItemType[] = [
   {
-    icon: <HomeIcon className="w-4 h-4 fill-black" />,
+    icon: <HomeIcon className="w-4 h-4 text-black" />,
     label: "Home",
     href: "/",
   },
   {
-    icon: <TextSelect className="w-4 h-4 fill-status-yellow" />,
+    icon: <TextSelect className="w-4 h-4 text-yellow-700" />,
     label: "Research",
     subItems: [
       {
-        icon: <MagnifyingGlassCircleIcon className="w-4 h-4 fill-gray-600" />,
+        icon: <MagnifyingGlassCircleIcon className="w-4 h-4 text-gray-600" />,
         label: "Search",
         href: "/research",
         newTab: false,
         beta: false,
       },
       {
-        icon: <RectangleStackIcon className="w-4 h-4 fill-gray-600" />,
+        icon: <Newspaper className="w-4 h-4 text-gray-600" />,
         label: "Ads",
         href: "/research/ads",
+        newTab: false,
+        beta: false,
+      },
+      {
+        icon: <Megaphone className="w-4 h-4 text-gray-600" />,
+        label: "Conversations",
+        href: "/research/conversations",
         newTab: false,
         beta: false,
       },
     ],
   },
   {
-    icon: <PencilLine className="w-4 h-4 fill-primary" />,
+    icon: <PencilLine className="w-4 h-4 text-blue-500" />,
     label: "Create",
     subItems: [
       {
@@ -50,14 +57,14 @@ const navItems: NavItemType[] = [
         beta: false,
       },
       {
-        icon: <Sparkle className="w-4 h-4 fill-gray-600" />,
+        icon: <Sparkle className="w-4 h-4 text-gray-600" />,
         label: "Generate",
         href: "/create/generate",
         newTab: false,
         beta: false,
       },
       {
-        icon: <Beaker className="w-4 h-4 fill-gray-600" />,
+        icon: <Beaker className="w-4 h-4 text-gray-600" />,
         label: "Testing",
         href: "/create/testing",
         newTab: false,
@@ -66,7 +73,7 @@ const navItems: NavItemType[] = [
     ],
   },
   {
-    icon: <Rocket className="w-4 h-4 fill-blue-500"/>,
+    icon: <Rocket className="w-4 h-4 text-purple-500"/>,
     label: "Deployments",
     href: "/deployment",
   },

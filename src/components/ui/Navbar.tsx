@@ -194,6 +194,9 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
               <DropdownMenuItem onClick={() => router.push("/compliance")}>
                 Compliance
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/configuration")}>
+                Account Configuration
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <div className="w-8 h-8 bg-gray-300 rounded-full"></div>

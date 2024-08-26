@@ -23,7 +23,7 @@ export const FacebookEmbed: React.FC<EmbedProps> = ({ version }) => (
 );
 
 export const InstagramPostEmbed: React.FC<EmbedProps> = ({ version }) => (
-    <div className="w-full border-2 border-black p-1 rounded-md">
+    <div className="w-full shadow-sm p-1 rounded-md">
       <div className="border rounded-md bg-white shadow-sm w-full">
         <div className="flex items-center p-2">
           <FaInstagram className="text-pink-600 w-6 h-6 mr-2" />
@@ -51,7 +51,7 @@ export const InstagramPostEmbed: React.FC<EmbedProps> = ({ version }) => (
   );
 
 export const InstagramStoryEmbed: React.FC<EmbedProps> = ({ version }) => (
-    <div className="border-2 border-black p-1 rounded-md max-w-sm">
+    <div className="shadow-sm p-1 rounded-md max-w-sm">
         <div className="rounded-md bg-white shadow-sm w-full max-w-sm overflow-hidden">
         <div className="relative" style={{ paddingBottom: '177.78%' }}>
             <div className="absolute inset-0 bg-gray-500/50">
@@ -97,7 +97,7 @@ export const InstagramStoryEmbed: React.FC<EmbedProps> = ({ version }) => (
   );
 
 export const InstagramReelEmbed: React.FC<EmbedProps> = ({ version }) => (
-    <div className="border-2 border-black rounded-md bg-white shadow-sm w-full max-w-sm p-1">
+    <div className="shadow-sm rounded-md bg-white w-full max-w-sm p-1">
       <div className="relative" style={{ paddingBottom: '177.78%' }}>
         <div className="absolute inset-0 bg-black flex flex-col">
           <div className="flex-grow flex items-center justify-center text-white">
@@ -131,7 +131,7 @@ export const InstagramReelEmbed: React.FC<EmbedProps> = ({ version }) => (
 );
 
 export const TikTokEmbed: React.FC<EmbedProps> = ({ version }) => (
-    <div className="border-2 border-black rounded-md bg-white shadow-sm w-full max-w-sm p-1">
+    <div className="shadow-sm rounded-md bg-white w-full max-w-sm p-1">
       <div className="relative" style={{ paddingBottom: '177.78%' }}>
         <div className="absolute inset-0 bg-black flex flex-col">
           <div className="flex-grow flex items-center justify-center text-white">
@@ -165,7 +165,7 @@ export const TikTokEmbed: React.FC<EmbedProps> = ({ version }) => (
   );
 
 export const ThreadsEmbed: React.FC<EmbedProps> = ({ version }) => (
-    <div className="w-full border-2 border-black p-1 rounded-md">
+    <div className="w-full shadow-lg p-1 rounded-md">
     <div className="border rounded-md p-4 bg-white shadow-sm w-full">
         <div className="flex items-center mb-2">
         <FaThreads className="text-black w-6 h-6 mr-2" />

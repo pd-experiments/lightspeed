@@ -222,9 +222,9 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
   const handleVersionSelection = (platform: Platform, versionId: string, value: boolean) => {
     setTestConfig(prev => {
       const newConfig = { ...prev };
-      Object.keys(newConfig[platform] || {}).forEach(id => {
-        newConfig[platform]![id].selected = value;
-      });
+      if (newConfig[platform] && newConfig[platform]![versionId]) {
+        newConfig[platform]![versionId].selected = value;
+      }
       return newConfig;
     });
   };
@@ -517,7 +517,7 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
                               </div>
                               <div className="p-4 bg-gray-50">
                                 <div className="flex items-center justify-between mb-2">
-                                  <Button
+                                <Button
                                     variant="ghost"
                                     size="sm"
                                     className={`w-full rounded-md text-white ${!versions[version.id]?.selected ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400 hover:bg-gray-500'}`}

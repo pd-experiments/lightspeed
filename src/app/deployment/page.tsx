@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import Navbar from '@/components/ui/Navbar';
+import { Navbar } from '@/components/ui/Navbar';
 import { AdDeploymentWithCreation } from '@/lib/types/customTypes';
 import AdDeploymentList from '@/components/deployment/AdDeploymentList';
 import { PageHeader } from '@/components/ui/pageHeader';
@@ -24,7 +24,8 @@ export default function DeploymentPage() {
         *,
         creation:ad_creations(*)
       `)
-      .eq('type', 'Standard')
+      .in('status', ['Deployed', 'Running', 'Paused', 'Complete'])
+      // .eq('type', 'Standard')
       .order('created_at', { ascending: false });
 
     if (error) {

@@ -8,6 +8,7 @@ from multiprocessing import Pool, Queue, cpu_count
 from tqdm import tqdm
 import newspaper
 from newspaper import Article, Source, ArticleException
+from collections import namedtuple
 
 # Load environment variables
 load_dotenv(".env.local")
@@ -21,11 +22,37 @@ def get_supabase_client():
     )
 
 
-news_sources = [
-    "https://cnn.com",
-    "https://foxnews.com",
-    "https://nytimes.com",
-    "https://washingtonpost.com",
+# news_sources = [
+#     "https://cnn.com",
+#     "https://foxnews.com",
+#     "https://nytimes.com",
+#     "https://washingtonpost.com",
+# ]
+
+NewsSource = namedtuple("NewsSource", ["url", "source"])
+
+us_news_sources = [
+    NewsSource(url="http://cnn.com", source="cnn"),
+    NewsSource(url="http://www.foxnews.com", source="foxnews"),
+    NewsSource(url="http://www.npr.org", source="npr"),
+    NewsSource(url="http://www.politico.com", source="politico"),
+    NewsSource(url="http://nytimes.com", source="nytimes"),
+    NewsSource(url="http://washingtonpost.com", source="washingtonpost"),
+    NewsSource(url="http://wsj.com", source="wsj"),
+    NewsSource(url="http://www.nbcnews.com", source="nbcnews"),
+    NewsSource(url="http://www.cbsnews.com", source="cbsnews"),
+    NewsSource(url="http://abcnews.com", source="abcnews"),
+    NewsSource(url="http://www.reuters.com", source="reuters"),
+    NewsSource(url="http://bigstory.ap.org", source="ap"),
+    NewsSource(url="http://www.politifact.com", source="politifact"),
+    NewsSource(url="http://www.realclearpolitics.com", source="realclearpolitics"),
+    NewsSource(url="http://www.slate.com", source="slate"),
+    NewsSource(url="http://theatlantic.com", source="theatlantic"),
+    NewsSource(url="http://www.newrepublic.com", source="newrepublic"),
+    NewsSource(url="http://thinkprogress.org", source="thinkprogress"),
+    NewsSource(url="http://www.usnews.com", source="usnews"),
+    NewsSource(url="http://www.businessinsider.com", source="businessinsider"),
+    NewsSource(url="http://www.huffingtonpost.com", source="huffingtonpost"),
 ]
 
 
@@ -71,13 +98,13 @@ def push_to_supabase(client, articles):
     for idx in range(0, len(articles), batch_size):
         print(f"Pushing articles {idx} to {idx + batch_size}")
         articles_batch = articles[idx : idx + batch_size]
-        client.table("news").insert(articles_batch).execute()
+        client.table("stg_news").insert(articles_batch).execute()
 
 
 if __name__ == "__main__":
     client = get_supabase_client()
-    client.table("news").delete().neq("id", uuid4()).execute()
-    for source in news_sources:
+    client.table("stg_news").delete().neq("id", uuid4()).execute()
+    for source, _ in us_news_sources:
         articles = build_articles(source)
 
         with tqdm(

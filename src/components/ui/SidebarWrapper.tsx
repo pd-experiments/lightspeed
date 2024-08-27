@@ -47,7 +47,7 @@ export default function SidebarWrapper({
       <div
         className={cn(
           "flex-shrink-0 relative transition-all duration-200 ease-in-out",
-          isCollapsed ? "w-14" : "w-[200px]",
+          isCollapsed ? "w-14" : "w-[210px]",
           "hidden md:block",
         )}
       >

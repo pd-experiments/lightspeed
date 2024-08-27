@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { useRouter, usePathname } from "next/navigation"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
-import { CommandIcon, XIcon } from "lucide-react"
+import { CloudLightning, CommandIcon, XIcon } from "lucide-react"
 import { useState, type ReactNode } from "react"
 import { z } from "zod"
 import {
@@ -90,11 +90,12 @@ export function Sidebar({
           )}
         >
             <div className="flex items-center cursor-pointer" onClick={() => router.push("/")}>
-                <US 
+                {/* <US 
                 title="United States" 
                 className="w-8 h-8 drop-shadow-md transition-transform duration-300 ease-in-out hover:scale-110" 
-                />
-                {!isCollapsed && <h2 className="ml-2 text-xl font-semibold">lightspeed ads</h2>}
+                /> */}
+                <CloudLightning className="w-8 h-8 text-blue-500" />
+                {!isCollapsed && <h2 className="ml-2 text-xl font-semibold text-blue-500">lightspeed ads</h2>}
         </div>
         </div>
         <div className="w-full overflow-y-auto overflow-x-hidden pb-20">
@@ -160,6 +161,7 @@ const NavItem = ({
           toggleMenu={toggleMenu}
           openMenus={openMenus}
           isCollapsed={isCollapsed}
+          topLevel={true}
         />
         {item.subItems && (
           <ul
@@ -177,7 +179,7 @@ const NavItem = ({
                 className="bg-neutral-200"
                 key={subItem.label}
               >
-                <NavButton item={subItem} isCollapsed={isCollapsed} />
+                <NavButton item={subItem} isCollapsed={isCollapsed} topLevel={false}/>
               </Skeleton>
             ))}
           </ul>
@@ -192,11 +194,13 @@ const NavButton = ({
   toggleMenu,
   openMenus,
   isCollapsed,
+  topLevel,
 }: {
   item: NavItemType | SubItem
   toggleMenu?: (label: z.infer<typeof pageValidator>) => void
   openMenus?: Record<z.infer<typeof pageValidator>, boolean>
   isCollapsed: boolean
+  topLevel: boolean
 }): ReactNode => {
   const pathname = usePathname()
   const isParent = "subItems" in item
@@ -228,7 +232,7 @@ const NavButton = ({
             {item.icon}
           </div>
           {!isCollapsed && (
-                <span className="text-md font-medium text-gray-700">{item.label}</span>
+                <span className={`text-md ${topLevel ? "font-semibold text-blue-500" : "font-medium text-gray-700"} `}>{item.label}</span>
             )}
           {!isCollapsed && isParent && item.subItems && (
             <ChevronDownIcon

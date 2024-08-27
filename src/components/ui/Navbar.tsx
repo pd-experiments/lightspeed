@@ -15,12 +15,12 @@ import { useState, useEffect } from "react"
 
 const navItems: NavItemType[] = [
   {
-    icon: <HomeIcon className="w-6 h-6 text-black" />,
+    icon: <HomeIcon className="w-6 h-6 text-blue-500" />,
     label: "Home",
     href: "/",
   },
   {
-    icon: <TextSelect className="w-6 h-6 text-yellow-700" />,
+    icon: <TextSelect className="w-6 h-6 text-blue-500" />,
     label: "Research",
     subItems: [
       {
@@ -74,7 +74,7 @@ const navItems: NavItemType[] = [
     ],
   },
   {
-    icon: <Rocket className="w-6 h-6 text-purple-500"/>,
+    icon: <Rocket className="w-6 h-6 text-blue-500"/>,
     label: "Deployments",
     href: "/deployment",
   },

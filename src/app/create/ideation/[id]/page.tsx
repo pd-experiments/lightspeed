@@ -119,14 +119,16 @@ export default function IdeationStepperPage({ params }: { params: { id: string }
   
       const quickSetupConfig = response.data;
   
+      const { image_urls, ...configToUpdate } = quickSetupConfig;
+  
       setAdExperiment((prevExperiment) => ({
         ...prevExperiment,
-        ...quickSetupConfig,
+        ...configToUpdate,
       }));
   
       const { error } = await supabase
         .from('ad_creations')
-        .update(quickSetupConfig)
+        .update(configToUpdate)
         .eq('id', adExperiment.id);
   
       if (error) {
@@ -244,7 +246,7 @@ export default function IdeationStepperPage({ params }: { params: { id: string }
               </div>
             </div>
             <DialogDescription className="text-base">
-              Answer these questions to quickly set up your ad campaign.
+              Answer these questions to quickly set up your ad campaign. <span className="text-blue-500">These questions have been curated based on your organization&apos;s profile.</span>
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-4">

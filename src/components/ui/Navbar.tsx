@@ -11,6 +11,7 @@ import {
 import { type NavItemType, pageValidator } from "./Sidebar"
 import { Beaker, Megaphone, Newspaper, PencilLine, Rocket, Sparkle, TextSelect } from "lucide-react"
 import { Header } from "./Header"
+import { useState, useEffect } from "react"
 
 const navItems: NavItemType[] = [
   {
@@ -84,18 +85,17 @@ export default function Navbar({
 }: {
   children: React.ReactNode
 }): React.ReactNode | null {
-  const router = useRouter()
+  const router = useRouter();
+  const [defaultCollapsed, setDefaultCollapsed] = useState<boolean | undefined>(undefined);
+  const [defaultOpenMenus, setDefaultOpenMenus] = useState({});
 
-  const collapsed = localStorage.getItem("sidebar-collapsed")
-  const openMenus = localStorage.getItem("open-menus-real")
+  useEffect(() => {
+    const collapsed = localStorage.getItem("sidebar-collapsed");
+    const openMenus = localStorage.getItem("open-menus-real");
 
-  const defaultCollapsed = collapsed
-    ? z.boolean().parse(JSON.parse(collapsed))
-    : undefined
-
-  const defaultOpenMenus = openMenus
-    ? z.record(pageValidator, z.boolean()).parse(JSON.parse(openMenus))
-    : {}
+    setDefaultCollapsed(collapsed ? JSON.parse(collapsed) : undefined);
+    setDefaultOpenMenus(openMenus ? JSON.parse(openMenus) : {});
+  }, []);
 
   return (
     <div className="bg-neutral-100 antialiased relative overflow-hidden">

@@ -19,6 +19,7 @@ export type Database = {
           end_date: string
           flow: Database["public"]["Enums"]["ad_flow"]
           id: string
+          image_urls: string[] | null
           key_components: string[]
           objective: Database["public"]["Enums"]["campaign_objective"]
           platforms: Database["public"]["Enums"]["ad_platform"][]
@@ -39,6 +40,7 @@ export type Database = {
           end_date: string
           flow?: Database["public"]["Enums"]["ad_flow"]
           id?: string
+          image_urls?: string[] | null
           key_components: string[]
           objective: Database["public"]["Enums"]["campaign_objective"]
           platforms: Database["public"]["Enums"]["ad_platform"][]
@@ -59,6 +61,7 @@ export type Database = {
           end_date?: string
           flow?: Database["public"]["Enums"]["ad_flow"]
           id?: string
+          image_urls?: string[] | null
           key_components?: string[]
           objective?: Database["public"]["Enums"]["campaign_objective"]
           platforms?: Database["public"]["Enums"]["ad_platform"][]
@@ -514,6 +517,117 @@ export type Database = {
         }
         Relationships: []
       }
+      int_news: {
+        Row: {
+          ai_summary: string
+          authors: string[]
+          created_at: string
+          id: string
+          issues: string[]
+          political_keywords: string[]
+          political_leaning: string
+          political_tones: string[]
+          publish_date: string
+          source_url: string
+          summary_embedding: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          ai_summary: string
+          authors: string[]
+          created_at?: string
+          id?: string
+          issues: string[]
+          political_keywords: string[]
+          political_leaning: string
+          political_tones: string[]
+          publish_date: string
+          source_url: string
+          summary_embedding: string
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          ai_summary?: string
+          authors?: string[]
+          created_at?: string
+          id?: string
+          issues?: string[]
+          political_keywords?: string[]
+          political_leaning?: string
+          political_tones?: string[]
+          publish_date?: string
+          source_url?: string
+          summary_embedding?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      int_threads: {
+        Row: {
+          ai_summary: string | null
+          created_at: string | null
+          hashtags: string[] | null
+          id: string
+          issues: string[] | null
+          likes: number | null
+          political_keywords: string[] | null
+          political_leaning: string | null
+          political_tones: string[] | null
+          raw_text_embedding: string | null
+          replies: number | null
+          reposts: number | null
+          row_created_at: string | null
+          row_updated_at: string | null
+          summary_embedding: string | null
+          text: string
+          thread_id: string
+        }
+        Insert: {
+          ai_summary?: string | null
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          issues?: string[] | null
+          likes?: number | null
+          political_keywords?: string[] | null
+          political_leaning?: string | null
+          political_tones?: string[] | null
+          raw_text_embedding?: string | null
+          replies?: number | null
+          reposts?: number | null
+          row_created_at?: string | null
+          row_updated_at?: string | null
+          summary_embedding?: string | null
+          text: string
+          thread_id: string
+        }
+        Update: {
+          ai_summary?: string | null
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          issues?: string[] | null
+          likes?: number | null
+          political_keywords?: string[] | null
+          political_leaning?: string | null
+          political_tones?: string[] | null
+          raw_text_embedding?: string | null
+          replies?: number | null
+          reposts?: number | null
+          row_created_at?: string | null
+          row_updated_at?: string | null
+          summary_embedding?: string | null
+          text?: string
+          thread_id?: string
+        }
+        Relationships: []
+      }
       meta_ads: {
         Row: {
           ad_id: string
@@ -622,63 +736,6 @@ export type Database = {
             referencedColumns: ["ad_id"]
           },
         ]
-      }
-      news: {
-        Row: {
-          article_html: string | null
-          authors: string[] | null
-          created_at: string
-          html: string | null
-          id: string
-          keywords: string[] | null
-          meta_keywords: string[] | null
-          movies: string[] | null
-          publish_date: string | null
-          source_url: string | null
-          summary: string | null
-          tags: string[] | null
-          text: string | null
-          title: string | null
-          updated_at: string | null
-          url: string | null
-        }
-        Insert: {
-          article_html?: string | null
-          authors?: string[] | null
-          created_at?: string
-          html?: string | null
-          id?: string
-          keywords?: string[] | null
-          meta_keywords?: string[] | null
-          movies?: string[] | null
-          publish_date?: string | null
-          source_url?: string | null
-          summary?: string | null
-          tags?: string[] | null
-          text?: string | null
-          title?: string | null
-          updated_at?: string | null
-          url?: string | null
-        }
-        Update: {
-          article_html?: string | null
-          authors?: string[] | null
-          created_at?: string
-          html?: string | null
-          id?: string
-          keywords?: string[] | null
-          meta_keywords?: string[] | null
-          movies?: string[] | null
-          publish_date?: string | null
-          source_url?: string | null
-          summary?: string | null
-          tags?: string[] | null
-          text?: string | null
-          title?: string | null
-          updated_at?: string | null
-          url?: string | null
-        }
-        Relationships: []
       }
       outline: {
         Row: {
@@ -853,6 +910,63 @@ export type Database = {
           advertisement_url?: string
           created_at?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      stg_news: {
+        Row: {
+          article_html: string | null
+          authors: string[] | null
+          created_at: string
+          html: string | null
+          id: string
+          keywords: string[] | null
+          meta_keywords: string[] | null
+          movies: string[] | null
+          publish_date: string | null
+          source_url: string | null
+          summary: string | null
+          tags: string[] | null
+          text: string | null
+          title: string | null
+          updated_at: string | null
+          url: string | null
+        }
+        Insert: {
+          article_html?: string | null
+          authors?: string[] | null
+          created_at?: string
+          html?: string | null
+          id?: string
+          keywords?: string[] | null
+          meta_keywords?: string[] | null
+          movies?: string[] | null
+          publish_date?: string | null
+          source_url?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          text?: string | null
+          title?: string | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Update: {
+          article_html?: string | null
+          authors?: string[] | null
+          created_at?: string
+          html?: string | null
+          id?: string
+          keywords?: string[] | null
+          meta_keywords?: string[] | null
+          movies?: string[] | null
+          publish_date?: string | null
+          source_url?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          text?: string | null
+          title?: string | null
+          updated_at?: string | null
+          url?: string | null
         }
         Relationships: []
       }
@@ -1504,11 +1618,14 @@ export type Database = {
       ad_flow: "Ideation" | "Generation" | "Testing" | "Deployment"
       ad_platform:
         | "Facebook"
-        | "Instagram"
+        | "Instagram Post"
         | "Twitter"
         | "LinkedIn"
         | "TikTok"
         | "YouTube"
+        | "Instagram Reel"
+        | "Instagram Story"
+        | "Threads"
       ad_status: "Draft" | "In Review" | "Configured" | "Generated"
       campaign_objective: "awareness" | "consideration" | "conversion"
       deployment_status:

@@ -34,7 +34,9 @@ export default function HotIssues({ issues, isLoading }: HotIssuesProps) {
     return 'bg-green-100 text-green-800';
   };
 
-  const sortedIssues = [...issues].sort((a, b) => b.importance - a.importance);
+  const sortedIssues = Array.isArray(issues) 
+  ? [...issues].sort((a, b) => b.importance - a.importance)
+  : [];
 
   return (
     <Card className="bg-white shadow-sm rounded-lg overflow-hidden h-full min-h-[600px] flex flex-col">
@@ -49,7 +51,7 @@ export default function HotIssues({ issues, isLoading }: HotIssuesProps) {
           <div className="flex justify-center items-center h-full">
             <Spinner className="w-6 h-6 text-red-500" />
           </div>
-        ) : (
+        ) : sortedIssues.length > 0 ? (
           <Accordion type="single" collapsible className="w-full space-y-2">
             {sortedIssues.map((issue, index) => (
               <AccordionItem value={`item-${index}`} key={index} className="border rounded-md">
@@ -98,6 +100,10 @@ export default function HotIssues({ issues, isLoading }: HotIssuesProps) {
               </AccordionItem>
             ))}
           </Accordion>
+        ) : (
+          <div className="flex justify-center items-center h-full text-gray-500">
+            No hot issues available
+          </div>
         )}
       </CardContent>
     </Card>

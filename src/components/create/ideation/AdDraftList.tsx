@@ -14,9 +14,10 @@ interface AdDraftListProps {
   getPoliticalLeaningColor: (leaning: string) => string;
   getStatusColor: (status: string) => string;
   loadAdExperiment: (id: number) => void;
+  fetchAdDrafts: () => void;
 }
 
-export default function AdDraftList({ adDrafts, getPoliticalLeaningColor, getStatusColor, loadAdExperiment, isLoading = false }: AdDraftListProps & { isLoading?: boolean }) {
+export default function AdDraftList({ adDrafts, getPoliticalLeaningColor, getStatusColor, loadAdExperiment, isLoading = false, fetchAdDrafts }: AdDraftListProps & { isLoading?: boolean, fetchAdDrafts: () => void }) {
   const router = useRouter();
 
     if (isLoading) {
@@ -51,17 +52,15 @@ export default function AdDraftList({ adDrafts, getPoliticalLeaningColor, getSta
       );
     }
 
-
- 
-    const getStatusBorderColor = (status: string) => {
-      const colors = {
-        'Draft': 'border-gray-800',
-        'In Review': 'border-yellow-800',
-        'Active': 'border-green-800',
-        'Configured': 'border-gray-100'
-      };
-      return colors[status as keyof typeof colors] || 'border-gray-100';
-    };
+    // const getStatusBorderColor = (status: string) => {
+    //   const colors = {
+    //     'Draft': 'border-gray-800',
+    //     'In Review': 'border-yellow-800',
+    //     'Active': 'border-green-800',
+    //     'Configured': 'border-gray-100'
+    //   };
+    //   return colors[status as keyof typeof colors] || 'border-gray-100';
+    // };
 
     const getPoliticalLeaningBorderColor = (leaning: string) => {
       const colors = {
@@ -82,8 +81,31 @@ export default function AdDraftList({ adDrafts, getPoliticalLeaningColor, getSta
     };
 
     const updateAdStatus = async (adId: string, status: string) => {
-      await supabase.from('ad_creations').update({ status: status }).eq('id', adId);
+      const { error } = await supabase
+        .from('ad_creations')
+        .update({ status: status })
+        .eq('id', adId);
+      
+      if (error) {
+        console.error('Error updating ad status:', error);
+      } else {
+        await fetchAdDrafts(); 
+      }
     };
+
+    const updateAdFlow = async (adId: string, flow: string) => {
+      const { error } = await supabase
+        .from('ad_creations')
+        .update({ flow: flow })
+        .eq('id', adId);
+      
+      if (error) {
+        console.error('Error updating ad flow:', error);
+      } else {
+        await fetchAdDrafts(); 
+      }
+    };
+
 
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -175,7 +197,7 @@ export default function AdDraftList({ adDrafts, getPoliticalLeaningColor, getSta
                       size="sm"
                       variant="outline"
                       className="text-blue-600 hover:text-blue-800 whitespace-nowrap bg-blue-50 hover:bg-blue-100 font-semibold px-2 py-1"
-                      onClick={() => loadAdExperiment(Number(ad.id))}
+                      onClick={() => updateAdFlow(ad.id, "Generation")}
                     >
                       <GalleryHorizontalEnd className="w-3 h-3 mr-1 flex-shrink-0" />
                       <span className="text-xs">Move to Generation</span>

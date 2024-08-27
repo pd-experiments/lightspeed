@@ -70,7 +70,7 @@ async function fetchTikTokTopics(): Promise<TrendingTopic[]> {
   
   async function fetchNewsTopics(): Promise<TrendingTopic[]> {
     const { data, error } = await supabase
-      .from('news')
+      .from('int_news')
       .select('*')
       .order('publish_date', { ascending: false })
       .limit(100);

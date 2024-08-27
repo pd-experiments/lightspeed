@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const [threads, tiktokVideos, newsArticles] = await Promise.all([
         supabase.from('threads').select('username, text').limit(100).order('created_at', { ascending: false }),
         supabase.from('tiktok_videos').select('author, text').limit(100).order('created_at', { ascending: false }),
-        supabase.from('news').select('title, summary').limit(50).order('publish_date', { ascending: false }),
+        supabase.from('int_news').select('title, summary').limit(50).order('publish_date', { ascending: false }),
       ]);
 
       const mentionCounts: Record<string, number> = {};

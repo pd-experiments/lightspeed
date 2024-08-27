@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 
 type Thread = Database['public']['Tables']['threads']['Row'];
 type TikTokVideo = Database['public']['Tables']['tiktok_videos']['Row'];
-type NewsArticle = Database['public']['Tables']['news']['Row'];
+type NewsArticle = Database['public']['Tables']['int_news']['Row'];
 
 interface TrendingTopic {
     topic: string;

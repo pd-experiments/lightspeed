@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/lib/types/schema';
 import OpenAI from 'openai';
 
-type NewsArticle = Database['public']['Tables']['news']['Row'];
+type NewsArticle = Database['public']['Tables']['int_news']['Row'];
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -16,7 +16,7 @@ async function enrichArticles(articles: NewsArticle[]) {
     5. Sentiment (positive, negative, or neutral)
 
     Articles:
-    ${articles.map(article => `Title: ${article.title}\nSummary: ${article.summary}`).join('\n\n')}
+    ${articles.map(article => `Title: ${article.title}\nSummary: ${article.ai_summary}`).join('\n\n')}
   `;
 
   try {

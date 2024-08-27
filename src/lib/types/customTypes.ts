@@ -98,13 +98,68 @@ export type AdCreation = Database['public']['Tables']['ad_creations']['Row'] & {
 
 export type AdTest = Database['public']['Tables']['ad_deployments']['Row'];
 
-export type AdDeployment = Database['public']['Tables']['ad_deployments']['Row'];
-
-export type AdDeploymentWithCreation = AdDeployment & {
-  creation: AdCreation;
-};
-
 export type TikTok = Database['public']['Tables']['tiktok_videos']['Row'];
 export type Threads = Database['public']['Tables']['threads']['Row'];
 export type News = Database['public']['Tables']['int_news']['Row'];
 export type Ads = Database['public']['Tables']['int_ads__google_ads_enhanced']['Row'];
+
+
+
+export type AdMetrics = {
+  impressions: number;
+  clicks: number;
+  spend: number;
+  ctr: number;
+  cpc: number;
+  reach: number;
+  frequency: number;
+};
+
+export type AdDemographics = {
+  ageGenderBreakdown: {
+    [key: string]: {
+      impressions: string;
+      clicks: string;
+      spend: string;
+    };
+  };
+};
+
+export type AdComment = {
+  from: {
+    name: string;
+  };
+  message: string;
+  created_time: string;
+};
+
+export type AdTimeSeriesData = {
+  date_start: string;
+  date_stop: string;
+  impressions: string;
+  clicks: string;
+  spend: string;
+};
+
+export type AdPerformanceData = {
+  updated_at: string;
+  metrics: AdMetrics;
+  demographics: AdDemographics;
+  comments: AdComment[];
+  timeSeriesData: AdTimeSeriesData[];
+};
+
+export type CampaignInfo = {
+  name: string;
+  objective: string;
+  id: string;
+};
+
+export type AdDeployment = Database['public']['Tables']['ad_deployments']['Row'] & {
+  performance_data?: AdPerformanceData;
+  campaign_info?: CampaignInfo;
+};
+
+export type AdDeploymentWithCreation = AdDeployment & {
+  creation: AdCreation;
+};

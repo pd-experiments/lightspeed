@@ -92,9 +92,9 @@ export default function AdTestList({ adTests, getStatusColor, selectExperiment, 
   
     switch (test.platform) {
       case 'Facebook':
-        return <FacebookEmbed version={version} />;
+        return <FacebookEmbed version={version} imageUrls={test.creation.image_urls || []} />;
       case 'Instagram Post':
-        return <InstagramPostEmbed version={version} />;
+        return <InstagramPostEmbed version={version} imageUrls={test.creation.image_urls || []}/>;
       case 'Instagram Story':
         return <InstagramStoryEmbed version={version} />;
       case 'Instagram Reel':
@@ -102,7 +102,7 @@ export default function AdTestList({ adTests, getStatusColor, selectExperiment, 
       case 'TikTok':
         return <TikTokEmbed version={version} />;
       case 'Threads':
-        return <ThreadsEmbed version={version} />;
+        return <ThreadsEmbed version={version} imageUrls={test.creation.image_urls || []}/>;
       default:
         return null;
     }

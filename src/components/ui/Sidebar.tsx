@@ -51,7 +51,8 @@ export function Sidebar({
   isLoading = false,
   isCollapsed = false,
   isDevTools = false,
-  defaultOpenMenus,
+  openMenus,
+  onOpenMenusChange,
   toggleCollapse,
 }: {
   items: NavItemType[]
@@ -59,28 +60,17 @@ export function Sidebar({
   isCollapsed: boolean
   isDevTools: boolean
   toggleCollapse: () => void
-  defaultOpenMenus: Record<z.infer<typeof pageValidator>, boolean>
+  openMenus: Record<string, boolean>
+  onOpenMenusChange: (newOpenMenus: Record<string, boolean>) => void
 }): React.ReactNode {
   const router = useRouter()
-  const [openMenus, setOpenMenus] =
-    useState<Record<z.infer<typeof pageValidator>, boolean>>(defaultOpenMenus)
 
-  const toggleMenu = (label: z.infer<typeof pageValidator>): void => {
-    setOpenMenus((prev) => {
-      const newOpenMenus = {
-        ...prev,
-        [label]: !prev[label],
-      }
-
-      const validOpenMenus = Object.fromEntries(
-        Object.entries(newOpenMenus).filter(([key]) => 
-          pageValidator.safeParse(key).success
-        )
-      )
-
-      localStorage.setItem("open-menus-real", JSON.stringify(validOpenMenus))
-      return newOpenMenus
-    })
+  const toggleMenu = (label: string): void => {
+    const newOpenMenus = {
+      ...openMenus,
+      [label]: !openMenus[label],
+    }
+    onOpenMenusChange(newOpenMenus)
   }
 
   return (

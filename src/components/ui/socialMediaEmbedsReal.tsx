@@ -1,10 +1,10 @@
 import { FaFacebook, FaInstagram, FaTiktok, FaThreads, FaHeart, FaComment, FaShare } from 'react-icons/fa6';
-import { FaNewspaper } from 'react-icons/fa';
+import { FaNewspaper, FaClock, FaGlobe, FaTag } from 'react-icons/fa';
 import { TikTok, Threads, News, Ads } from '@/lib/types/customTypes';
 import { Newspaper } from 'lucide-react';
 
 interface TikTokEmbedProps {
-  data: TikTok;
+  data: TikTok & { caption: string };
 }
 
 interface ThreadsEmbedProps {
@@ -20,7 +20,7 @@ interface AdEmbedProps {
 }
 
 export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({ data }) => (
-  <div className="border-2 border-black rounded-md bg-white shadow-sm w-full max-w-sm p-1">
+  <div className="rounded-md bg-white shadow-sm w-full max-w-sm p-1">
     <div className="relative" style={{ paddingBottom: '177.78%' }}>
       <div className="absolute inset-0 bg-black flex flex-col">
         <div className="flex-grow flex items-center justify-center text-white">
@@ -38,7 +38,7 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({ data }) => (
           </div>
         </div>
         <div className="p-4 space-y-2">
-          <p className="text-white text-sm line-clamp-3">{data.text}</p>
+          <p className="text-white text-sm line-clamp-3">{data.caption}</p>
           <div className="text-white text-xs">#{data.hashtag}</div>
         </div>
       </div>
@@ -54,7 +54,7 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({ data }) => (
 );
 
 export const ThreadsEmbed: React.FC<ThreadsEmbedProps> = ({ data }) => (
-  <div className="w-full border-2 border-black p-1 rounded-md">
+  <div className="w-full p-1 rounded-md">
     <div className="border rounded-md p-4 bg-white shadow-sm w-full">
       <div className="flex items-center mb-2">
         <FaThreads className="text-black w-6 h-6 mr-2" />
@@ -70,26 +70,36 @@ export const ThreadsEmbed: React.FC<ThreadsEmbedProps> = ({ data }) => (
 );
 
 export const NewsEmbed: React.FC<NewsEmbedProps> = ({ data }) => (
-  <div className="w-full border-2 border-black p-1 rounded-md">
-    <div className="border rounded-md p-4 bg-white shadow-sm w-full">
-      <div className="flex items-center mb-2">
-        <FaNewspaper className="text-gray-600 w-6 h-6 mr-2" />
-        <span className="font-bold">{data.source_url}</span>
+  <div className="w-full shadow-sm rounded-lg overflow-hidden border border-gray-200">
+    <div className="bg-white p-4">
+      <div className="flex items-center text-gray-600 text-sm mb-2">
+        <FaNewspaper className="w-4 h-4 mr-2" />
+        <span>{data.source_url}</span>
       </div>
-      <h3 className="text-lg font-semibold mb-2">{data.title}</h3>
-      <p className="text-sm mb-2">{data.summary}</p>
-      {data.url && (
-        <div className="text-blue-600 text-sm">
-          <a href={data.url} target="_blank" rel="noopener noreferrer">Read more</a>
+      <h3 className="text-lg font-semibold mb-2 text-gray-800">{data.title}</h3>
+      <p className="text-sm mb-3 text-gray-600 line-clamp-2">{data.ai_summary}</p>
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="flex items-center">
+          <FaClock className="mr-1" />
+          {new Date(data.publish_date || '').toLocaleString()}
         </div>
-      )}
-      <div className="text-gray-500 text-xs mt-2">{new Date(data.publish_date || '').toLocaleString()}</div>
+        {data.url && (
+          <a 
+            href={data.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline"
+          >
+            Read more
+          </a>
+        )}
+      </div>
     </div>
   </div>
 );
 
 export const AdEmbed: React.FC<AdEmbedProps> = ({ data }) => (
-  <div className="w-full border-2 border-black p-1 rounded-md">
+  <div className="w-full shadow-lg p-1 rounded-md">
     <div className="border rounded-md p-4 bg-white shadow-sm w-full">
       <div className="flex items-center mb-2">
         <Newspaper className="text-blue-600 w-6 h-6 mr-2" />

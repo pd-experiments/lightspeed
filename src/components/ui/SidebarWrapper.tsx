@@ -6,14 +6,16 @@ import type { z } from "zod"
 export default function SidebarWrapper({
   children,
   defaultCollapsed = false,
-  defaultOpenMenus,
+  openMenus,
+  onOpenMenusChange,
   isLoading,
   navItems,
   isDevTools = false,
 }: {
   children: ReactNode
   defaultCollapsed?: boolean
-  defaultOpenMenus: Record<z.infer<typeof pageValidator>, boolean>
+  openMenus: Record<string, boolean>
+  onOpenMenusChange: (newOpenMenus: Record<string, boolean>) => void
   isLoading: boolean
   navItems: NavItemType[]
   isDevTools?: boolean
@@ -55,7 +57,8 @@ export default function SidebarWrapper({
           isCollapsed={isCollapsed}
           isLoading={isLoading}
           toggleCollapse={handleCollapse}
-          defaultOpenMenus={defaultOpenMenus}
+          openMenus={openMenus}
+          onOpenMenusChange={onOpenMenusChange}
         />
       </div>
       <div className={cn("flex-grow overflow-hidden", "block")}>{children}</div>

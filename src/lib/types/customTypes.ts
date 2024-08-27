@@ -106,5 +106,5 @@ export type AdDeploymentWithCreation = AdDeployment & {
 
 export type TikTok = Database['public']['Tables']['tiktok_videos']['Row'];
 export type Threads = Database['public']['Tables']['threads']['Row'];
-export type News = Database['public']['Tables']['news']['Row'];
+export type News = Database['public']['Tables']['int_news']['Row'];
 export type Ads = Database['public']['Tables']['int_ads__google_ads_enhanced']['Row'];

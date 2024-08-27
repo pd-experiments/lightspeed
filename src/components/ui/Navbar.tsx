@@ -87,21 +87,27 @@ export default function Navbar({
 }): React.ReactNode | null {
   const router = useRouter();
   const [defaultCollapsed, setDefaultCollapsed] = useState<boolean | undefined>(undefined);
-  const [defaultOpenMenus, setDefaultOpenMenus] = useState({});
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const collapsed = localStorage.getItem("sidebar-collapsed");
-    const openMenus = localStorage.getItem("open-menus-real");
+    const storedOpenMenus = localStorage.getItem("open-menus-real");
 
     setDefaultCollapsed(collapsed ? JSON.parse(collapsed) : undefined);
-    setDefaultOpenMenus(openMenus ? JSON.parse(openMenus) : {});
+    setOpenMenus(storedOpenMenus ? JSON.parse(storedOpenMenus) : {});
   }, []);
+
+  const handleOpenMenusChange = (newOpenMenus: Record<string, boolean>) => {
+    setOpenMenus(newOpenMenus);
+    localStorage.setItem("open-menus-real", JSON.stringify(newOpenMenus));
+  };
 
   return (
     <div className="bg-neutral-100 antialiased relative overflow-hidden">
       <SidebarWrapper
         defaultCollapsed={defaultCollapsed}
-        defaultOpenMenus={defaultOpenMenus}
+        openMenus={openMenus}
+        onOpenMenusChange={handleOpenMenusChange}
         isLoading={false}
         navItems={navItems}
       >

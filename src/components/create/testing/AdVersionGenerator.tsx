@@ -202,11 +202,11 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Key Message</label>
+              <label className="block text-sm font-medium text-gray-700">Key Message Notes (Optional, Recommended)</label>
               <Textarea
                 value={keyMessage}
                 onChange={(e) => setKeyMessage(e.target.value)}
-                placeholder="Enter the main message or focus of the ad"
+                placeholder="Enter additional information about the main message or focus of the ad"
               />
             </div>
             <div>
@@ -286,12 +286,12 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
                                 </AccordionTrigger>
                                 <AccordionContent className="px-4 py-2">
                                 <div className="space-y-4">
-                                    {platform === 'Facebook' && <FacebookEmbed version={version} />}
-                                    {platform === 'Instagram Post' && <InstagramPostEmbed version={version} />}
-                                    {platform === 'Instagram Story' && <InstagramStoryEmbed version={version} />}
+                                    {platform === 'Facebook' && <FacebookEmbed version={version} imageUrls={experiment.image_urls} />}
+                                    {platform === 'Instagram Post' && <InstagramPostEmbed version={version} imageUrls={experiment.image_urls} />}
+                                    {platform === 'Instagram Story' && <InstagramStoryEmbed version={version} imageUrls={experiment.image_urls} />}
                                     {platform === 'Instagram Reel' && <InstagramReelEmbed version={version} />}
                                     {platform === 'TikTok' && <TikTokEmbed version={version} />}
-                                    {platform === 'Threads' && <ThreadsEmbed version={version} />}
+                                    {platform === 'Threads' && <ThreadsEmbed version={version} imageUrls={experiment.image_urls} />}
                                     <div className="space-y-2">
                                     <p className="text-sm text-gray-600"><strong>Text Content:</strong> {version.textContent}</p>
                                     {version.videoDescription && (

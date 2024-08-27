@@ -58,13 +58,13 @@ async function fetchRecentTikTokVideos() {
 
 async function fetchRecentNewsArticles() {
   const { data, error } = await supabase
-    .from('news')
-    .select('title, summary')
+    .from('int_news')
+    .select('title, ai_summary')
     .order('publish_date', { ascending: false })
     .limit(20);
 
   if (error) throw error;
-  return data.map((item) => `${item.title} ${item.summary}`);
+  return data.map((item) => `${item.title} ${item.ai_summary}`);
 }
 
 async function analyzeHotIssues(content: string[]) {

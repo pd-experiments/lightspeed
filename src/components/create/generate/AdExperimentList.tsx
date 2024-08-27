@@ -107,8 +107,8 @@ export default function AdExperimentList({ adExperiments, getStatusColor, getFlo
                 <Badge variant="outline" className="text-xs bg-orange-500 bg-opacity-80 text-white hover:bg-orange-600 hover:bg-opacity-100">
                   <Beaker className="w-3 h-3 mr-1" />{experiment.tests?.length || 0} Associated Tests
                 </Badge>
-                <Badge variant="outline" className={`text-xs ${experiment.ad_content?.image ? 'bg-green-500 text-white' : 'bg-red-300 text-white'}`}>
-                  {experiment.ad_content?.image ? "Image(s) Attached" : "Image(s) Not Attached"}
+                <Badge variant="outline" className={`text-xs ${experiment.image_urls?.length ?? 0 > 0 ? 'bg-green-500 text-white' : 'bg-red-300 text-white'}`}>
+                  {experiment.image_urls?.length ?? 0 > 0 ? `${experiment.image_urls?.length ?? 0} Image(s) Attached` : "Image(s) Not Attached"}
                 </Badge>
               </div>
             </div>

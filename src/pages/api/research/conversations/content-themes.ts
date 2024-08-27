@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const [threads, tiktokVideos, newsArticles] = await Promise.all([
         supabase.from('threads').select('text').limit(50).order('created_at', { ascending: false }),
         supabase.from('tiktok_videos').select('text').limit(50).order('created_at', { ascending: false }),
-        supabase.from('news').select('title, summary').limit(25).order('publish_date', { ascending: false }),
+        supabase.from('int_news').select('title, summary').limit(25).order('publish_date', { ascending: false }),
       ]);
 
       let allContent = [

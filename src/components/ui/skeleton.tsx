@@ -7,7 +7,7 @@ export function Skeleton({
   isLoading = false,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & {
-  isLoading: boolean
+  isLoading?: boolean
 }): React.ReactNode {
   return isLoading ? (
     <div

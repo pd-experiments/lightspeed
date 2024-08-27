@@ -70,16 +70,16 @@ export default function IdeationPage() {
   const fetchAdDrafts = async () => {
     setIsLoadingAdDrafts(true);
     try {
-    const { data, error } = await supabase
-      .from('ad_creations')
-      .select('*')
-      .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('ad_creations')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching ad drafts:', error);
-    } else {
-      setAdDrafts(data || []);
-    }
+      if (error) {
+        console.error('Error fetching ad drafts:', error);
+      } else {
+        setAdDrafts(data || []);
+      }
     } catch (error) {
       console.error('Error fetching ad drafts:', error);
       setAdDrafts([]);
@@ -312,6 +312,7 @@ export default function IdeationPage() {
                   getStatusColor={getStatusColor}
                   loadAdExperiment={loadAdExperiment}
                   isLoading={isLoadingAdDrafts}
+                  fetchAdDrafts={fetchAdDrafts} 
                 />
               </div>
             )}

@@ -51,7 +51,8 @@ export function Sidebar({
   isLoading = false,
   isCollapsed = false,
   isDevTools = false,
-  defaultOpenMenus,
+  openMenus,
+  onOpenMenusChange,
   toggleCollapse,
 }: {
   items: NavItemType[]
@@ -59,28 +60,17 @@ export function Sidebar({
   isCollapsed: boolean
   isDevTools: boolean
   toggleCollapse: () => void
-  defaultOpenMenus: Record<z.infer<typeof pageValidator>, boolean>
+  openMenus: Record<string, boolean>
+  onOpenMenusChange: (newOpenMenus: Record<string, boolean>) => void
 }): React.ReactNode {
   const router = useRouter()
-  const [openMenus, setOpenMenus] =
-    useState<Record<z.infer<typeof pageValidator>, boolean>>(defaultOpenMenus)
 
-  const toggleMenu = (label: z.infer<typeof pageValidator>): void => {
-    setOpenMenus((prev) => {
-      const newOpenMenus = {
-        ...prev,
-        [label]: !prev[label],
-      }
-
-      const validOpenMenus = Object.fromEntries(
-        Object.entries(newOpenMenus).filter(([key]) => 
-          pageValidator.safeParse(key).success
-        )
-      )
-
-      localStorage.setItem("open-menus-real", JSON.stringify(validOpenMenus))
-      return newOpenMenus
-    })
+  const toggleMenu = (label: string): void => {
+    const newOpenMenus = {
+      ...openMenus,
+      [label]: !openMenus[label],
+    }
+    onOpenMenusChange(newOpenMenus)
   }
 
   return (
@@ -234,11 +224,11 @@ const NavButton = ({
             e.stopPropagation()
           }}
         >
-          <div className="flex items-center justify-center w-6 h-6 flex-shrink-0">
+          <div className="flex items-center justify-center w-12 h-12 flex-shrink-0">
             {item.icon}
           </div>
           {!isCollapsed && (
-                <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                <span className="text-md font-medium text-gray-700">{item.label}</span>
             )}
           {!isCollapsed && isParent && item.subItems && (
             <ChevronDownIcon

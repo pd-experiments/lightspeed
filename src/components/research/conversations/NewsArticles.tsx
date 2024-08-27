@@ -39,7 +39,7 @@ export default function NewsArticles({ articles, isLoading }: NewsArticlesProps)
           <div className="flex justify-center items-center h-48">
             <Spinner className="w-6 h-6 text-blue-500" />
           </div>
-        ) : (
+        ) : articles.length > 0 ? (
           <ul className="space-y-4">
             {articles.map((article) => (
               <li key={article.id} className="border-b pb-4">
@@ -75,8 +75,12 @@ export default function NewsArticles({ articles, isLoading }: NewsArticlesProps)
                 </div>
               </li>
             ))}
-          </ul>
-        )}
+            </ul>
+          ) : (
+            <div className="flex justify-center items-center h-48 text-gray-500"> 
+              No news articles available
+            </div>
+          )}
       </CardContent>
     </Card>
   );

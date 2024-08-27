@@ -90,7 +90,7 @@ export default function TrendingTopics({ topics, isLoading }: TrendingTopicsProp
             <div className="flex justify-center items-center h-48">
               <Spinner className="w-6 h-6 text-blue-500" />
             </div>
-          ) : (
+          ) : Array.isArray(topics) && topics.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 gap-3">
               {topics.map((topic, index) => (
                 <div
@@ -109,6 +109,10 @@ export default function TrendingTopics({ topics, isLoading }: TrendingTopicsProp
                   </div>
                 </div>
               ))}
+            </div>
+          ) : (
+            <div className="flex justify-center items-center h-48 text-gray-500">
+              No trending topics available
             </div>
           )}
         </CardContent>

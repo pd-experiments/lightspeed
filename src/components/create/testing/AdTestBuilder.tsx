@@ -203,9 +203,9 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
   const renderSocialMediaEmbed = (version: AdVersion) => {
     switch (version.platform) {
       case 'Facebook':
-        return <FacebookEmbed version={version} />;
+        return <FacebookEmbed version={version} imageUrls={experiment.image_urls || []} />;
       case 'Instagram Post':
-        return <InstagramPostEmbed version={version} />;
+        return <InstagramPostEmbed version={version} imageUrls={experiment.image_urls || []} />;
       case 'Instagram Story':
         return <InstagramStoryEmbed version={version} />;
       case 'Instagram Reel':
@@ -213,7 +213,7 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
       case 'TikTok':
         return <TikTokEmbed version={version} />;
       case 'Threads':
-        return <ThreadsEmbed version={version} />;
+        return <ThreadsEmbed version={version} imageUrls={experiment.image_urls || []} />;
       default:
         return null;
     }

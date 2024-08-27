@@ -8,9 +8,11 @@ import {
 } from "../../ui/card";
 import { Badge } from "../../ui/badge";
 import Link from "next/link";
-import { Calendar, Tag, Users, MapPin, ExternalLink, CircleSlashIcon } from "lucide-react";
+import { Calendar, Tag, Users, MapPin, ExternalLink, CircleSlashIcon, Bot } from "lucide-react";
 import { Json } from "@/lib/types/schema";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip";
+import ReactPlayer from 'react-player';
+import { useState } from 'react';
 
 type EnhancedGoogleAd =
   Database["public"]["Tables"]["int_ads__google_ads_enhanced"]["Row"];
@@ -57,16 +59,23 @@ function parseAgeTargeting(targeting: Json | null): string[] {
   return [];
 }
 
+function extractUrl(content: string): string | null {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const match = content.match(urlRegex);
+  return match ? match[0] : null;
+}
+
 export default function AdSearchCard({
   adSearchResult,
 }: {
   adSearchResult: EnhancedGoogleAd;
 }) {
   // const ageTargeting = parseAgeTargeting(adSearchResult.age_targeting);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <Card className="w-full hover:shadow-md transition-shadow bg-white">
-      <CardHeader className="pb-2 border-b bg-gray-50 rounded-t-lg">
+    <Card className="w-full hover:shadow-lg transition-shadow bg-white overflow-hidden">
+      <CardHeader className="pb-2 border-b bg-gradient-to-r from-gray-50 to-white">
         <CardTitle className="text-lg font-semibold flex items-center justify-between">
           <Link
             href={
@@ -74,7 +83,7 @@ export default function AdSearchCard({
               (getAdvertiserIdFromURL(adSearchResult.advertiser_url || "") ||
                 "unknown")
             }
-            className="text-blue-600 hover:underline flex items-center"
+            className="text-blue-600 hover:text-blue-800 transition-colors flex items-center"
           >
             {adSearchResult.advertiser_name}
             <ExternalLink className="w-4 h-4 ml-1" />
@@ -90,10 +99,10 @@ export default function AdSearchCard({
               variant="outline"
               className={`text-xs ml-2 ${
                 (adSearchResult.political_leaning === "Liberal" || adSearchResult.political_leaning === "Democratic Mainstays" || adSearchResult.political_leaning === "Progressive Left")
-                  ? "bg-blue-200 text-blue-800 border-blue-300"
+                  ? "bg-blue-100 text-blue-800 border-blue-200"
                   : adSearchResult.political_leaning === "Conservative"
-                  ? "bg-red-200 text-red-800 border-red-300"
-                  : "bg-gray-200 text-gray-800 border-gray-300"
+                  ? "bg-red-100 text-red-800 border-red-200"
+                  : "bg-gray-100 text-gray-800 border-gray-200"
               }`}
             >
               {adSearchResult.political_leaning}
@@ -101,75 +110,72 @@ export default function AdSearchCard({
           ) : (
             <Badge
               variant="outline"
-              className="text-xs ml-2 bg-purple-100 text-purple-800 border-purple-300"
+              className="text-xs ml-2 bg-purple-50 text-purple-700 border-purple-200"
             >
-              <CircleSlashIcon className="w-3 h-3 mr-2" />
+              <CircleSlashIcon className="w-3 h-3 mr-1" />
               Political Leaning?
             </Badge>
           )}
         </CardDescription>
       </CardHeader>
-      <CardContent className="pt-4">
-        <div className="mb-4">
-          <embed className="w-full h-40 object-cover rounded-md" src={adSearchResult.content || ""} />
+      <CardContent className="pt-4 space-y-4">
+        {extractUrl(adSearchResult.content || "") && (
+          <div className="rounded-md overflow-hidden shadow-sm">
+            <ReactPlayer
+              url={extractUrl(adSearchResult.content || "") ?? ""}
+              width="100%"
+              height="160px"
+              controls={isPlaying}
+              playing={true}
+              loop={!isPlaying}
+              muted={!isPlaying}
+              playsinline={true}
+              light={false}
+              config={{
+                youtube: { playerVars: { start: 0, end: 5 } },
+                vimeo: { playerOptions: { start: 0, end: 5 } },
+                file: { attributes: { style: { objectFit: 'cover' } } }
+              }}
+              onClickPreview={() => setIsPlaying(true)}
+            />
+          </div>
+        )}
+        {adSearchResult.summary && (
+          <div className="bg-blue-50 p-3 rounded-md">
+          <h4 className="text-sm font-semibold mb-1 text-blue-700 flex items-center">
+            <Bot className="w-4 h-4 mr-1 flex-shrink-0" />
+            <span>AI Summary</span>
+          </h4>
+          <p className="text-xs text-gray-600 leading-relaxed">{adSearchResult.summary}</p>
         </div>
-        <div className="space-y-3 text-sm">
-          <div className="flex flex-wrap gap-2 items-center">
-            <Tag className="w-4 h-4 text-gray-400" />
-            {adSearchResult.keywords && 
-             adSearchResult.keywords.length > 0 && 
-             !(adSearchResult.keywords.length === 1 && adSearchResult.keywords[0] === 'Unknown') ? (
-              <>
-                {adSearchResult.keywords.slice(0, 3).map((keyword, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700">
-                    {keyword}
-                  </Badge>
-                ))}
-                {adSearchResult.keywords.length > 3 && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <span className="text-xs text-gray-500 cursor-help">+{adSearchResult.keywords.length - 3} more</span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{adSearchResult.keywords.join(", ")}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </>
-            ) : (
-              <span className="text-xs text-gray-500">No keywords available</span>
-            )}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Users className="w-4 h-4 text-gray-400" />
-            {/* <div className="flex flex-wrap gap-2">
-              {ageTargeting.length > 0 ? (
-                <>
-                  {ageTargeting.slice(0, 3).map((age, index) => (
-                    <Badge key={index} variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
-                      {age}
-                    </Badge>
-                  ))}
-                  {ageTargeting.length > 3 && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <span className="text-xs text-gray-500 cursor-help">+{ageTargeting.length - 3} more</span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{ageTargeting.join(", ")}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </>
-              ) : (
-                <span className="text-xs text-gray-500">No age targeting data</span>
+        )}
+        <div className="flex flex-wrap gap-2 items-center">
+          <Tag className="w-4 h-4 text-gray-400" />
+          {adSearchResult.keywords && 
+           adSearchResult.keywords.length > 0 && 
+           !(adSearchResult.keywords.length === 1 && adSearchResult.keywords[0] === 'Unknown') ? (
+            <>
+              {adSearchResult.keywords.slice(0, 3).map((keyword, index) => (
+                <Badge key={index} variant="secondary" className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700">
+                  {keyword}
+                </Badge>
+              ))}
+              {adSearchResult.keywords.length > 3 && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-xs text-gray-500 cursor-help">+{adSearchResult.keywords.length - 3} more</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{adSearchResult.keywords.join(", ")}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
-            </div> */}
-          </div>
+            </>
+          ) : (
+            <span className="text-xs text-gray-500">No keywords available</span>
+          )}
         </div>
       </CardContent>
     </Card>

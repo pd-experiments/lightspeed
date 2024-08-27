@@ -47,6 +47,7 @@ export default function DashboardPage() {
       const hoursSinceLastUpdate = (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
 
       if (latestData && hoursSinceLastUpdate < 24) {
+        console.log("latestData")
         setData({
           trendingTopics: latestData.trending_topics,
           hotIssues: latestData.hot_issues,
@@ -55,6 +56,7 @@ export default function DashboardPage() {
           newsArticles: latestData.news_articles
         });
       } else {
+        console.log("updating data")
         await updateData();
       }
     } catch (error) {

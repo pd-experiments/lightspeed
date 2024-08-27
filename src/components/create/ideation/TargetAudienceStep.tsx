@@ -9,11 +9,18 @@ interface TargetAudienceStepProps {
   onUpdate: (field: string, value: any) => void;
 }
 
-const ageRanges = ['18-44', '45+', 'All Ages'];
+const ageRanges = ['18-24', '25-39', '40-54', '55+', 'All Ages'];
 const genders = ['All Genders', 'Male', 'Female', 'Other'];
 
+interface TargetAudience {
+  age?: string[];
+  gender?: string[];
+  interests?: string[];
+  location?: string;
+}
+
 export default function TargetAudienceStep({ adCreation, onUpdate }: TargetAudienceStepProps) {
-  const [localTargetAudience, setLocalTargetAudience] = useState(adCreation.target_audience || {});
+  const [localTargetAudience, setLocalTargetAudience] = useState<TargetAudience>(adCreation.target_audience || {});
 
   useEffect(() => {
     setLocalTargetAudience(adCreation.target_audience || {});
@@ -27,8 +34,10 @@ export default function TargetAudienceStep({ adCreation, onUpdate }: TargetAudie
 
   const getAgeValue = (range: string) => {
     switch (range) {
-      case '18-44': return ['18-24', '25-34', '35-44'];
-      case '45+': return ['45-54', '55+'];
+      case '18-24': return ['18-24'];
+      case '25-39': return ['25-34'];
+      case '40-54': return ['35-44', '45-54'];
+      case '55+': return ['55+'];
       case 'All Ages': return ['18-24', '25-34', '35-44', '45-54', '55+'];
       default: return [];
     }

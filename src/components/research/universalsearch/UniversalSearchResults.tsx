@@ -6,6 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { TikTok } from "@/lib/types/customTypes";
+
+type TikTokWithCaption = TikTok & { caption: string };
 
 interface UniversalSearchResultsProps {
   query: string;
@@ -82,7 +85,7 @@ export default function UniversalSearchResults({ query, results, isLoading }: Un
                   <Badge variant="secondary" className="bg-blue-600 hover:bg-blue-700 text-white">{results.ads.length}</Badge>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {results.ads.slice(0, 2).map((ad, idx) => (
+                  {results.ads.slice(0, 3).map((ad, idx) => (
                     <AdSearchCard key={`ad-${idx}`} adSearchResult={ad} />
                   ))}
                 </div>
@@ -98,8 +101,8 @@ export default function UniversalSearchResults({ query, results, isLoading }: Un
                   <Badge variant="secondary" className="bg-blue-600 hover:bg-blue-700 text-white">{results.tikToks.length}</Badge>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {results.tikToks.slice(0, 2).map((tiktok, idx) => ( 
-                    <TikTokEmbed key={`tiktok-${idx}`} data={tiktok} />
+                  {results.tikToks.slice(0, 3).map((tiktok, idx) => ( 
+                    <TikTokEmbed key={`tiktok-${idx}`} data={tiktok as TikTokWithCaption} />
                   ))}
                 </div>
                 <Button variant="ghost" className="mt-4 text-blue-600" onClick={() => handleTabChange("tiktoks")}>
@@ -114,7 +117,7 @@ export default function UniversalSearchResults({ query, results, isLoading }: Un
                   <Badge variant="secondary" className="bg-blue-600 hover:bg-blue-700 text-white">{results.threads.length}</Badge>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {results.threads.slice(0, 2).map((thread, idx) => (
+                  {results.threads.slice(0, 3).map((thread, idx) => (
                     <ThreadsEmbed key={`thread-${idx}`} data={thread} />
                   ))}
                 </div>
@@ -130,7 +133,7 @@ export default function UniversalSearchResults({ query, results, isLoading }: Un
                   <Badge variant="secondary" className="bg-blue-600 hover:bg-blue-700 text-white">{results.news.length}</Badge>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {results.news.slice(0, 2).map((article, idx) => (
+                  {results.news.slice(0, 3).map((article, idx) => (
                     <NewsEmbed key={`news-${idx}`} data={article} />
                   ))}
                 </div>
@@ -155,18 +158,6 @@ export default function UniversalSearchResults({ query, results, isLoading }: Un
         )}
       </TabsContent>
 
-      <TabsContent value="tiktoks">
-        {!results?.tikToks?.length ? (
-          <EmptyState type="tiktoks" />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {results.tikToks.map((tiktok, idx) => (
-              <TikTokEmbed key={`tiktok-${idx}`} data={tiktok} />
-            ))}
-          </div>
-        )}
-      </TabsContent>
-
       <TabsContent value="threads">
         {!results?.threads?.length ? (
           <EmptyState type="threads" />
@@ -174,6 +165,18 @@ export default function UniversalSearchResults({ query, results, isLoading }: Un
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {results.threads.map((thread, idx) => (
               <ThreadsEmbed key={`thread-${idx}`} data={thread} />
+            ))}
+          </div>
+        )}
+      </TabsContent>
+
+      <TabsContent value="tiktoks">
+        {!results?.tikToks?.length ? (
+          <EmptyState type="tiktoks" />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {results.tikToks.map((tiktok, idx) => (
+              <TikTokEmbed key={`tiktok-${idx}`} data={tiktok as TikTokWithCaption} />
             ))}
           </div>
         )}

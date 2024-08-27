@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Database } from "@/lib/types/schema";
 import { Calendar, Tag } from "lucide-react";
 
-type NewsArticle = Database["public"]["Tables"]["news"]["Row"];
+type NewsArticle = Database["public"]["Tables"]["int_news"]["Row"];
 
 interface NewsCardProps {
   article: NewsArticle;
@@ -15,7 +15,7 @@ export default function NewsCard({ article }: NewsCardProps) {
         <CardTitle className="text-lg font-semibold line-clamp-2">{article.title}</CardTitle>
       </CardHeader>
       <CardContent className="pt-4">
-        <p className="text-sm text-gray-600 mb-3 line-clamp-3">{article.summary}</p>
+        <p className="text-sm text-gray-600 mb-3 line-clamp-3">{article.ai_summary}</p>
         <div className="flex justify-between text-xs text-gray-500 mb-2">
           <span className="flex items-center">
             <Calendar className="w-4 h-4 mr-1" />
@@ -27,9 +27,9 @@ export default function NewsCard({ article }: NewsCardProps) {
             </a>
           )}
         </div>
-        {article.keywords && article.keywords.length > 0 && (
+        {article.political_keywords && article.political_keywords.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {article.keywords.slice(0, 3).map((keyword, index) => (
+            {article.political_keywords.slice(0, 3).map((keyword, index) => (
               <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                 <Tag className="w-3 h-3 mr-1" />
                 {keyword}

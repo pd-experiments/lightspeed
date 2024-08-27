@@ -414,7 +414,7 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
                   <Input
                     type="text"
@@ -435,7 +435,7 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
                       placeholder="Video URL"
                     />
                   </div>
-                )}
+                )} */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Caption</label>
                   <Textarea
@@ -453,16 +453,6 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
                     onChange={(e) => handleConfigChange(platform, versionId, 'link', e.target.value)}
                     className="w-full"
                     placeholder="Link"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Ad Set ID</label>
-                  <Input
-                    type="text"
-                    value={config.adsetId}
-                    onChange={(e) => handleConfigChange(platform, versionId, 'adsetId', e.target.value)}
-                    className="w-full"
-                    placeholder="Ad Set ID"
                   />
                 </div>
               </div>

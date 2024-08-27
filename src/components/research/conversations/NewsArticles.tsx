@@ -4,7 +4,7 @@ import { ExternalLink, Clock, Tag, TrendingUp, TrendingDown, Minus, Newspaper } 
 import { Database } from '@/lib/types/schema';
 import { Spinner } from '@/components/ui/Spinner';
 
-type NewsArticle = Database['public']['Tables']['news']['Row'] & {
+type NewsArticle = Database['public']['Tables']['int_news']['Row'] & {
   summary: string;
   key_points: string[];
   potential_impact: string;

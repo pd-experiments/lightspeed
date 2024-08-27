@@ -136,6 +136,10 @@ export default function IdeationStepperPage({ params }: { params: { id: string }
       } else {
         console.log('Quick setup applied successfully');
       }
+
+      if (adExperiment.id) {
+        loadAdExperiment(adExperiment.id);
+      }
     } catch (error) {
       console.error('Error applying quick setup:', error);
       toast.error("Failed to quick setup your ad creative.")

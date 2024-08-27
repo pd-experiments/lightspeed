@@ -77,18 +77,22 @@ export type Database = {
       }
       ad_deployments: {
         Row: {
+          adset_budget: number | null
           adset_id: string | null
+          adset_name: string | null
           audience: string
           bid_strategy: string
           budget: number
-          campaign_id: string | null
+          campaign_info: Json | null
           caption: string
+          content_insights: Json | null
           created_at: string | null
           duration: number
           experiment_id: string | null
           id: string
           image_url: string | null
           link: string
+          performance_data: Json | null
           placement: string
           platform: string
           status: Database["public"]["Enums"]["deployment_status"]
@@ -98,18 +102,22 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          adset_budget?: number | null
           adset_id?: string | null
+          adset_name?: string | null
           audience: string
           bid_strategy: string
           budget: number
-          campaign_id?: string | null
+          campaign_info?: Json | null
           caption: string
+          content_insights?: Json | null
           created_at?: string | null
           duration: number
           experiment_id?: string | null
           id?: string
           image_url?: string | null
           link: string
+          performance_data?: Json | null
           placement: string
           platform: string
           status?: Database["public"]["Enums"]["deployment_status"]
@@ -119,18 +127,22 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          adset_budget?: number | null
           adset_id?: string | null
+          adset_name?: string | null
           audience?: string
           bid_strategy?: string
           budget?: number
-          campaign_id?: string | null
+          campaign_info?: Json | null
           caption?: string
+          content_insights?: Json | null
           created_at?: string | null
           duration?: number
           experiment_id?: string | null
           id?: string
           image_url?: string | null
           link?: string
+          performance_data?: Json | null
           placement?: string
           platform?: string
           status?: Database["public"]["Enums"]["deployment_status"]

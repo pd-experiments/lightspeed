@@ -2,7 +2,7 @@ import { Database } from '@/lib/types/schema';
 
 type Thread = Database['public']['Tables']['threads']['Row'];
 type TikTokVideo = Database['public']['Tables']['tiktok_videos']['Row'];
-type NewsArticle = Database['public']['Tables']['news']['Row'];
+type NewsArticle = Database['public']['Tables']['int_news']['Row'];
 
 export function isThread(ref: Thread | TikTokVideo | NewsArticle): ref is Thread {
   return 'thread_id' in ref;

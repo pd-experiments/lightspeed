@@ -95,9 +95,6 @@ export type AdCreation = Database['public']['Tables']['ad_creations']['Row'] & {
     version_data?: VersionData;
   };
 
-
-export type AdTest = Database['public']['Tables']['ad_deployments']['Row'];
-
 export type TikTok = Database['public']['Tables']['tiktok_videos']['Row'];
 export type Threads = Database['public']['Tables']['threads']['Row'];
 export type News = Database['public']['Tables']['int_news']['Row'];
@@ -156,6 +153,11 @@ export type CampaignInfo = {
 };
 
 export type AdDeployment = Database['public']['Tables']['ad_deployments']['Row'] & {
+  performance_data?: AdPerformanceData;
+  campaign_info?: CampaignInfo;
+};
+
+export type AdTest = Database['public']['Tables']['ad_deployments']['Row'] & {
   performance_data?: AdPerformanceData;
   campaign_info?: CampaignInfo;
 };

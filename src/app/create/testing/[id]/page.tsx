@@ -225,7 +225,14 @@ export default function TestDetailsPage() {
     try {
       const response = await axios.post('/api/create/testing/create-facebook-campaign', campaignData);
       if (response.data.success) {
-        setEditedTest(prev => ({ ...prev!, campaign_id: response.data.campaignId }));
+        setEditedTest(prev => ({
+          ...prev!,
+          campaign_info: {
+            id: response.data.campaignId,
+            name: campaignData.name,
+            objective: campaignData.objective
+          }
+        }));
         toast.success('Campaign created successfully');
       } else {
         throw new Error(response.data.error || 'Failed to create campaign');
@@ -236,14 +243,14 @@ export default function TestDetailsPage() {
   };
 
   const createAdSet = async () => {
-    if (!editedTest?.campaign_id) {
+    if (!editedTest?.campaign_info?.id) {
       toast.error('Please create a campaign first');
       return;
     }
     try {
       const response = await axios.post('/api/create/testing/create-facebook-ad-set', {
         ...adSetData,
-        campaignId: editedTest.campaign_id,
+        campaignId: editedTest.campaign_info.id,
       });
       if (response.data.success) {
         setEditedTest(prev => ({ ...prev!, adset_id: response.data.adsetId }));
@@ -432,7 +439,7 @@ export default function TestDetailsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={!adSetData.name || !adSetData.dailyBudget || !editedTest?.campaign_id}
+                      disabled={!adSetData.name || !adSetData.dailyBudget || !editedTest?.campaign_info?.id}
                       className="w-full flex items-center space-x-2 whitespace-nowrap bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 transition duration-200 ease-in-out shadow-sm hover:shadow-md"
                       onClick={createAdSet}
                     >

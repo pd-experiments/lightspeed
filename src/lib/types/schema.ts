@@ -85,6 +85,7 @@ export type Database = {
           budget: number
           campaign_info: Json | null
           caption: string
+          content_insights: Json | null
           created_at: string | null
           duration: number
           experiment_id: string | null
@@ -109,6 +110,7 @@ export type Database = {
           budget: number
           campaign_info?: Json | null
           caption: string
+          content_insights?: Json | null
           created_at?: string | null
           duration: number
           experiment_id?: string | null
@@ -133,6 +135,7 @@ export type Database = {
           budget?: number
           campaign_info?: Json | null
           caption?: string
+          content_insights?: Json | null
           created_at?: string | null
           duration?: number
           experiment_id?: string | null

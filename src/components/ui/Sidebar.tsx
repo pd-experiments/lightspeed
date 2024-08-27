@@ -234,11 +234,11 @@ const NavButton = ({
             e.stopPropagation()
           }}
         >
-          <div className="flex items-center justify-center w-6 h-6 flex-shrink-0">
+          <div className="flex items-center justify-center w-12 h-12 flex-shrink-0">
             {item.icon}
           </div>
           {!isCollapsed && (
-                <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                <span className="text-md font-medium text-gray-700">{item.label}</span>
             )}
           {!isCollapsed && isParent && item.subItems && (
             <ChevronDownIcon

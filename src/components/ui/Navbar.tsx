@@ -14,30 +14,30 @@ import { Header } from "./Header"
 
 const navItems: NavItemType[] = [
   {
-    icon: <HomeIcon className="w-4 h-4 text-black" />,
+    icon: <HomeIcon className="w-6 h-6 text-black" />,
     label: "Home",
     href: "/",
   },
   {
-    icon: <TextSelect className="w-4 h-4 text-yellow-700" />,
+    icon: <TextSelect className="w-6 h-6 text-yellow-700" />,
     label: "Research",
     subItems: [
       {
-        icon: <MagnifyingGlassCircleIcon className="w-4 h-4 text-gray-600" />,
+        icon: <MagnifyingGlassCircleIcon className="w-6 h-6 text-gray-600" />,
         label: "Search",
         href: "/research",
         newTab: false,
         beta: false,
       },
       {
-        icon: <Newspaper className="w-4 h-4 text-gray-600" />,
+        icon: <Newspaper className="w-6 h-6 text-gray-600" />,
         label: "Ads",
         href: "/research/ads",
         newTab: false,
         beta: false,
       },
       {
-        icon: <Megaphone className="w-4 h-4 text-gray-600" />,
+        icon: <Megaphone className="w-6 h-6 text-gray-600" />,
         label: "Conversations",
         href: "/research/conversations",
         newTab: false,
@@ -46,25 +46,25 @@ const navItems: NavItemType[] = [
     ],
   },
   {
-    icon: <PencilLine className="w-4 h-4 text-blue-500" />,
+    icon: <PencilLine className="w-6 h-6 text-blue-500" />,
     label: "Create",
     subItems: [
       {
-        icon: <BoltIcon className="w-4 h-4 text-gray-600" />,
+        icon: <BoltIcon className="w-6 h-6 text-gray-600" />,
         label: "Ideation",
         href: "/create/ideation",
         newTab: false,
         beta: false,
       },
       {
-        icon: <Sparkle className="w-4 h-4 text-gray-600" />,
+        icon: <Sparkle className="w-6 h-6 text-gray-600" />,
         label: "Generate",
         href: "/create/generate",
         newTab: false,
         beta: false,
       },
       {
-        icon: <Beaker className="w-4 h-4 text-gray-600" />,
+        icon: <Beaker className="w-6 h-6 text-gray-600" />,
         label: "Testing",
         href: "/create/testing",
         newTab: false,
@@ -73,7 +73,7 @@ const navItems: NavItemType[] = [
     ],
   },
   {
-    icon: <Rocket className="w-4 h-4 text-purple-500"/>,
+    icon: <Rocket className="w-6 h-6 text-purple-500"/>,
     label: "Deployments",
     href: "/deployment",
   },

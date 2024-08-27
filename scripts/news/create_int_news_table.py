@@ -104,7 +104,7 @@ def process_article(article: RawArticle) -> FilteredArticle:
                     messages=[
                         {
                             "role": "system",
-                            "content": "You are given a news article. Write a summary of at most four sentences summarizing the news article. Denote political keywords (broad voter concerns) that the news article mentions. If the ad doesn't mention any political keywords (e.g. only a call to vote), return an empty list or return unknown. Denote the political leaning of the ad. If the ad doesn't lean any particular direction, return unknown. Denote one or more tones present in the ad. If the ad doesn't have a clear tone, return unknown. Compile a list of issues that contains more specific issues discussed by the article.",
+                            "content": "You are given a news article. Write a summary of at most four sentences summarizing the news article. Denote political keywords (broad voter concerns) that the news article mentions. If the article doesn't mention any political keywords (e.g. only a call to vote), return an empty list or return unknown. Denote the political leaning of the article. If the article doesn't lean any particular direction, return unknown. Denote one or more tones present in the article. If the article doesn't have a clear tone, return unknown. Compile a list of issues that contains more specific issues discussed by the article.",
                         },
                         {"role": "user", "content": f"{article.title}\n{article.text}"},
                     ],

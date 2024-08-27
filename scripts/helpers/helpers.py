@@ -3,7 +3,7 @@ import os
 import supabase
 
 # Load environment variables
-load_dotenv("../.env.local")
+load_dotenv(".env.local")
 
 
 # Connect to Supabase

@@ -17,7 +17,7 @@ const navItems: NavItemType[] = [
   {
     icon: <HomeIcon className="w-6 h-6 text-blue-500" />,
     label: "Home",
-    href: "/",
+    href: "/dashboard",
   },
   {
     icon: <TextSelect className="w-6 h-6 text-blue-500" />,

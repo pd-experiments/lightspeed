@@ -165,3 +165,18 @@ export type AdTest = Database['public']['Tables']['ad_deployments']['Row'] & {
 export type AdDeploymentWithCreation = AdDeployment & {
   creation: AdCreation;
 };
+
+export type HotIssue = {
+  issue: string;
+  description: string;
+  importance: number;
+  keyPoints: string[];
+  relatedTopics: string[];
+  trendDirection: 'rising' | 'stable' | 'declining';
+  impactAreas: string[];
+};
+
+export type PoliticalLeaning = {
+  leaning: string;
+  count: number;
+};

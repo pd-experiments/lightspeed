@@ -286,12 +286,12 @@ export default function AdVersionGenerator({ experiment }: AdVersionGeneratorPro
                                 </AccordionTrigger>
                                 <AccordionContent className="px-4 py-2">
                                 <div className="space-y-4">
-                                    {platform === 'Facebook' && <FacebookEmbed version={version} imageUrls={experiment.image_urls} />}
-                                    {platform === 'Instagram Post' && <InstagramPostEmbed version={version} imageUrls={experiment.image_urls} />}
-                                    {platform === 'Instagram Story' && <InstagramStoryEmbed version={version} imageUrls={experiment.image_urls} />}
+                                    {platform === 'Facebook' && <FacebookEmbed version={version} imageUrls={experiment.image_urls || []} />}
+                                    {platform === 'Instagram Post' && <InstagramPostEmbed version={version} imageUrls={experiment.image_urls || []} />}
+                                    {platform === 'Instagram Story' && <InstagramStoryEmbed version={version} imageUrls={experiment.image_urls || []} />}
                                     {platform === 'Instagram Reel' && <InstagramReelEmbed version={version} />}
                                     {platform === 'TikTok' && <TikTokEmbed version={version} />}
-                                    {platform === 'Threads' && <ThreadsEmbed version={version} imageUrls={experiment.image_urls} />}
+                                    {platform === 'Threads' && <ThreadsEmbed version={version} imageUrls={experiment.image_urls || []} />}
                                     <div className="space-y-2">
                                     <p className="text-sm text-gray-600"><strong>Text Content:</strong> {version.textContent}</p>
                                     {version.videoDescription && (

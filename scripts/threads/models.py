@@ -1,4 +1,4 @@
-from pydantic import BaseModel, AnyUrl, HttpUrl, field_validator
+from pydantic import BaseModel, AnyUrl, HttpUrl, validator
 from typing import Literal
 from uuid import UUID
 from datetime import datetime
@@ -23,7 +23,7 @@ class RawIGThread(BaseModel):
     image_urls: list[AnyUrl] | None
     embedding: list[float] | None
 
-    @field_validator("embedding", pre=True)
+    @validator("embedding", pre=True)
     def convert_embedding(cls, v):
         if isinstance(v, str):
             try:
@@ -97,4 +97,4 @@ class EnhancedIGThread(IGThreadAISummary):
     reposts: int | None
     raw_text_embedding: list[float] | None
     summary_embedding: list[float] | None
-    hashtags: list[float] | None
+    hashtags: list[str] | None

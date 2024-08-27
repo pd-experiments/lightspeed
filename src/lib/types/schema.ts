@@ -19,6 +19,7 @@ export type Database = {
           end_date: string
           flow: Database["public"]["Enums"]["ad_flow"]
           id: string
+          image_urls: string[] | null
           key_components: string[]
           objective: Database["public"]["Enums"]["campaign_objective"]
           platforms: Database["public"]["Enums"]["ad_platform"][]
@@ -39,6 +40,7 @@ export type Database = {
           end_date: string
           flow?: Database["public"]["Enums"]["ad_flow"]
           id?: string
+          image_urls?: string[] | null
           key_components: string[]
           objective: Database["public"]["Enums"]["campaign_objective"]
           platforms: Database["public"]["Enums"]["ad_platform"][]
@@ -59,6 +61,7 @@ export type Database = {
           end_date?: string
           flow?: Database["public"]["Enums"]["ad_flow"]
           id?: string
+          image_urls?: string[] | null
           key_components?: string[]
           objective?: Database["public"]["Enums"]["campaign_objective"]
           platforms?: Database["public"]["Enums"]["ad_platform"][]
@@ -562,6 +565,66 @@ export type Database = {
           title?: string
           updated_at?: string
           url?: string
+        }
+        Relationships: []
+      }
+      int_threads: {
+        Row: {
+          ai_summary: string | null
+          created_at: string | null
+          hashtags: string[] | null
+          id: string
+          issues: string[] | null
+          likes: number | null
+          political_keywords: string[] | null
+          political_leaning: string | null
+          political_tones: string[] | null
+          raw_text_embedding: string | null
+          replies: number | null
+          reposts: number | null
+          row_created_at: string | null
+          row_updated_at: string | null
+          summary_embedding: string | null
+          text: string
+          thread_id: string
+        }
+        Insert: {
+          ai_summary?: string | null
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          issues?: string[] | null
+          likes?: number | null
+          political_keywords?: string[] | null
+          political_leaning?: string | null
+          political_tones?: string[] | null
+          raw_text_embedding?: string | null
+          replies?: number | null
+          reposts?: number | null
+          row_created_at?: string | null
+          row_updated_at?: string | null
+          summary_embedding?: string | null
+          text: string
+          thread_id: string
+        }
+        Update: {
+          ai_summary?: string | null
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          issues?: string[] | null
+          likes?: number | null
+          political_keywords?: string[] | null
+          political_leaning?: string | null
+          political_tones?: string[] | null
+          raw_text_embedding?: string | null
+          replies?: number | null
+          reposts?: number | null
+          row_created_at?: string | null
+          row_updated_at?: string | null
+          summary_embedding?: string | null
+          text?: string
+          thread_id?: string
         }
         Relationships: []
       }

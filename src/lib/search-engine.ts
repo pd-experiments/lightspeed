@@ -13,7 +13,7 @@ import { z } from "zod";
 type EnhancedGoogleAd =
   Database["public"]["Tables"]["int_ads__google_ads_enhanced"]["Row"];
 type TikTok = Database["public"]["Tables"]["tiktok_videos"]["Row"];
-type IGThread = Database["public"]["Tables"]["threads"]["Row"];
+type IGThread = Database["public"]["Tables"]["int_threads"]["Row"];
 type NewsArticle = Database["public"]["Tables"]["int_news"]["Row"];
 
 export async function NLPLightspeedSearch(query: string) {
@@ -174,12 +174,57 @@ export async function LightspeedSearch(
   });
 
   // Get Instagram Threads
-  const igThreadsQuery = supabase.from("threads").select("*");
+  const igThreadsQuery = supabase.from("int_threads").select("*");
+
+  if (query.politicalKeywords && query.politicalKeywords.length > 0) {
+    console.log("keywords exist", query.politicalKeywords);
+    // Build the OR logic for keywords
+    const filters = query.politicalKeywords
+      .map((keyword) => `political_keywords.cs.\{${keyword}\}`)
+      .join(",");
+
+    igThreadsQuery.or(filters);
+  }
+
+  if (query.politicalLeanings && query.politicalLeanings.length > 0) {
+    igThreadsQuery.in("political_leaning", query.politicalLeanings);
+  }
+
+  if (query.tone && query.tone.length > 0) {
+    console.log("tone exists", query.tone);
+    // Build the OR logic for keywords
+    const filters = query.tone
+      .map((t) => `political_tones.cs.{${t}}`)
+      .join(",");
+
+    igThreadsQuery.or(filters);
+  }
+
+  if (query.date_range_start) {
+    igThreadsQuery.gte("created_at", query.date_range_start.toISOString());
+  }
+
+  if (query.date_range_end) {
+    igThreadsQuery.lte("created_at", query.date_range_end.toISOString());
+  }
+
+  if (query.sortBy) {
+    if (query.sortBy == "recency") {
+      igThreadsQuery.order("created_at", { ascending: false });
+    } else {
+      // TODO: Add this after estimated_success is calculated from number of ad views
+    }
+  }
 
   igThreadsQuery.returns<IGThread[]>().limit(10);
   const { data: igThreadData, error: igThreadError } = await igThreadsQuery;
   if (igThreadError) throw igThreadError;
-  // searchResults.threads = igThreadData as IGThread[];
+  searchResults.threads = igThreadData as IGThread[];
+  searchResults.threads = searchResults.threads.map((thread) => ({
+    ...thread,
+    summary_embedding: null,
+    raw_text_embedding: null,
+  }));
 
   // Get News Articles
   const newsArticlesQuery = supabase.from("int_news").select("*");
@@ -195,7 +240,6 @@ export async function LightspeedSearch(
   }
 
   if (query.politicalLeanings && query.politicalLeanings.length > 0) {
-    console.log("politicalleanings exist", query.politicalLeanings);
     newsArticlesQuery.in("political_leaning", query.politicalLeanings);
   }
 

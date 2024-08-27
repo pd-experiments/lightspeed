@@ -46,10 +46,17 @@ def process_ig_thread(ig_thread: RawIGThread) -> EnhancedIGThread:
                     },
                     {"role": "user", "content": ig_thread.text},
                 ],
-                response_format=EnhancedIGThread,
+                response_format=IGThreadAISummary,
             )
             .choices[0]
-            .message.content
+            .message.parsed
+        )
+
+        response.political_keywords = list(
+            filter(lambda item: item != "Unknown", response.political_keywords)
+        )
+        response.political_tones = list(
+            filter(lambda item: item != "Unknown", response.political_tones)
         )
 
         summary_embedding: list[float] = (
@@ -61,7 +68,7 @@ def process_ig_thread(ig_thread: RawIGThread) -> EnhancedIGThread:
         )
 
         return EnhancedIGThread(
-            **ig_thread,
+            **dict(ig_thread),
             **dict(response),
             raw_text_embedding=ig_thread.embedding,
             summary_embedding=summary_embedding,
@@ -95,4 +102,22 @@ def get_ig_threads() -> list[RawIGThread]:
 
 if __name__ == "__main__":
     raw_ig_threads = get_ig_threads()
-    print(len(raw_ig_threads))
+
+    with tqdm(total=len(raw_ig_threads), desc="Processing IG threads") as pbar:
+
+        def update(enhanced_ig_thread: EnhancedIGThread | None):
+            if enhanced_ig_thread:
+                supabase_client = get_supabase_client()
+                supabase_client.table("int_threads").upsert(
+                    enhanced_ig_thread.model_dump(mode="json")
+                ).execute()
+            pbar.update(1)
+
+        with Pool(cpu_count()) as pool:
+            for thread in raw_ig_threads:
+                pool.apply_async(process_ig_thread, args=(thread,), callback=update)
+
+            pool.close()
+            pool.join()
+
+    print("All content processed successfully")

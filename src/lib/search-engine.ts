@@ -219,8 +219,8 @@ export async function LightspeedSearch(
   igThreadsQuery.returns<IGThread[]>().limit(10);
   const { data: igThreadData, error: igThreadError } = await igThreadsQuery;
   if (igThreadError) throw igThreadError;
-  searchResults.threads = igThreadData as IGThread[];
-  searchResults.threads = searchResults.threads.map((thread) => ({
+  searchResults.threads = igThreadData;
+  searchResults.threads = searchResults.threads?.map((thread) => ({
     ...thread,
     summary_embedding: null,
     raw_text_embedding: null,

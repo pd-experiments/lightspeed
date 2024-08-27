@@ -143,7 +143,7 @@ export default function TrendingTopics({ topics, isLoading }: TrendingTopicsProp
                               <>
                                   <p className="font-semibold">{(ref.data as Thread).username ?? "No username"}</p>
                                   <p className="text-sm text-gray-600">
-                                  {expandedRefs.has(index) ? ref.data.text : truncateText(ref.data.text ?? '', 100)}
+                                  {expandedRefs.has(index) ? (ref.data as Thread).text : truncateText((ref.data as Thread).text ?? '', 100)}
                                   </p>
                               </>
                               )}
@@ -151,7 +151,7 @@ export default function TrendingTopics({ topics, isLoading }: TrendingTopicsProp
                               <>
                                   <p className="font-semibold">{(ref.data as TikTokVideo).author}</p>
                                   <p className="text-sm text-gray-600">
-                                  {expandedRefs.has(index) ? ref.data.text : truncateText(ref.data.text ?? '', 100)}
+                                  {expandedRefs.has(index) ? (ref.data as TikTokVideo).text : truncateText((ref.data as TikTokVideo).text ?? '', 100)}
                                   </p>
                                   <p className="text-xs text-gray-400">Views: {(ref.data as TikTokVideo).views}</p>
                               </>
@@ -162,14 +162,14 @@ export default function TrendingTopics({ topics, isLoading }: TrendingTopicsProp
                                   {(ref.data as NewsArticle).title}
                                   </a>
                                   <p className="text-sm text-gray-600">
-                                  {expandedRefs.has(index) ? (ref.data as NewsArticle).summary : truncateText((ref.data as NewsArticle).summary ?? '', 100)}
+                                  {expandedRefs.has(index) ? (ref.data as NewsArticle).ai_summary : truncateText((ref.data as NewsArticle).ai_summary ?? '', 100)}
                                   </p>
                                   <p className="text-xs text-gray-400">{new Date((ref.data as NewsArticle).publish_date ?? '').toLocaleDateString()}</p>
                               </>
                               )}
                               {(((ref.data as Thread).text?.length ?? 0 > 100) ||
                               ((ref.data as TikTokVideo).text?.length ?? 0 > 100) ||
-                              ((ref.data as NewsArticle).summary?.length ?? 0 > 100)) && (
+                              ((ref.data as NewsArticle).ai_summary?.length ?? 0 > 100)) && (
                               <Button
                                   variant="link"
                                   size="sm"

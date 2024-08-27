@@ -152,7 +152,7 @@ type EnhancedGoogleAd =
   Database["public"]["Tables"]["int_ads__google_ads_enhanced"]["Row"];
 type TikTok = Database["public"]["Tables"]["tiktok_videos"]["Row"];
 type IGThread = Database["public"]["Tables"]["threads"]["Row"];
-type NewsArticle = Database["public"]["Tables"]["news"]["Row"];
+type NewsArticle = Database["public"]["Tables"]["int_news"]["Row"];
 
 type SearchResults = {
   ads?: EnhancedGoogleAd[];

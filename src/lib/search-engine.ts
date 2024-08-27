@@ -14,7 +14,7 @@ type EnhancedGoogleAd =
   Database["public"]["Tables"]["int_ads__google_ads_enhanced"]["Row"];
 type TikTok = Database["public"]["Tables"]["tiktok_videos"]["Row"];
 type IGThread = Database["public"]["Tables"]["threads"]["Row"];
-type NewsArticle = Database["public"]["Tables"]["news"]["Row"];
+type NewsArticle = Database["public"]["Tables"]["int_news"]["Row"];
 
 export async function NLPLightspeedSearch(query: string) {
   const completion = await openai_client.beta.chat.completions.parse({
@@ -37,8 +37,24 @@ export async function NLPLightspeedSearch(query: string) {
   });
 
   const structured_query = completion.choices[0].message.parsed;
+
   console.log("query:", structured_query);
   if (structured_query) {
+    if (Array.isArray(structured_query["politicalKeywords"])) {
+      structured_query["politicalKeywords"] = structured_query[
+        "politicalKeywords"
+      ].filter((value: string) => value !== "Unknown");
+    }
+    if (Array.isArray(structured_query["politicalLeanings"])) {
+      structured_query["politicalLeanings"] = structured_query[
+        "politicalLeanings"
+      ].filter((value: string) => value !== "Unknown");
+    }
+    if (Array.isArray(structured_query["tone"])) {
+      structured_query["tone"] = structured_query["tone"].filter(
+        (value: string) => value !== "Unknown"
+      );
+    }
     const with_query = await LightspeedSearch(structured_query, true);
     const without_query = await LightspeedSearch(structured_query, false);
 
@@ -93,7 +109,7 @@ export async function LightspeedSearch(
     adsQuery.or(filters);
   }
 
-  if (query.politicalLeanings) {
+  if (query.politicalLeanings && query.politicalLeanings.length > 0) {
     adsQuery.in("political_leaning", query.politicalLeanings);
   }
 
@@ -166,13 +182,58 @@ export async function LightspeedSearch(
   // searchResults.threads = igThreadData as IGThread[];
 
   // Get News Articles
-  const newsArticlesQuery = supabase.from("news").select("*");
+  const newsArticlesQuery = supabase.from("int_news").select("*");
+
+  if (query.politicalKeywords && query.politicalKeywords.length > 0) {
+    console.log("keywords exist", query.politicalKeywords);
+    // Build the OR logic for keywords
+    const filters = query.politicalKeywords
+      .map((keyword) => `political_keywords.cs.\{${keyword}\}`)
+      .join(",");
+
+    newsArticlesQuery.or(filters);
+  }
+
+  if (query.politicalLeanings && query.politicalLeanings.length > 0) {
+    console.log("politicalleanings exist", query.politicalLeanings);
+    newsArticlesQuery.in("political_leaning", query.politicalLeanings);
+  }
+
+  if (query.tone && query.tone.length > 0) {
+    console.log("tone exists", query.tone);
+    // Build the OR logic for keywords
+    const filters = query.tone
+      .map((t) => `political_tones.cs.{${t}}`)
+      .join(",");
+
+    newsArticlesQuery.or(filters);
+  }
+
+  if (query.date_range_start) {
+    newsArticlesQuery.gte("publish_date", query.date_range_start.toISOString());
+  }
+
+  if (query.date_range_end) {
+    newsArticlesQuery.lte("publish_date", query.date_range_end.toISOString());
+  }
+
+  if (query.sortBy) {
+    if (query.sortBy == "recency") {
+      newsArticlesQuery.order("publish_date", { ascending: false });
+    } else {
+      // TODO: Add this after estimated_success is calculated from number of ad views
+    }
+  }
 
   newsArticlesQuery.returns<NewsArticle[]>().limit(10);
   const { data: newsArticleData, error: newsArticleError } =
     await newsArticlesQuery;
   if (newsArticleError) throw newsArticleError;
-  // searchResults.news = newsArticleData as NewsArticle[];
+  searchResults.news = newsArticleData as NewsArticle[];
+  searchResults.news = searchResults.news.map((result) => ({
+    ...result,
+    summary_embedding: "",
+  }));
 
   return searchResults;
 }

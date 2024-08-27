@@ -19,7 +19,7 @@ export function Header() {
   return (
     <header className="w-full bg-neutral-100">
       <div className="flex justify-between items-center px-4 py-3">
-        <Badge variant="outline" className="bg-orange-500/10 border-orange-500 text-orange-500">
+        <Badge variant="outline" className="bg-blue-500/10 border-blue-500 text-blue-500">
           DEMO
         </Badge>
         <div className="flex items-center space-x-4">
@@ -27,8 +27,8 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="text-base flex items-center space-x-2 px-3 py-2 text-black
-                           hover:bg-blue-100 hover:text-blue-500 
+                className="text-base flex items-center space-x-2 px-3 py-2 text-blue-500
+                           hover:bg-blue-100 hover:text-blue-600 
                            transition-all duration-200 ease-in-out 
                            rounded-md
                            hover:shadow-md hover:scale-105 

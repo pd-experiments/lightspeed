@@ -81,6 +81,7 @@ export type Database = {
           audience: string
           bid_strategy: string
           budget: number
+          campaign_id: string | null
           caption: string
           created_at: string | null
           duration: number
@@ -101,6 +102,7 @@ export type Database = {
           audience: string
           bid_strategy: string
           budget: number
+          campaign_id?: string | null
           caption: string
           created_at?: string | null
           duration: number
@@ -121,6 +123,7 @@ export type Database = {
           audience?: string
           bid_strategy?: string
           budget?: number
+          campaign_id?: string | null
           caption?: string
           created_at?: string | null
           duration?: number
@@ -209,6 +212,24 @@ export type Database = {
           influential_figures?: Json | null
           news_articles?: Json | null
           trending_topics?: Json | null
+        }
+        Relationships: []
+      }
+      ai_query_suggestions: {
+        Row: {
+          created_at: string
+          id: string
+          suggestions: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          suggestions: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          suggestions?: Json
         }
         Relationships: []
       }

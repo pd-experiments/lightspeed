@@ -6,54 +6,6 @@ const accessToken = process.env.META_ACCESS_TOKEN_FB;
 const adAccountId = process.env.FACEBOOK_AD_ACCOUNT_ID;
 const pageId = process.env.FACEBOOK_PAGE_ID;
 
-async function createCampaign(): Promise<string | null> {
-  try {
-    const response = await axios.post(`https://graph.facebook.com/v15.0/act_${adAccountId}/campaigns`, {
-      name: 'Campaign from API',
-      objective: 'OUTCOME_ENGAGEMENT', //Use one of: OUTCOME_LEADS, OUTCOME_SALES, OUTCOME_ENGAGEMENT, OUTCOME_AWARENESS, OUTCOME_TRAFFIC, OUTCOME_APP_PROMOTION.',
-      status: 'PAUSED',
-      special_ad_categories: ['HOUSING'], //ISSUES_ELECTIONS_POLITICS
-      access_token: accessToken
-    });
-
-    console.log('Campaign ID:', response.data.id);
-    return response.data.id;
-  } catch (error: any) {
-    console.error('Error creating campaign:', error.response?.data || error.message);
-    return null;
-  }
-}
-
-async function createAdSet(campaignId: string, dailyBudget: number, bidAmount: number): Promise<string | null> {
-  try {
-    const response = await axios.post(`https://graph.facebook.com/v15.0/act_${adAccountId}/adsets`, {
-      name: 'Ad Set from API',
-      campaign_id: campaignId,
-      daily_budget: dailyBudget,
-      billing_event: 'IMPRESSIONS',
-      optimization_goal: 'LINK_CLICKS', 
-      bid_amount: bidAmount, 
-      start_time: new Date().toISOString(),
-      end_time: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), 
-      targeting: {
-        geo_locations: {
-          countries: ['US']
-        },
-        age_min: 18,
-        age_max: 65
-      },
-      status: 'PAUSED',
-      access_token: accessToken
-    });
-
-    console.log('Ad Set ID:', response.data.id);
-    return response.data.id;
-  } catch (error: any) {
-    console.error('Error creating ad set:', error.response?.data || error.message);
-    return null;
-  }
-}
-
 async function createAdCreative(imageUrl: string, message: string, link: string): Promise<string | null> {
   try {
     const response = await axios.post(`https://graph.facebook.com/v15.0/act_${adAccountId}/adcreatives`, {
@@ -102,21 +54,13 @@ async function createAd(adCreativeId: string, adsetId: string, name: string): Pr
   }
 }
 
-async function getOrCreateAdSet(campaignId: string, adsetId: string | null, dailyBudget: number, bidAmount: number): Promise<string | null> {
-  if (adsetId && adsetId !== '') {
-    return adsetId;
-  } else {
-    return await createAdSet(campaignId, dailyBudget, bidAmount);
-  }
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    const { deploymentId, adsetId, dailyBudget, bidAmount } = req.body;
+    const { deploymentId, campaignId, adsetId } = req.body;
 
     // Fetch deployment and associated creation data
     const { data: deployment, error: deploymentError } = await supabase
@@ -133,18 +77,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { image_url, caption, link } = deployment;
     const experimentId = deployment.experiment_id;
 
-    // Create a campaign
-    const campaignId = await createCampaign();
-    if (!campaignId) {
-      throw new Error('Failed to create campaign');
-    }
-
-    // Get or create an ad set
-    const finalAdsetId = await getOrCreateAdSet(campaignId, adsetId, dailyBudget, bidAmount);
-    if (!finalAdsetId) {
-      throw new Error('Failed to get or create ad set');
-    }
-
     // Create an ad creative
     const adCreativeId = await createAdCreative(image_url, caption, link);
     if (!adCreativeId) {
@@ -152,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Create an ad
-    const adId = await createAd(adCreativeId, finalAdsetId, `Ad for Experiment ${experimentId}`);
+    const adId = await createAd(adCreativeId, adsetId, `Ad for Experiment ${experimentId}`);
     if (!adId) {
       throw new Error('Failed to create ad');
     }
@@ -160,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Update deployment status
     const { error: updateError } = await supabase
       .from('ad_deployments')
-      .update({ status: 'Deployed' })
+      .update({ status: 'Deployed', campaign_id: campaignId, adset_id: adsetId })
       .eq('id', deploymentId);
 
     if (updateError) throw new Error('Failed to update deployment status');
@@ -169,7 +101,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       success: true, 
       message: 'Facebook ad deployed successfully',
       adId: adId,
-      adsetId: finalAdsetId,
+      adsetId: adsetId,
       campaignId: campaignId,
       platform: 'Facebook',
       deploymentId: deploymentId

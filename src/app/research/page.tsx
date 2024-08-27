@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/ui/pageHeader";
 import { FaMeta, FaGoogle } from "react-icons/fa6";
 import { supabase } from "@/lib/supabaseClient";
 import { Flame } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
 
 export default function UniversalSearchPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -81,15 +82,16 @@ export default function UniversalSearchPage() {
     fetchQuerySuggestions();
   }, [fetchQuerySuggestions]);
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+  const handleSearch = async (query?: string) => {
+    const searchTerm = query || searchQuery;
+    if (!searchTerm.trim()) return;
 
     setIsLoading(true);
     try {
       const response = await fetch("/api/search-engine/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: searchQuery }),
+        body: JSON.stringify({ query: searchTerm }),
       });
       if (!response.ok) {
         throw new Error("Failed to perform search");
@@ -104,9 +106,9 @@ export default function UniversalSearchPage() {
   };
 
 
-  const handleSuggestionClick = (suggestion: string) => {
+  const handleSuggestionClick = async (suggestion: string) => {
     setSearchQuery(suggestion);
-    handleSearch();
+    await handleSearch(suggestion);
   };
 
   return (
@@ -140,18 +142,18 @@ export default function UniversalSearchPage() {
                 onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                 className="flex-grow"
               />
-              <Button onClick={handleSearch} disabled={isLoading}>
+              <Button onClick={() => handleSearch()} disabled={isLoading}>
                 <Search className="mr-2 h-4 w-4" /> Search
               </Button>
             </div>
             
             {!isLoadingSuggestions && querySuggestions.length > 0 && (
               <div className="flex items-center flex-wrap gap-2 w-full">
-                <div className="flex items-center gap-2 p-2 rounded-md font-semibold text-gray-600">
-                  <Lightbulb className="w-6 h-6 text-yellow-500 mr-2" />
-                  <p className="text-sm text-yellow-500">Suggestions</p>
-                  <ChevronRight className="w-4 h-4 text-yellow-500" />
-                </div>
+                <Badge variant="secondary" className="bg-yellow-50 flex items-center gap-1 px-2 py-1">
+                  <Lightbulb className="w-5 h-5 text-yellow-500" />
+                  <span className="text-sm font-medium text-yellow-900">Suggestions</span>
+                  <ChevronRight className="w-3 h-3 text-yellow-500" />
+                </Badge>
                 {querySuggestions.map((suggestion, index) => (
                   <Button
                     key={index}

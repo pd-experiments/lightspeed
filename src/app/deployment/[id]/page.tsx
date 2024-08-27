@@ -16,6 +16,8 @@ import { toast } from "sonner"
 import axios from 'axios';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PageHeader } from '@/components/ui/pageHeader';
+import { FacebookEmbed, InstagramPostEmbed, InstagramStoryEmbed, InstagramReelEmbed, TikTokEmbed, ThreadsEmbed } from '@/components/ui/socialMediaEmbeds';
+import { AdVersion, Platform } from '@/lib/types/customTypes';
 
 export default function DeploymentDetailsPage() {
   const [deployment, setDeployment] = useState<AdDeploymentWithCreation | null>(null);
@@ -82,22 +84,23 @@ export default function DeploymentDetailsPage() {
   };
   
   const handleDeploymentAction = async (action: 'deploy' | 'pause' | 'redeploy') => {
+    const newAction = 'deploy';
     try {
       setLoadingDeployAction(true);
-      const platform = deployment?.creation?.platforms[0]?.toLowerCase().replace(' ', '-');
+      const platform = deployment?.platform?.toLowerCase().replace(' ', '-');
       const encodedPlatform = encodeURIComponent(platform || '');
-      const response = await axios.post(`/api/create/deployment/${action}-${encodedPlatform}`, {
+      const response = await axios.post(`/api/create/deployment/${newAction}-${encodedPlatform}-test`, {
         deploymentId: deployment?.id
       });
   
       if (response.data.success) {
-        toast.success(`${deployment?.creation?.platforms[0]} deployment ${action}ed successfully`);
+        toast.success(`${deployment?.platform} deployment ${newAction}ed successfully`);
         await fetchDeploymentDetails();
       } else {
-        throw new Error(response.data.error || `Failed to ${action} deployment`);
+        throw new Error(response.data.error || `Failed to ${deployment?.platform} deployment`);
       }
     } catch (error) {
-      toast.error(`Failed to ${action} ${deployment?.creation?.platforms[0]} deployment: ${String(error)}`);
+      toast.error(`Failed to ${action} ${deployment?.platform} deployment: ${String(error)}`);
     } finally {
       setLoadingDeployAction(false);
     }
@@ -114,6 +117,33 @@ export default function DeploymentDetailsPage() {
     return iconMap[key] || <Zap className="w-5 h-5 text-gray-500" />;
   };
 
+  const renderSocialMediaEmbed = () => {
+    if (!deployment || !deployment.creation) return null;
+
+    const version: AdVersion | undefined = deployment.creation.version_data.versions.find(v => v.id === deployment.version_id);
+
+    if (!version) return null;
+
+    const imageUrls = deployment.creation.image_urls || [];
+
+    switch (version.platform.toLowerCase() as Lowercase<Platform>) {
+      case 'facebook':
+        return <FacebookEmbed version={version} imageUrls={imageUrls} />;
+      case 'instagram post':
+        return <InstagramPostEmbed version={version} imageUrls={imageUrls} />;
+      case 'instagram story':
+        return <InstagramStoryEmbed version={version} />;
+      case 'instagram reel':
+        return <InstagramReelEmbed version={version} />;
+      case 'tiktok':
+        return <TikTokEmbed version={version} />;
+      case 'threads':
+        return <ThreadsEmbed version={version} imageUrls={imageUrls} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <Navbar>
       <main className="min-h-screen bg-gray-100">
@@ -126,69 +156,98 @@ export default function DeploymentDetailsPage() {
               </Badge>
             ]}
             rightItem={
-              <Button variant="ghost" className="text-gray-600" onClick={() => router.push('/deployment')}>
-                <ChevronLeft className="mr-2 h-5 w-5" /> Back to Deployments
-              </Button>
+                              <div>
+
+{!isEditing && deployment && (
+  <>
+    {deployment.status === 'Created' && (
+      <Button 
+        onClick={() => handleDeploymentAction('deploy')}
+        disabled={loadingDeployAction}
+        className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+      >
+        {loadingDeployAction ? (
+          'Deploying...'
+        ) : (
+          <>
+            <CirclePlayIcon className="w-4 h-4 mr-2" />
+            Deploy
+          </>
+        )}
+      </Button>
+    )}
+    {deployment.status === 'Deployed' && (
+      <Button 
+        onClick={() => handleDeploymentAction('pause')}
+        className="bg-red-400 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+      >
+        <CircleStopIcon className="w-4 h-4 mr-2" />
+        Stop Deployment
+      </Button>
+    )}
+    {deployment.status === 'Running' && (
+      <Button 
+        onClick={() => handleDeploymentAction('pause')}
+        className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+      >
+        <CircleStopIcon className="w-4 h-4 mr-2" />
+        Pause Deployment
+      </Button>
+    )}
+    {deployment.status === 'Paused' && (
+      <Button 
+        onClick={() => handleDeploymentAction('redeploy')}
+        className="bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+      >
+        <CirclePlayIcon className="w-4 h-4 mr-2" />
+        Redeploy
+      </Button>
+    )}
+  </>
+)}
+                              <Button variant="ghost" className="text-gray-600" onClick={() => router.push('/deployment')}>
+                                <ChevronLeft className="mr-2 h-5 w-5" /> Back to Deployments
+                              </Button>
+                            </div>
             }
           />
 
-          <Tabs defaultValue="overview" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <TabsList>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="configuration">Configuration</TabsTrigger>
-                <TabsTrigger value="performance">Performance</TabsTrigger>
-                <TabsTrigger value="audience">Audience Insights</TabsTrigger>
-                <TabsTrigger value="content">Content Analysis</TabsTrigger>
-              </TabsList>
-
-              {!isEditing && deployment && (
-                <div>
-                  {deployment.status === 'Created' && (
-                    <Button 
-                      onClick={() => handleDeploymentAction('deploy')}
-                      disabled={loadingDeployAction}
-                      className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
-                    >
-                      {loadingDeployAction ? (
-                        'Deploying...'
-                      ) : (
-                        <>
-                          <CirclePlayIcon className="w-4 h-4 mr-2" />
-                          Deploy
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  {deployment.status === 'Deployed' && (
-                    <Button 
-                      onClick={() => handleDeploymentAction('pause')}
-                      className="bg-red-400 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
-                    >
-                      <CircleStopIcon className="w-4 h-4 mr-2" />
-                      Stop Deployment
-                    </Button>
-                  )}
-                  {deployment.status === 'Running' && (
-                    <Button 
-                      onClick={() => handleDeploymentAction('pause')}
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
-                    >
-                      <CircleStopIcon className="w-4 h-4 mr-2" />
-                      Pause Deployment
-                    </Button>
-                  )}
-                  {deployment.status === 'Paused' && (
-                    <Button 
-                      onClick={() => handleDeploymentAction('redeploy')}
-                      className="bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition duration-200 ease-in-out shadow-md hover:shadow-lg"
-                    >
-                      <CirclePlayIcon className="w-4 h-4 mr-2" />
-                      Redeploy
-                    </Button>
-                  )}
-                </div>
-              )}
+<div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-grow lg:w-2/3 lg:max-w-2/3">
+              <Tabs defaultValue="overview" className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <TabsList className="inline-flex h-12 items-center justify-center rounded-full bg-gray-100 p-1 mb-4">
+                  <TabsTrigger 
+                    value="overview" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="configuration" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    Configuration
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="performance" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    Performance
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="audience" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    Audience Insights
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="content" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    Content Analysis
+                  </TabsTrigger>
+                </TabsList>
             </div>
 
             <TabsContent value="overview">
@@ -213,7 +272,7 @@ export default function DeploymentDetailsPage() {
                     </div>
                     <div className="flex flex-col space-y-2">
                       <span className="text-sm font-medium text-gray-500">Platform</span>
-                      <span className="text-lg font-semibold">{deployment?.creation?.platforms[0]}</span>
+                      <span className="text-lg font-semibold">{deployment?.platform}</span>
                     </div>
                     <div className="flex flex-col space-y-2">
                       <span className="text-sm font-medium text-gray-500">Budget Spent</span>
@@ -427,6 +486,22 @@ export default function DeploymentDetailsPage() {
               </Card>
             </TabsContent>
           </Tabs>
+          </div>
+
+          <div className="lg:w-1/3 lg:min-w-[33%] lg:sticky lg:top-4 lg:self-start mt-[82px]">
+              <Card className="bg-white shadow-sm">
+                <CardHeader className="border-b p-4">
+                  <div className="flex items-center space-x-3">
+                    <Eye className="w-5 h-5 text-purple-500" />
+                    <CardTitle className="text-lg font-semibold text-gray-800">Ad Preview</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 flex items-center justify-center">
+                  {renderSocialMediaEmbed()}
+                </CardContent>
+              </Card>
+            </div>
+</div>
         </div>
       </main>
     </Navbar>

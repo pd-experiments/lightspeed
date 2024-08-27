@@ -48,7 +48,7 @@ export default function OutlineList({ initialOutlines, loading }: { initialOutli
               <h2 className="text-sm font-medium text-gray-700">{_.startCase(_.toLower(status))}</h2>
             </div>
             {Array.from({ length: 2 }).map((_, idx) => (
-              <Skeleton key={idx} className="h-24 w-full rounded-md" />
+              <Skeleton isLoading={loading} key={idx} className="h-24 w-full rounded-md" />
             ))}
           </div>
         ))

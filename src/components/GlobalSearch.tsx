@@ -62,7 +62,7 @@ export function GlobalSearchTab({
       <div className="flex items-center space-x-4">
         <div className="flex-grow">
           {isLoading ? (
-            <Skeleton className="h-10 w-full" />
+            <Skeleton isLoading={isLoading} className="h-10 w-full" />
           ) : (
             <SearchInput
               value={searchQuery}

@@ -24,21 +24,21 @@ const navItems: NavItemType[] = [
     label: "Research",
     subItems: [
       {
-        icon: <MagnifyingGlassCircleIcon className="w-6 h-6 text-gray-600" />,
+        icon: <MagnifyingGlassCircleIcon className="w-5 h-5 text-gray-600" />,
         label: "Search",
         href: "/research",
         newTab: false,
         beta: false,
       },
       {
-        icon: <Newspaper className="w-6 h-6 text-gray-600" />,
+        icon: <Newspaper className="w-5 h-5 text-gray-600" />,
         label: "Ads",
         href: "/research/ads",
         newTab: false,
         beta: false,
       },
       {
-        icon: <Megaphone className="w-6 h-6 text-gray-600" />,
+        icon: <Megaphone className="w-5 h-5 text-gray-600" />,
         label: "Conversations",
         href: "/research/conversations",
         newTab: false,
@@ -51,21 +51,21 @@ const navItems: NavItemType[] = [
     label: "Create",
     subItems: [
       {
-        icon: <BoltIcon className="w-6 h-6 text-gray-600" />,
+        icon: <BoltIcon className="w-5 h-5 text-gray-600" />,
         label: "Ideation",
         href: "/create/ideation",
         newTab: false,
         beta: false,
       },
       {
-        icon: <Sparkle className="w-6 h-6 text-gray-600" />,
+        icon: <Sparkle className="w-5 h-5 text-gray-600" />,
         label: "Generate",
         href: "/create/generate",
         newTab: false,
         beta: false,
       },
       {
-        icon: <Beaker className="w-6 h-6 text-gray-600" />,
+        icon: <Beaker className="w-5 h-5 text-gray-600" />,
         label: "Testing",
         href: "/create/testing",
         newTab: false,

@@ -6,7 +6,7 @@ import Navbar from '@/components/ui/Navbar';
 import { PageHeader } from '@/components/ui/pageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkle, Beaker, Rocket, TrendingUp, DollarSign } from 'lucide-react';
+import { Sparkle, Beaker, TrendingUp, DollarSign } from 'lucide-react';
 import { AdCreation, AdDeploymentWithCreation } from '@/lib/types/customTypes';
 import TrendingTopics from '@/components/research/conversations/TrendingTopics';
 import RecentAds from '@/components/research/ads/RecentAds';
@@ -16,6 +16,7 @@ import AdDeploymentList from '@/components/deployment/AdDeploymentList';
 import { AdDeployment } from '@/lib/types/customTypes';
 import HotIssues from '@/components/research/conversations/HotIssues';
 import PoliticalLeanings from '@/components/research/ads/PoliticalLeanings';
+import { TextSelect, PencilLine, Rocket } from 'lucide-react';
 
 import { HotIssue, PoliticalLeaning } from '@/lib/types/customTypes'; 
 
@@ -150,12 +151,19 @@ export default function DashboardPage() {
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
+  const getGreeting = (): string => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
+
   return (
     <Navbar>
       <main className="min-h-screen bg-gray-100">
         <div className="max-w-[1500px] mx-auto p-6">
           <PageHeader 
-            text="Dashboard"
+            text={`${getGreeting()}, welcome to lightspeed!`}
             rightItem={
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
@@ -174,18 +182,49 @@ export default function DashboardPage() {
             }
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <HotIssues issues={data.hotIssues} isLoading={isLoading} />
-                <PoliticalLeanings leanings={data.politicalLeanings} isLoading={isLoading} dashboard={true} />
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 mb-4">
+            <div>
+              <div className="flex items-center mb-2 text-sm text-gray-600">
+                <TextSelect className="w-4 h-4 mr-2" />
+                <span>Research</span>
+              </div>
+              <HotIssues issues={data.hotIssues} isLoading={isLoading} />
+            </div>
+            <div>
+              <div className="flex items-center mb-2 text-sm text-gray-600">
+                <TextSelect className="w-4 h-4 mr-2" />
+                <span>Research</span>
+              </div>
+              <PoliticalLeanings leanings={data.politicalLeanings} isLoading={isLoading} dashboard={true} />
+            </div>
           </div>
 
-          <Tabs defaultValue="creations" className="mt-6">
-            <TabsList>
-              <TabsTrigger value="creations">Ad Creations</TabsTrigger>
-              <TabsTrigger value="tests">Ad Tests</TabsTrigger>
-              <TabsTrigger value="deployments">Deployments</TabsTrigger>
-            </TabsList>
+          <Tabs defaultValue="creations" className="mt-6 pt-5 py-3">
+            <TabsList className="inline-flex h-12 items-center justify-center rounded-full bg-gray-200 p-1 mb-4">
+                  <TabsTrigger 
+                    value="creations" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    Creations
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="tests" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    A/B Tests
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="deployments" 
+                    className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  >
+                    Deployments
+                  </TabsTrigger>
+                </TabsList>
             <TabsContent value="creations">
+              <div className="flex items-center mb-2 text-sm text-gray-600">
+                <PencilLine className="w-4 h-4 mr-2" />
+                <span>Create</span>
+              </div>
               <Card>
                 <CardContent className="p-4">
                   <AdExperimentList
@@ -199,6 +238,10 @@ export default function DashboardPage() {
               </Card>
             </TabsContent>
             <TabsContent value="tests">
+              <div className="flex items-center mb-2 text-sm text-gray-600">
+                <PencilLine className="w-4 h-4 mr-2" />
+                <span>Create</span>
+              </div>
               <Card>
                 <CardContent className="p-4">
                   <AdTestList
@@ -212,6 +255,10 @@ export default function DashboardPage() {
               </Card>
             </TabsContent>
             <TabsContent value="deployments">
+              <div className="flex items-center mb-2 text-sm text-gray-600">
+                <Rocket className="w-4 h-4 mr-2" />
+                <span>Deployments</span>
+              </div>
               <Card>
                 <CardContent className="p-4">
                   <AdDeploymentList

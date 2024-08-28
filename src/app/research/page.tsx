@@ -142,7 +142,7 @@ export default function UniversalSearchPage() {
                 onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                 className="flex-grow"
               />
-              <Button onClick={() => handleSearch()} disabled={isLoading}>
+              <Button onClick={() => handleSearch()} disabled={isLoading} className="bg-blue-500 hover:bg-blue-700 text-white">
                 <Search className="mr-2 h-4 w-4" /> Search
               </Button>
             </div>

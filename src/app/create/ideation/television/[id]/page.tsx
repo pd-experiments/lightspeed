@@ -153,7 +153,7 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
 
   return (
     <Navbar>
-      <main className="min-h-screen flex flex-col items-center justify-between p-24">
+      <main className="min-h-screen flex flex-col items-center justify-between">
       <div className="w-full max-w-[1500px] mx-auto">
         <div className="w-full flex justify-between mb-4">
           <Button variant="link" className="p-0 h-auto font-normal">
@@ -171,7 +171,7 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
         </div>
         <div className="w-full mt-8">
           {loading ? (
-            <Skeleton className="w-full h-16 mb-6" />
+            <Skeleton isLoading={loading} className="w-full h-16 mb-6" />
           ) : (
             <div className="flex items-center mb-6">
               <h1 className="text-3xl font-bold mr-4">{_.startCase(outline?.title || '')}</h1>
@@ -196,7 +196,7 @@ export default function OutlinePage({ params }: { params: { id: string } }) {
             </div>
           )}
           {loading ? (
-            <Skeleton className="w-full h-64" />
+            <Skeleton isLoading={loading} className="w-full h-64" />
           ) : (
             <>
               {currentVideo && currentVideo.video_id && (

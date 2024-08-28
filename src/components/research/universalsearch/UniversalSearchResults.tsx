@@ -3,10 +3,13 @@ import { SearchResults } from "@/lib/types/lightspeed-search";
 import AdSearchCard from "@/components/research/adsearch/AdSearchCard";
 import { TikTokEmbed, ThreadsEmbed, NewsEmbed, AdEmbed } from "@/components/ui/socialMediaEmbedsReal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronRight, Loader2 } from "lucide-react";
+import { ChevronRight, Loader2, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TikTok } from "@/lib/types/customTypes";
+import { FaTiktok } from "react-icons/fa";
+import { FaNewspaper, FaThreads } from "react-icons/fa6";
+import { MagnifyingGlassCircleIcon } from "@heroicons/react/20/solid";
 
 type TikTokWithCaption = TikTok & { caption: string };
 
@@ -36,11 +39,11 @@ export default function UniversalSearchResults({ query, results, isLoading }: Un
   const EmptyState = ({ type }: { type: string }) => (
     <div className="flex flex-col items-center justify-center h-64 text-gray-400">
       <div className="text-4xl mb-2">
-        {type === 'ads' && '🎯'}
-        {type === 'tiktoks' && '🎵'}
-        {type === 'threads' && '🧵'}
-        {type === 'news' && '📰'}
-        {type === 'all' && '🔍'}
+        {type === 'ads' && <Newspaper className="w-8 h-8 text-blue-500" />}
+        {type === 'tiktoks' && <FaTiktok className="w-8 h-8 text-blue-500" />}
+        {type === 'threads' && <FaThreads className="w-8 h-8 text-blue-500" />}
+        {type === 'news' && <FaNewspaper className="w-8 h-8 text-blue-500" />}
+        {type === 'all' &&  <MagnifyingGlassCircleIcon className="w-8 h-8 text-blue-500" />}
       </div>
       {query ? (
         <>

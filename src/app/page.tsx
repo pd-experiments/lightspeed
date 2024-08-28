@@ -1,96 +1,76 @@
-"use client"
+// "use client"
 
-import Link from "next/link"
-import Navbar from "@/components/ui/Navbar"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
+// import React from 'react';
+// import Link from 'next/link';
+// import Image from 'next/image';
+// import { Button } from "@/components/ui/button";
+// import { ArrowRight, Zap, BarChart2, Rocket, Sparkles, RefreshCw, TrendingUp, MessageSquare, Target } from 'lucide-react';
+// import { Carousel, CarouselItem } from "@/components/ui/carousel";
+// import AnimatedGradientText from "@/components/magicui/animated-gradient-text";
+// import NumberTicker from "@/components/magicui/number-ticker";
+// import { cn } from "@/lib/utils";
+// import LandingPage from "@/components/ui/LandingPage";
 
-export default function Component() {
+// type featureType = {
+//   title: string;
+//   description: string;
+//   icon: React.ElementType;
+//   cta: string;
+//   href: string;
+// }
+
+// const features: featureType[] = [
+//   { title: "Real-time Insights", description: "Aggregate voter sentiment from social media and current events.", icon: TrendingUp, cta: "Learn More", href: "/research"  },
+//   { title: "AI Ad Creation", description: "Generate ad suggestions based on trending topics and successful campaigns.", icon: Sparkles, cta: "Learn More", href: "/create" },
+//   { title: "Rapid A/B Testing", description: "Quickly test and iterate on ad variations for maximum impact.", icon: RefreshCw, cta: "Learn More", href: "/research" },
+//   { title: "Multi-Platform Deployment", description: "Seamlessly deploy ads across Google, Meta, and other platforms.", icon: Rocket, cta: "Learn More", href: "/research" },
+//   { title: "Performance Analytics", description: "Track and analyze ad performance with detailed insights.", icon: BarChart2, cta: "Learn More", href: "/research" },
+//   { title: "Social Listening", description: "Monitor conversations on TikTok, Threads, and Reddit for voter opinions.", icon: MessageSquare, cta: "Learn More", href: "/research" },
+//   { title: "Targeted Messaging", description: "Craft messages that resonate with specific voter segments.", icon: Target, cta: "Learn More", href: "/research" },
+//   { title: "Automated Workflow", description: "Streamline your ad creation process with AI-powered assistance.", icon: Zap, cta: "Learn More", href: "/research" },
+// ];
+
+import ClientSection from "@/components/landing/client-section";
+import CallToActionSection from "@/components/landing/cta-section";
+import HeroSection from "@/components/landing/hero-section";
+import PricingSection from "@/components/landing/pricing-section";
+import Particles from "@/components/magicui/particles";
+import { SphereMask } from "@/components/magicui/sphere-mask";
+import { ThemeProvider } from "@/components/theme-provider";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import FeaturesSection from "@/components/landing/features";
+import DotPattern from "@/components/magicui/dot-pattern";
+import { cn } from "@/lib/utils";
+
+export default async function Page() {
   return (
-    <Navbar>
-    <div className="flex flex-col min-h-[100dvh]">
-      <main className="flex-1">
-        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-r from-primary/10 to-primary/5 rounded-md">
-          <div className="container px-4 md:px-6 rounded-md">
-            <div className="grid gap-8 lg:grid-cols-[1fr_500px] lg:gap-12 xl:grid-cols-[1fr_550px] items-center rounded-md">
-              <div className="flex flex-col justify-center space-y-6">
-                <div className="space-y-4">
-                  <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none bg-clip-text text-transparent bg-gradient-to-r from-primary to-[gray]">
-                    Revolutionize Your Political Content & Data Pipelines
-                  </h1>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    Lightspeed: Your all-in-one platform for efficient political video content creation, campaign compliance, and localized data aggregation.
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Link
-                    href="/directory"
-                  >
-                    <Button>Explore Video Directory</Button>
-                  </Link>
-                  <Link href="/clipsearch">
-                    <Button variant="ghost" className="border border-primary">Try Clip Search</Button>
-                  </Link>
-                </div>
-              </div>
-              <div className="h-[450px] overflow-hidden rounded-xl shadow-2xl">
-                <Image
-                  src="/kamala-harris.png"
-                  width={550}
-                  height={550}
-                  alt="Hero"
-                  className="w-full h-full object-cover object-top"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-        <section className="w-full py-16 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-              <div className="space-y-4">
-                <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">Key Features</div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Streamline Your Workflow</h2>
-                <p className="max-w-[800px] text-muted-foreground md:text-xl/relaxed">
-                  Discover how Lightspeed enhances your video content creation process with powerful features.
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto max-w-5xl">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {[
-                  { title: "YouTube Directory", description: "Access a vast collection of YouTube videos with advanced search and filtering options.", href: "/directory" },
-                  { title: "Clip Search", description: "Find specific moments in videos with our powerful transcript-based search feature.", href: "/clipsearch" },
-                  { title: "Outline Creator", description: "Organize your video content with our intuitive outline creation tool.", href: "/outline" },
-                  { title: "Script Generation", description: "Generate full-length scripts with editing suggestions, dialogue, and video info.", href: "/outline" },
-                  { title: "Compliance", description: "Ensure your content complies with all relevant regulations and guidelines.", href: "/compliance" },
-                ].map((feature, index) => (
-                  <div key={index} className="flex flex-col items-center text-center p-6 bg-muted rounded-lg shadow-sm transition-all hover:shadow-md">
-                    <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                    <p className="text-muted-foreground mb-4">{feature.description}</p>
-                    <Link
-                      href={feature.href}
-                      className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    >
-                      Explore {feature.title}
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-      <footer className="border-t bg-muted/50">
-        <div className="container flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6">
-          <p className="text-xs text-muted-foreground">&copy; 2024 Lightspeed. All rights reserved.</p>
-          <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-            <Link href="#" className="text-xs hover:underline underline-offset-4">Terms of Service</Link>
-            <Link href="#" className="text-xs hover:underline underline-offset-4">Privacy Policy</Link>
-          </nav>
-        </div>
-      </footer>
-    </div>
-    </Navbar>
-  )
+    <>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="light"
+        disableTransitionOnChange
+      >
+        <main className="relative overflow-hidden">
+          <HeroSection />
+          <FeaturesSection />
+          <Particles
+            className="absolute inset-0 -z-10"
+            quantity={50}
+            ease={70}
+            size={0.05}
+            staticity={40}
+            color={"#3b82f6"}
+          />
+        </main>
+      </ThemeProvider>
+      <SiteFooter />
+      <DotPattern
+        className={cn(
+          "fixed inset-0 w-full h-full pointer-events-none -z-20",
+          "[mask-image:radial-gradient(ellipse_at_center,white,transparent)]"
+        )}
+      />
+    </>
+  );
 }

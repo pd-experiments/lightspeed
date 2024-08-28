@@ -392,7 +392,7 @@ export default function ScriptPage({ params, searchParams }: { params: { id: str
 
   return (
     <Navbar>
-      <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <main className="flex min-h-screen flex-col items-center justify-between">
         <div className="w-full max-w-[1500px] mx-auto">
           <Button variant="link" className="p-0 h-auto font-normal">
             <Link href={`/create/ideation/television/${outlineId}`} className="flex items-center">

@@ -75,7 +75,7 @@ const navItems: NavItemType[] = [
   },
   {
     icon: <Rocket className="w-6 h-6 text-blue-500"/>,
-    label: "Deployments",
+    label: "Deploy",
     href: "/deployment",
   },
 ]

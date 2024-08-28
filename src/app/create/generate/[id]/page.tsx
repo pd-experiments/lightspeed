@@ -318,7 +318,7 @@ export default function ExperimentPage({ params }: { params: { id: string } }) {
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
-                {experiment && <AdTestBuilder experiment={experiment} />}
+                {experiment && <AdTestBuilder experiment={experiment} fetchExperiment={fetchExperiment}/>}
               </div>
               <div className="flex justify-start items-center">
                 <Button

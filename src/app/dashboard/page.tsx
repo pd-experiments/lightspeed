@@ -182,7 +182,7 @@ export default function DashboardPage() {
             }
           />
 
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 mb-4">
             <div>
               <div className="flex items-center mb-2 text-sm text-gray-600">
                 <TextSelect className="w-4 h-4 mr-2" />

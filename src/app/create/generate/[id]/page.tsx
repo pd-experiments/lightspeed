@@ -6,7 +6,6 @@ import Navbar from '@/components/ui/Navbar';
 import { Button } from '@/components/ui/button';
 import { Beaker, ChevronLeft, ChevronRight, Sparkle } from 'lucide-react';
 import AdVersionGenerator from '@/components/create/testing/AdVersionGenerator';
-import TestingDashboard from '@/components/create/testing/TestingDashboard';
 import { AdCreation, AdDeploymentWithCreation, Platform} from '@/lib/types/customTypes';
 import { getPlatformIcon } from '@/lib/helperUtils/create/utils';
 import Link from 'next/link';

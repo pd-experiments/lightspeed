@@ -23,7 +23,7 @@ const PageEnum = {
   Ideation: "Ideation",
   Generate: "Generate",
   Testing: "Testing",
-  Deployment: "Deployment",
+  Deploy: "Deploy",
 }
 
 export const pageValidator = z.nativeEnum(PageEnum)

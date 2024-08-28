@@ -23,6 +23,7 @@ import { Spinner } from '@/components/ui/Spinner';
 
 interface AdTestBuilderProps {
   experiment: AdCreation;
+  fetchExperiment: () => void;
 }
 
 type Platform = 'Facebook' | 'Instagram Post' | 'Instagram Story' | 'Instagram Reel' | 'TikTok' | 'Threads';
@@ -45,7 +46,7 @@ type TestConfig = {
   };
 };
 
-export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
+export default function AdTestBuilder({ experiment, fetchExperiment }: AdTestBuilderProps) {
   const [testStatus, setTestStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [progress, setProgress] = useState(0);
   const [testConfig, setTestConfig] = useState<TestConfig>({});
@@ -161,6 +162,8 @@ export default function AdTestBuilder({ experiment }: AdTestBuilderProps) {
     } catch (error) {
       console.error('Error saving ad test:', error);
       setTestStatus('idle');
+    } finally {
+      fetchExperiment();
     }
   };
 

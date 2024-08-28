@@ -262,12 +262,12 @@ export default function IdeationPage() {
                 </div>
                 {mode === "social-media" ? (
                   !isCreatingExperiment ? (
-                    <Button onClick={createEmptyAdExperiment}>
-                      <Lightbulb className="mr-2 h-4 w-4" /> Create New Ad Experiment
+                    <Button onClick={createEmptyAdExperiment} className="bg-blue-500 hover:bg-blue-700 text-white">
+                      <Lightbulb className="mr-2 h-4 w-4" /> Create New Draft
                     </Button>
                   ) : (
                     <Button variant="ghost" className="text-gray-600" onClick={() => setIsCreatingExperiment(false)}>
-                      <ChevronLeft className="mr-2 h-5 w-5" /> Back to Experiments
+                      <ChevronLeft className="mr-2 h-5 w-5" /> Back to Drafts
                     </Button>
                   )
                 ) : (

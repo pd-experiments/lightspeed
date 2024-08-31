@@ -5,48 +5,40 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { TrendingUp, Sparkles, RefreshCw, Rocket, BarChart2, MessageSquare, Target, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-const features: { href: string, title: string, description: string, icon: React.ElementType, image: string }[] = [
-  { href: "/research", title: "Real-time Insights", description: "Aggregate voter sentiment from social media and current events.", icon: TrendingUp, image: "/images/real-time-insights.jpg" },
-  { href: "/create/generate", title: "AI Ad Creation", description: "Generate ad suggestions based on trending topics and successful campaigns.", icon: Sparkles, image: "/images/ai-ad-creation.jpg" },
-  { href: "/create/testing", title: "Rapid A/B Testing", description: "Quickly test and iterate on ad variations for maximum impact.", icon: RefreshCw, image: "/images/ab-testing.jpg" },
-  { href: "/deployment", title: "Multi-Platform", description: "Seamlessly deploy ads across Google, Meta, and other platforms.", icon: Rocket, image: "/images/multi-platform.jpg" },
-  { href: "/dashboard", title: "Analytics", description: "Track and analyze ad performance with detailed insights.", icon: BarChart2, image: "/images/analytics.jpg" },
-  { href: "/research", title: "Social Listening", description: "Monitor conversations on TikTok, Threads, and Reddit for voter opinions.", icon: MessageSquare, image: "/images/social-listening.jpg" },
-  { href: "/create/ideation", title: "Targeted Messaging", description: "Craft messages that resonate with specific voter segments.", icon: Target, image: "/images/targeted-messaging.jpg" },
-  { href: "/dashboard", title: "Automation", description: "Streamline your ad creation process with AI-powered assistance.", icon: Zap, image: "/images/automated-workflow.jpg" },
+import { Badge } from "@/components/ui/badge";
+
+const featureGroups = [
+  {
+    title: "Research",
+    features: [
+      { href: "/research", title: "Real-time Insights", description: "Aggregate voter sentiment from social media and current events.", icon: TrendingUp },
+      { href: "/research", title: "Social Listening", description: "Monitor conversations on TikTok, Threads, and Reddit for voter opinions.", icon: MessageSquare },
+    ]
+  },
+  {
+    title: "Create",
+    features: [
+      { href: "/create/generate", title: "AI Ad Creation", description: "Generate ad suggestions based on trending topics and successful campaigns.", icon: Sparkles },
+      { href: "/create/ideation", title: "Targeted Messaging", description: "Craft messages that resonate with specific voter segments.", icon: Target },
+    ]
+  },
+  {
+    title: "Test",
+    features: [
+      { href: "/create/testing", title: "Rapid A/B Testing", description: "Quickly test and iterate on ad variations for maximum impact.", icon: RefreshCw },
+      { href: "/dashboard", title: "Analytics", description: "Track and analyze ad performance with detailed insights.", icon: BarChart2 },
+    ]
+  },
+  {
+    title: "Deploy",
+    features: [
+      { href: "/deployment", title: "Multi-Platform", description: "Seamlessly deploy ads across Google, Meta, and other platforms.", icon: Rocket },
+      { href: "/dashboard", title: "Automation", description: "Streamline your ad creation process with AI-powered assistance.", icon: Zap },
+    ]
+  }
 ];
 
-export function FeatureCard({ feature, index }: { feature: (typeof features)[number], index: number }) {
-    const router = useRouter();
 
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: index * 0.1 }}
-        whileHover={{ scale: 1.05 }}
-        className="flex flex-col h-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 hover:shadow-xl"
-      >
-        <div className="p-6 flex-grow">
-          <div className="flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-blue-100 dark:bg-blue-900">
-            <feature.icon className="w-6 h-6 text-blue-500 dark:text-blue-300" />
-          </div>
-          <h3 className="mb-2 text-xl font-semibold text-blue-500 dark:text-white">
-            {feature.title}
-          </h3>
-          <p className="text-gray-600 dark:text-gray-300">
-            {feature.description}
-          </p>
-        </div>
-        <div className="p-6 bg-gray-50 dark:bg-gray-700">
-          <a onClick={() => router.push(feature.href)} className="text-blue-500 hover:text-blue-600 dark:text-blue-300 dark:hover:text-blue-200 font-medium">
-            Learn more →
-          </a>
-        </div>
-      </motion.div>
-    );
-  }
-  
 export default function FeaturesSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -54,28 +46,95 @@ export default function FeaturesSection() {
   return (
     <section
       ref={ref}
-      className="relative mx-auto my-32 max-w-7xl px-6 text-center md:px-8"
+      className="relative mx-auto py-20 px-6 md:px-8 bg-transparent"
     >
-      <motion.h2 
-        initial={{ opacity: 0, y: -20 }}
-        animate={isInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.5 }}
-        className="mb-12 text-4xl font-semibold tracking-tight sm:text-5xl"
-      >
-        <span className="bg-gradient-to-br from-blue-600 to-blue-400 bg-clip-text text-transparent">
-        Make smarter political ads faster and cheaper.
-        </span>
-      </motion.h2>
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={isInView ? { opacity: 1 } : {}}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        {features.map((feature, index) => (
-          <FeatureCard key={feature.title} feature={feature} index={index} />
-        ))}
-      </motion.div>
+      <div className="max-w-6xl mx-auto">
+        <motion.h2 
+          initial={{ opacity: 0, y: -20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5 }}
+          className="mb-16 text-4xl font-bold tracking-tight text-center"
+        >
+          <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+            Make smarter political ads
+          </span>
+          <br />
+          <span className="text-gray-800 dark:text-gray-200">faster and cheaper</span>
+        </motion.h2>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-x-8 md:gap-y-16"
+        >
+          {featureGroups.map((group, index) => (
+            <FeatureGroup key={group.title} group={group} index={index} />
+          ))}
+        </motion.div>
+      </div>
     </section>
+  );
+}
+
+function FeatureGroup({ group, index }: { group: typeof featureGroups[number], index: number }) {
+  const router = useRouter();
+
+  const containerVariants = {
+    initial: {},
+    whileHover: {
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  return (
+    <div className="relative space-y-1">
+      <h3 className="z-10 absolute top-0 left-4 -translate-y-3/4 text-xs font-medium px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-t-md shadow-sm">
+        {group.title}
+      </h3>
+      <motion.div
+        variants={containerVariants}
+        initial="initial"
+        whileHover="whileHover"
+        className="z-20 relative h-full w-full transform-gpu overflow-hidden rounded-lg bg-gradient-to-br from-blue-50/10 to-blue-50 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-800 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-shadow duration-300 hover:shadow-[0_8px_30px_rgb(59,130,246,0.3)] dark:hover:shadow-[0_8px_30px_rgba(59,130,246,0.3)]"
+      >
+        <div className="p-6">
+          <div className="space-y-4">
+            {group.features.map((feature) => (
+              <FeatureCard key={feature.title} feature={feature} router={router} />
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function FeatureCard({ feature, router }: { feature: typeof featureGroups[number]["features"][number], router: ReturnType<typeof useRouter> }) {
+  const cardVariants = {
+    initial: { y: 0, opacity: 0.8 },
+    whileHover: { 
+      y: -3, 
+      opacity: 1,
+      transition: {
+        duration: 0.2,
+        ease: [0.22, 1, 0.36, 1],
+      },
+    },
+  };
+
+  return (
+    <motion.div
+      variants={cardVariants}
+      className="group cursor-pointer bg-white/50 dark:bg-blue-900/10 rounded-md p-3 transition-all duration-200 ease-in-out shadow-[0_4px_10px_rgb(0,0,0,0.08)] dark:shadow-[0_4px_10px_rgba(0,0,0,0.2)] hover:shadow-[0_4px_20px_rgb(59,130,246,0.2)] dark:hover:shadow-[0_4px_20px_rgba(59,130,246,0.2)]"
+      onClick={() => router.push(feature.href)}
+    >
+      <div className="flex items-center space-x-3 mb-1">
+        <feature.icon className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+        <h4 className="text-base text-blue-700 dark:text-blue-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{feature.title}</h4>
+      </div>
+      <p className="text-xs text-gray-500 dark:text-gray-400 ml-8">{feature.description}</p>
+    </motion.div>
   );
 }

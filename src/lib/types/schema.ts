@@ -161,38 +161,89 @@ export type Database = {
           },
         ]
       }
+      ad_taglines: {
+        Row: {
+          ad_description: string | null
+          ad_id: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          platform: Database["public"]["Enums"]["platformType"][] | null
+          post_hashtags: string[] | null
+          post_text: string | null
+          status: Database["public"]["Enums"]["taglines_post_type"]
+          tagline: string | null
+          title: string | null
+        }
+        Insert: {
+          ad_description?: string | null
+          ad_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          platform?: Database["public"]["Enums"]["platformType"][] | null
+          post_hashtags?: string[] | null
+          post_text?: string | null
+          status?: Database["public"]["Enums"]["taglines_post_type"]
+          tagline?: string | null
+          title?: string | null
+        }
+        Update: {
+          ad_description?: string | null
+          ad_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          platform?: Database["public"]["Enums"]["platformType"][] | null
+          post_hashtags?: string[] | null
+          post_text?: string | null
+          status?: Database["public"]["Enums"]["taglines_post_type"]
+          tagline?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
       ai_ads_data: {
         Row: {
           ad_formats: Json | null
           age_targeting: Json | null
           created_at: string | null
+          date_range_analysis: Json | null
           gender_targeting: Json | null
           geo_targeting: Json | null
           id: string
+          keyword_analysis: Json | null
           political_leanings: Json | null
           recent_ads: Json | null
+          tone_analysis: Json | null
           top_advertisers: Json | null
         }
         Insert: {
           ad_formats?: Json | null
           age_targeting?: Json | null
           created_at?: string | null
+          date_range_analysis?: Json | null
           gender_targeting?: Json | null
           geo_targeting?: Json | null
           id?: string
+          keyword_analysis?: Json | null
           political_leanings?: Json | null
           recent_ads?: Json | null
+          tone_analysis?: Json | null
           top_advertisers?: Json | null
         }
         Update: {
           ad_formats?: Json | null
           age_targeting?: Json | null
           created_at?: string | null
+          date_range_analysis?: Json | null
           gender_targeting?: Json | null
           geo_targeting?: Json | null
           id?: string
+          keyword_analysis?: Json | null
           political_leanings?: Json | null
           recent_ads?: Json | null
+          tone_analysis?: Json | null
           top_advertisers?: Json | null
         }
         Relationships: []
@@ -1685,6 +1736,7 @@ export type Database = {
         | "center-right"
         | "right"
       simpleUserType: "PRANAV" | "DINESH"
+      taglines_post_type: "Draft" | "Live" | "Archive"
       todoStatusType: "TODO" | "IN_PROGRESS" | "DONE"
     }
     CompositeTypes: {

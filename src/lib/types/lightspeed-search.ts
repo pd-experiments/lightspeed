@@ -36,7 +36,7 @@ type PoliticalLeaning =
   | "Establishment Liberals"
   | "Progressive Left";
 
-type Tone =
+type PoliticalTone =
   | "Unknown"
   | "Attack on Opponent(s)"
   | "Patriotic"
@@ -54,7 +54,7 @@ type LightspeedSearchQuery = {
   specificQuery?: string; // This could be a text description of what precisely the user wants in their query
   politicalKeywords?: PoliticalKeyword[]; // List of keywords to filter by
   politicalLeanings?: PoliticalLeaning[]; // Filter by political leaning
-  tone?: Tone[]; // List of tones to filter by
+  tone?: PoliticalTone[]; // List of tones to filter by
   targetAudiences?: TargetAudience[]; // List of target audience age ranges to filter by
   date_range_start?: Date;
   date_range_end?: Date;
@@ -164,7 +164,7 @@ type SearchResults = {
 export type {
   PoliticalKeyword,
   PoliticalLeaning,
-  Tone,
+  PoliticalTone,
   TargetAudience,
   LightspeedSearchQuery,
   SearchResults,

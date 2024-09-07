@@ -107,4 +107,3 @@ class MediaDescription(BaseModel):
 class EmbeddedGoogleAd(MediaDescription):
     versioned_ad_id: UUID4
     summary_embeddings: list[float]
-    advertiser_name_embedding: list[float]

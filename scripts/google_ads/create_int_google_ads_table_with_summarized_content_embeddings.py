@@ -151,6 +151,7 @@ def process_video(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
     try:
         video_id: str | None = extract_youtube_video_id(record.content)
         if video_id is None:
+            print("Invalid video id:", record.content)
             return
 
         transcript = get_youtube_transcript(
@@ -180,10 +181,33 @@ def process_video(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
             .data[0]
             .embedding
         )
+        # Check if advertiser name exists in the int_ads__google_ads_embeddings table
+        supabase_client = get_supabase_client()
+        result = (
+            supabase_client.table("int_ads__google_ads_embeddings")
+            .select("advertiser_name_embedding")
+            .eq("advertiser_name", record.advertiser_name)
+            .not_.is_("advertiser_name_embedding", "null")
+            .limit(1)
+            .execute()
+        )
+
+        if result.data and result.data[0]["advertiser_name_embedding"]:
+            advertiser_name_embedding = result.data[0]["advertiser_name_embedding"]
+        else:
+            # If not found or null, generate new embedding
+            advertiser_name_embedding = (
+                openai.embeddings.create(
+                    input=record.advertiser_name, model="text-embedding-3-small"
+                )
+                .data[0]
+                .embedding
+            )
         return EmbeddedGoogleAd(
             versioned_ad_id=record.id,
             summary_embeddings=summary_embeddings,
             **dict(video_description),
+            advertiser_name_embedding=advertiser_name_embedding,
         )
     except (
         NoTranscriptAvailable,
@@ -194,6 +218,8 @@ def process_video(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
         NoTranscriptFound,
         ParseError,
     ) as e:
+        # print(e)
+        print("IP blocked")
         return None
     except Exception as e:
         print(f"Error with ad ({record.advertisement_url}):", type(e))
@@ -224,10 +250,33 @@ def process_text(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
             .data[0]
             .embedding
         )
+        # Check if advertiser name exists in the int_ads__google_ads_embeddings table
+        supabase_client = get_supabase_client()
+        result = (
+            supabase_client.table("int_ads__google_ads_embeddings")
+            .select("advertiser_name_embedding")
+            .eq("advertiser_name", record.advertiser_name)
+            .not_.is_("advertiser_name_embedding", "null")
+            .limit(1)
+            .execute()
+        )
+
+        if result.data and result.data[0]["advertiser_name_embedding"]:
+            advertiser_name_embedding = result.data[0]["advertiser_name_embedding"]
+        else:
+            # If not found or null, generate new embedding
+            advertiser_name_embedding = (
+                openai.embeddings.create(
+                    input=record.advertiser_name, model="text-embedding-3-small"
+                )
+                .data[0]
+                .embedding
+            )
         return EmbeddedGoogleAd(
             versioned_ad_id=record.id,
             summary_embeddings=summary_embeddings,
             **dict(video_description),
+            advertiser_name_embedding=advertiser_name_embedding,
         )
     except Exception as e:
         print(f"Error with ad ({record.advertisement_url}):", type(e))
@@ -303,10 +352,33 @@ def process_image(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
             .data[0]
             .embedding
         )
+        # Check if advertiser name exists in the int_ads__google_ads_embeddings table
+        supabase_client = get_supabase_client()
+        result = (
+            supabase_client.table("int_ads__google_ads_embeddings")
+            .select("advertiser_name_embedding")
+            .eq("advertiser_name", record.advertiser_name)
+            .not_.is_("advertiser_name_embedding", "null")
+            .limit(1)
+            .execute()
+        )
+
+        if result.data and result.data[0]["advertiser_name_embedding"]:
+            advertiser_name_embedding = result.data[0]["advertiser_name_embedding"]
+        else:
+            # If not found or null, generate new embedding
+            advertiser_name_embedding = (
+                openai.embeddings.create(
+                    input=record.advertiser_name, model="text-embedding-3-small"
+                )
+                .data[0]
+                .embedding
+            )
         return EmbeddedGoogleAd(
             versioned_ad_id=record.id,
             summary_embeddings=summary_embeddings,
             **dict(video_description),
+            advertiser_name_embedding=advertiser_name_embedding,
         )
     except Exception as e:
         print(f"Error with ad ({record.advertisement_url}):", type(e))

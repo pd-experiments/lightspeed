@@ -9,7 +9,7 @@ import {
   MagnifyingGlassCircleIcon,
 } from "@heroicons/react/20/solid"
 import { type NavItemType, pageValidator } from "./Sidebar"
-import { Beaker, Megaphone, Newspaper, PencilLine, Rocket, Sparkle, TextSelect } from "lucide-react"
+import { Beaker, Megaphone, Newspaper, PencilLine, Rocket, Sparkle, TagIcon, TextSelect } from "lucide-react"
 import { Header } from "./Header"
 import { useState, useEffect } from "react"
 
@@ -50,6 +50,13 @@ const navItems: NavItemType[] = [
     icon: <PencilLine className="w-6 h-6 text-blue-500" />,
     label: "Create",
     subItems: [
+      {
+        icon: <TagIcon className="w-5 h-5 text-gray-600" />,
+        label: "Taglines",
+        href: "/create/taglines",
+        newTab: false,
+        beta: false,
+      },
       {
         icon: <BoltIcon className="w-5 h-5 text-gray-600" />,
         label: "Ideation",

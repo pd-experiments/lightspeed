@@ -1,19 +1,19 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import {
-  analyzeAdSearchQuery,
-  analyzeNewsSearchQuery,
-  analyzeTikTokSearchQuery,
-  generateSearchSummary,
-  generateSearchSummaryWithCitations,
-  searchAds,
-  searchNews,
-  searchTikToks,
-} from "@/lib/new-search-engine";
+import { generateSearchSummaryWithCitations } from "@/lib/new-search-engine";
 import {
   EnhancedGoogleAd,
   NewsArticle,
   TikTok,
 } from "@/lib/types/lightspeed-search";
+import { analyzeNewsSearchQuery, searchNews } from "@/lib/search/search-news";
+import {
+  analyzeAdSearchQuery,
+  searchAds,
+} from "@/lib/search/search-google-ads";
+import {
+  analyzeTikTokSearchQuery,
+  searchTikToks,
+} from "@/lib/search/search-tiktoks";
 
 export default async function handler(
   req: NextApiRequest,
@@ -40,127 +40,15 @@ export default async function handler(
   };
 
   try {
-    const newsParams = await analyzeNewsSearchQuery(query);
+    const searchPromises = [
+      runNewsSearch(query, sendEvent),
+      runAdSearch(query, sendEvent),
+      runTikTokSearch(query, sendEvent),
+    ];
 
-    let newsResults: Pick<
-      NewsArticle,
-      | "id"
-      | "ai_summary"
-      | "authors"
-      | "created_at"
-      | "political_keywords"
-      | "political_leaning"
-      | "political_tones"
-      | "issues"
-      | "publish_date"
-      | "title"
-      | "source_url"
-    >[] = [];
-    if (newsParams && newsParams.runSearchNews) {
-      sendEvent("newsStart", { message: "Starting news search" });
-      newsResults = await searchNews(
-        newsParams.query,
-        newsParams.keywords,
-        newsParams.leanings,
-        newsParams.tones,
-        newsParams.alpha,
-        newsParams.beta,
-        newsParams.gamma,
-        newsParams.delta,
-        newsParams.epsilon
-      );
-      sendEvent("newsResults", { type: "news", data: newsResults });
-    } else {
-      sendEvent("newsSkipped", { message: "No news search parameters found" });
-    }
-
-    const adParams = await analyzeAdSearchQuery(query);
-
-    let adResults: Pick<
-      EnhancedGoogleAd,
-      | "id"
-      | "summary"
-      | "advertiser_name"
-      | "gender_targeting"
-      | "geo_targeting"
-      | "targeted_ages"
-      | "days_ran_for"
-      | "keywords"
-      | "political_leaning"
-      | "tone"
-      | "last_shown"
-      | "first_shown"
-      | "min_impressions"
-      | "max_impressions"
-      | "min_spend"
-      | "max_spend"
-    >[] = [];
-
-    if (adParams && adParams.runSearchAds) {
-      sendEvent("adStart", { message: "Starting ad search" });
-      adResults = await searchAds(
-        adParams.query,
-        adParams.advertiserName,
-        adParams.keywords,
-        adParams.leanings,
-        adParams.tones,
-        adParams.minSpend,
-        adParams.maxSpend,
-        adParams.minImpressions,
-        adParams.maxImpressions,
-        adParams.weightKeyword,
-        adParams.weightLeaning,
-        adParams.weightTones,
-        adParams.weightEmbedding,
-        adParams.weightRecency,
-        adParams.weightAdvertiserName,
-        adParams.weightSpend,
-        adParams.weightImpressions
-      );
-      sendEvent("adResults", { type: "ads", data: adResults });
-    } else {
-      sendEvent("adSkipped", { message: "No ad search parameters found" });
-    }
-
-    const tiktoks = await analyzeTikTokSearchQuery(query);
-
-    let tiktokResults: Pick<
-      TikTok,
-      | "id"
-      | "author"
-      | "created_at"
-      | "views"
-      | "summary"
-      | "caption"
-      | "hashtags"
-      | "keywords"
-      | "political_leaning"
-      | "tone"
-      | "topic"
-    >[] = [];
-
-    if (tiktoks && tiktoks.runSearchTikToks) {
-      sendEvent("tiktokStart", { message: "Starting TikTok search" });
-      tiktokResults = await searchTikToks(
-        tiktoks.query,
-        tiktoks.keywords,
-        tiktoks.leanings,
-        tiktoks.tones,
-        tiktoks.minViews,
-        tiktoks.maxViews,
-        tiktoks.weightKeyword,
-        tiktoks.weightLeaning,
-        tiktoks.weightTones,
-        tiktoks.weightEmbedding,
-        tiktoks.weightRecency,
-        tiktoks.weightViews
-      );
-      sendEvent("tiktokResults", { type: "tiktoks", data: tiktokResults });
-    } else {
-      sendEvent("tiktokSkipped", {
-        message: "No TikTok search parameters found",
-      });
-    }
+    const [newsResults, adResults, tiktokResults] = await Promise.all(
+      searchPromises
+    );
 
     const summary = await generateSearchSummaryWithCitations(
       query,
@@ -178,5 +66,96 @@ export default async function handler(
     sendEvent("error", { error: "Error processing user query: " + error });
   } finally {
     res.end();
+  }
+}
+
+async function runNewsSearch(
+  query: string,
+  sendEvent: (event: string, data: any) => void
+) {
+  const newsParams = await analyzeNewsSearchQuery(query);
+  if (newsParams && newsParams.runSearchNews) {
+    sendEvent("newsStart", { message: "Starting news search" });
+    const results = await searchNews(
+      newsParams.query,
+      newsParams.keywords,
+      newsParams.leanings,
+      newsParams.tones,
+      newsParams.alpha,
+      newsParams.beta,
+      newsParams.gamma,
+      newsParams.delta,
+      newsParams.epsilon
+    );
+    sendEvent("newsResults", { type: "news", data: results });
+    return results;
+  } else {
+    sendEvent("newsSkipped", { message: "No news search parameters found" });
+    return [];
+  }
+}
+
+async function runAdSearch(
+  query: string,
+  sendEvent: (event: string, data: any) => void
+) {
+  const adParams = await analyzeAdSearchQuery(query);
+  if (adParams && adParams.runSearchAds) {
+    sendEvent("adStart", { message: "Starting ad search" });
+    const results = await searchAds(
+      adParams.query,
+      adParams.advertiserName,
+      adParams.keywords,
+      adParams.leanings,
+      adParams.tones,
+      adParams.minSpend,
+      adParams.maxSpend,
+      adParams.minImpressions,
+      adParams.maxImpressions,
+      adParams.weightKeyword,
+      adParams.weightLeaning,
+      adParams.weightTones,
+      adParams.weightEmbedding,
+      adParams.weightRecency,
+      adParams.weightAdvertiserName,
+      adParams.weightSpend,
+      adParams.weightImpressions
+    );
+    sendEvent("adResults", { type: "ads", data: results });
+    return results;
+  } else {
+    sendEvent("adSkipped", { message: "No ad search parameters found" });
+    return [];
+  }
+}
+
+async function runTikTokSearch(
+  query: string,
+  sendEvent: (event: string, data: any) => void
+) {
+  const tiktoks = await analyzeTikTokSearchQuery(query);
+  if (tiktoks && tiktoks.runSearchTikToks) {
+    sendEvent("tiktokStart", { message: "Starting TikTok search" });
+    const results = await searchTikToks(
+      tiktoks.query,
+      tiktoks.keywords,
+      tiktoks.leanings,
+      tiktoks.tones,
+      tiktoks.minViews,
+      tiktoks.maxViews,
+      tiktoks.weightKeyword,
+      tiktoks.weightLeaning,
+      tiktoks.weightTones,
+      tiktoks.weightEmbedding,
+      tiktoks.weightRecency,
+      tiktoks.weightViews
+    );
+    sendEvent("tiktokResults", { type: "tiktoks", data: results });
+    return results;
+  } else {
+    sendEvent("tiktokSkipped", {
+      message: "No TikTok search parameters found",
+    });
+    return [];
   }
 }

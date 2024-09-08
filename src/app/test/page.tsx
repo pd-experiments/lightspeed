@@ -101,7 +101,9 @@ export default function TestPage() {
         )}
         {results.tiktoks && (
           <>
-            <h3 className="text-lg font-bold">TikTok Result</h3>
+            <h3 className="text-lg font-bold">
+              TikTok Result <span>({results.tiktoks.length})</span>
+            </h3>
             <pre className="text-xs">
               {JSON.stringify(results.tiktoks, null, 2)}
             </pre>
@@ -109,7 +111,9 @@ export default function TestPage() {
         )}
         {results.ads && (
           <>
-            <h3 className="text-lg font-bold">Ad Result</h3>
+            <h3 className="text-lg font-bold">
+              Ad Result <span>({results.ads.length})</span>
+            </h3>
             <pre className="text-xs">
               {JSON.stringify(results.ads, null, 2)}
             </pre>
@@ -117,7 +121,9 @@ export default function TestPage() {
         )}
         {results.news && (
           <>
-            <h3 className="text-lg font-bold">News Result</h3>
+            <h3 className="text-lg font-bold">
+              News Result <span>({results.news.length})</span>
+            </h3>
             <pre className="text-xs">
               {JSON.stringify(results.news, null, 2)}
             </pre>

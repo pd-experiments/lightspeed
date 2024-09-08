@@ -90,7 +90,7 @@ export default function PerplexityStylePage() {
     "facebook",
     "instagram",
     "connectedTV",
-    // "threads",
+    "threads",
   ];
   const [loadedPlatforms, setLoadedPlatforms] = useState<string[]>([]);
   const [currentlyLoadingPlatform, setCurrentlyLoadingPlatform] = useState<
@@ -246,17 +246,13 @@ export default function PerplexityStylePage() {
     eventSource.addEventListener("adSuggestions", (event) => {
       setSearchStatus("Generating ad creative suggestions");
       const data = JSON.parse(event.data);
-      if (
-        data.data &&
-        data.data.platform &&
-        Array.isArray(data.data.suggestions)
-      ) {
+      if (data.data && data.data.platform) {
         setAdSuggestions((prevSuggestions) => ({
           ...prevSuggestions,
-          [data.data.platform]: data.data.suggestions,
+          [data.data.platform]: data.data.suggestions || [],
         }));
         setLoadedPlatforms((prev) => Array.from(new Set([...prev, data.data.platform])));
-
+    
         const nextPlatformIndex = platformOrder.indexOf(data.data.platform) + 1;
         setCurrentlyLoadingPlatform((prev) => 
           nextPlatformIndex < platformOrder.length ? platformOrder[nextPlatformIndex] : null
@@ -265,14 +261,15 @@ export default function PerplexityStylePage() {
         console.error("Received invalid ad suggestion data:", data);
       }
     });
-
+    
     eventSource.addEventListener("done", () => {
       setSearchStatus("Search completed");
       eventSource.close();
       setSearchQuery("");
       setSearching(false);
+      setCurrentlyLoadingPlatform(null);
     });
-  };
+  }
 
   const SearchStatusAnimation = ({ status }: { status: string }) => (
     <motion.div

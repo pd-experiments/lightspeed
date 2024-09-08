@@ -299,7 +299,7 @@ export async function* generateAdSuggestions(
     "facebook",
     "instagram",
     "connectedTV",
-    // "threads",
+    "threads",
   ];
 
   const prompt = `Based on the following information, generate brief, trendy ad creative suggestions for Democrats that appeal to younger generations, especially Gen Z:
@@ -368,10 +368,12 @@ Generate 3 concise, engaging ad creative suggestions for the specified platform.
       if (functionCall && functionCall.arguments) {
         const parsedContent = JSON.parse(functionCall.arguments);
         yield parsedContent;
+      } else {
+        throw new Error("Invalid function call response");
       }
     } catch (error) {
       console.error(`Failed to generate suggestions for ${platform}:`, error);
-      yield { platform, error: "Failed to generate valid suggestions" };
+      yield { platform, error: "Failed to generate valid suggestions", suggestions: [] };
     }
   }
 }

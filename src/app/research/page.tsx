@@ -110,7 +110,6 @@ export default function PerplexityStylePage() {
   );
 
   const [searching, setSearching] = useState(false);
-
   const handleSearch = async () => {
     setSearching(true);
     setIsLoading(true);

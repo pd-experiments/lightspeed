@@ -224,3 +224,8 @@ export type StreamedSearchResult = {
   tiktoks?: TikTok[];
   summary?: string;
 };
+
+export type PairedSearchResult = {
+  query: string;
+  result: StreamedSearchResult;
+};

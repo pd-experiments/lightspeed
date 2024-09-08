@@ -90,7 +90,7 @@ export default function PerplexityStylePage() {
     "facebook",
     "instagram",
     "connectedTV",
-    "threads",
+    // "threads",
   ];
   const [loadedPlatforms, setLoadedPlatforms] = useState<string[]>([]);
   const [currentlyLoadingPlatform, setCurrentlyLoadingPlatform] = useState<
@@ -200,18 +200,18 @@ export default function PerplexityStylePage() {
       }));
     });
 
-    // eventSource.addEventListener("error", (event: Event) => {
-    //   setIsLoading(false);
-    //   console.log("eventSource.addEventListener error", event);
-    //   if (event instanceof MessageEvent) {
-    //     const data = JSON.parse(event.data);
-    //     setSearchStatus(`Error: ${data.error}`);
-    //   } else {
-    //     setSearchStatus("An error occurred");
-    //   }
-    //   eventSource.close();
-    //   setIsLoading(false);
-    // });
+    eventSource.addEventListener("error", (event: Event) => {
+      setIsLoading(false);
+      console.log("eventSource.addEventListener error", event);
+      if (event instanceof MessageEvent) {
+        const data = JSON.parse(event.data);
+        setSearchStatus(`Error: ${data.error}`);
+      } else {
+        setSearchStatus("An error occurred");
+      }
+      eventSource.close();
+      setIsLoading(false);
+    });
 
     eventSource.addEventListener("summaryStart", () => {
       console.log("summaryStart");
@@ -252,8 +252,11 @@ export default function PerplexityStylePage() {
           ...prevSuggestions,
           [data.data.platform]: data.data.suggestions || [],
         }));
-        setLoadedPlatforms((prev) => Array.from(new Set([...prev, data.data.platform])));
-    
+        setLoadedPlatforms((prev) => 
+          Array.from(new Set([...prev, data.data.platform]))
+            .filter(platform => platform !== "threads")
+        );
+
         const nextPlatformIndex = platformOrder.indexOf(data.data.platform) + 1;
         setCurrentlyLoadingPlatform((prev) => 
           nextPlatformIndex < platformOrder.length ? platformOrder[nextPlatformIndex] : null

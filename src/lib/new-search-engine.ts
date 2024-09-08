@@ -81,7 +81,7 @@ const SearchNewsParamsSchema = z.object({
 
 type SearchNewsParams = z.infer<typeof SearchNewsParamsSchema>;
 
-export async function analyzeSearchQuery(
+export async function analyzeNewsSearchQuery(
   userQuery: string
 ): Promise<SearchNewsParams | null> {
   const completion = await openai_client.beta.chat.completions.parse({
@@ -139,19 +139,25 @@ Parameters:
   return parsed;
 }
 
-// New function to search ads
+// Updated function to search ads
 export async function searchAds(
   query: string,
   advertiserName: string,
   keywords: PoliticalKeyword[],
   leanings: PoliticalLeaning[],
   tones: PoliticalTone[],
-  alpha: number = 0.25,
-  beta: number = 0.2,
-  gamma: number = 0.1,
-  delta: number = 0.35,
-  epsilon: number = 0.1,
-  zeta: number = 0.1
+  minSpend: number | null = null,
+  maxSpend: number | null = null,
+  minImpressions: number | null = null,
+  maxImpressions: number | null = null,
+  weightKeyword: number = 0.25,
+  weightLeaning: number = 0.2,
+  weightTones: number = 0.1,
+  weightEmbedding: number = 0.35,
+  weightRecency: number = 0.1,
+  weightAdvertiserName: number = 0.1,
+  weightSpend: number = 0.1,
+  weightImpressions: number = 0.1
 ) {
   try {
     const queryEmbedding = await getEmbedding(query);
@@ -163,12 +169,18 @@ export async function searchAds(
       _leaning: leanings,
       _tones: tones,
       _advertiser_name_embedding: advertiserNameEmbedding,
-      _alpha: alpha,
-      _beta: beta,
-      _gamma: gamma,
-      _delta: delta,
-      _epsilon: epsilon,
-      _zeta: zeta,
+      _min_spend: minSpend,
+      _max_spend: maxSpend,
+      _min_impressions: minImpressions,
+      _max_impressions: maxImpressions,
+      _keyword_weight: weightKeyword,
+      _leaning_weight: weightLeaning,
+      _tones_weight: weightTones,
+      _embedding_weight: weightEmbedding,
+      _date_weight: weightRecency,
+      _advertiser_name_weight: weightAdvertiserName,
+      _spend_weight: weightSpend,
+      _impressions_weight: weightImpressions,
     });
 
     if (error) {
@@ -191,12 +203,18 @@ const SearchAdsParamsSchema = z.object({
   leanings: z.array(PoliticalLeaningEnum),
   tones: z.array(PoliticalToneEnum),
   advertiserName: z.string(),
-  alpha: z.number(),
-  beta: z.number(),
-  gamma: z.number(),
-  delta: z.number(),
-  epsilon: z.number(),
-  zeta: z.number(),
+  minSpend: z.number().nullable(),
+  maxSpend: z.number().nullable(),
+  minImpressions: z.number().nullable(),
+  maxImpressions: z.number().nullable(),
+  weightKeyword: z.number(),
+  weightLeaning: z.number(),
+  weightTones: z.number(),
+  weightEmbedding: z.number(),
+  weightRecency: z.number(),
+  weightAdvertiserName: z.number(),
+  weightSpend: z.number(),
+  weightImpressions: z.number(),
 });
 
 type SearchAdsParams = z.infer<typeof SearchAdsParamsSchema>;
@@ -205,7 +223,7 @@ export async function analyzeAdSearchQuery(
   userQuery: string
 ): Promise<SearchAdsParams | null> {
   const completion = await openai_client.beta.chat.completions.parse({
-    model: "gpt-4o-mini",
+    model: "gpt-4o-2024-08-06",
     messages: [
       {
         role: "system",
@@ -215,21 +233,153 @@ Rules:
 1. Determine if the user query should be processed by the searchAds function, i.e. if you think giving ad data back to the user is relevant, then you should set runSearchAds to true. Otherwise, set runSearchAds to false.
 2. If relevant, set runSearchAds to true and provide parameters.
 3. If not relevant, set runSearchAds to false and use default values for other fields.
-4. When setting weights (alpha, beta, gamma, delta, epsilon, zeta), ensure that at least one or two weights are significantly higher than the others.
-5. The sum of all weights should equal 1.
+4. When setting weights, ensure that they sum up to 1.
+5. Ad success is measured by high impressions.
+6. Cheap ads are measured by low spend.
+7. At most 4 weights can be non-zero. The rest should be zero.
 
 Parameters:
-- query: You will construct a thorough search query of what specifically the user wants.
+- query: Construct a thorough search query of what specifically the user wants.
 - keywords: Relevant political keywords (array of PoliticalKeyword enum values)
 - leanings: Relevant political leanings (array of PoliticalLeaning enum values)
 - tones: Relevant political tones (array of PoliticalTone enum values)
 - advertiserName: Extract or infer the advertiser name from the user query, if applicable.
-- alpha: Weight for keyword matches (0-1)
-- beta: Weight for leaning matches (0-1)
-- gamma: Weight for tone matches (0-1)
-- delta: Weight for embedding similarity (0-1)
-- epsilon: Weight for date recency (0-1)
-- zeta: Weight for advertiser name similarity that indicates how much the user is interested in the advertiser name. It should be very high if a the user provides a name, and lower if no name is provided. (0-1)`,
+- minSpend: Minimum spend amount, if specified in the query (null if not specified)
+- maxSpend: Maximum spend amount, if specified in the query (null if not specified)
+- minImpressions: Minimum impressions, if specified in the query (null if not specified)
+- maxImpressions: Maximum impressions, if specified in the query (null if not specified)
+- weightKeyword: Weight for keyword matches (0-1). This should be significantly higher if the user is asking for ads with specific keywords.
+- weightLeaning: Weight for leaning matches (0-1). This should be significantly higher if the user is asking for ads from a specific political leaning.
+- weightTones: Weight for tone matches (0-1). This should be significantly higher if the user is asking for ads with a specific political tone.
+- weightEmbedding: Weight for specific query's embedding similarity (0-1)
+- weightRecency: Weight for date recency (0-1). This should be significantly higher if the user is asking for ads in a specific time range.
+- weightAdvertiserName: Weight for advertiser name similarity (0-1). This should be significantly higher if the user is asking for ads from a specific advertiser.
+- weightSpend: Weight for ad spend (0-1). This should be significantly higher if the user is asking for ads with a specific spend range.
+- weightImpressions: Weight for ad impressions (0-1). This should be significantly higher if the user is asking for ads with a certain level of success, which you can measure by specific impression range.
+
+Examples:
+Example 1:
+User Query: "Show me ads from Republican candidates about immigration with high spend"
+Output:
+{
+  runSearchAds: true,
+  query: "Republican candidate ads on immigration with high spending",
+  keywords: ["Immigration"],
+  leanings: ["Faith and Flag Conservatives", "Committed Conservatives", "Populist Right"],
+  tones: ["Patriotic", "Fearmongering"],
+  advertiserName: "",
+  minSpend: 10000,
+  maxSpend: null,
+  minImpressions: null,
+  maxImpressions: null,
+  weightKeyword: 0.1,
+  weightLeaning: 0.1,
+  weightTones: 0,
+  weightEmbedding: 0,
+  weightRecency: 0,
+  weightAdvertiserName: 0,
+  weightSpend: 0.8,
+  weightImpressions: 0
+}
+
+Example 2:
+User Query: "Find recent ads from Democratic candidates about healthcare reform"
+Output:
+{
+  runSearchAds: true,
+  query: "Recent Democratic candidate ads on healthcare reform",
+  keywords: ["Healthcare"],
+  leanings: ["Progressive Left", "Establishment Liberals", "Democratic Mainstays"],
+  tones: ["Optimistic", "Future-Building"],
+  advertiserName: "",
+  minSpend: null,
+  maxSpend: null,
+  minImpressions: null,
+  maxImpressions: null,
+  weightKeyword: 0.1,
+  weightLeaning: 0.1,
+  weightTones: 0,
+  weightEmbedding: 0,
+  weightRecency: 0.8,
+  weightAdvertiserName: 0,
+  weightSpend: 0,
+  weightImpressions: 0
+}
+
+Example 3:
+User Query: "What are the most viewed ads about climate change?"
+Output:
+{
+  runSearchAds: true,
+  query: "Most viewed ads about climate change",
+  keywords: ["Climate Change"],
+  leanings: [],
+  tones: [],
+  advertiserName: "",
+  minSpend: null,
+  maxSpend: null,
+  minImpressions: 1000000,
+  maxImpressions: null,
+  weightKeyword: 0.1,
+  weightLeaning: 0,
+  weightTones: 0,
+  weightEmbedding: 0.1,
+  weightRecency: 0,
+  weightAdvertiserName: 0,
+  weightSpend: 0,
+  weightImpressions: 0.8
+}
+
+Example 4:
+User Query: "Tell me about the weather forecast for tomorrow"
+Output:
+{
+  runSearchAds: false,
+  query: "",
+  keywords: [],
+  leanings: [],
+  tones: [],
+  advertiserName: "",
+  minSpend: null,
+  maxSpend: null,
+  minImpressions: null,
+  maxImpressions: null,
+  weightKeyword: 0,
+  weightLeaning: 0,
+  weightTones: 0,
+  weightEmbedding: 1,
+  weightRecency: 0,
+  weightAdvertiserName: 0,
+  weightSpend: 0,
+  weightImpressions: 0
+}
+
+Example 5:
+User Query: "What successful ads have recently been put out by Kamala Harris related to jobs and employment?"
+Output:
+{
+  runSearchAds: true,
+  query: "Kamala Harris ads about jobs and employment",
+  keywords: ["Economy", "Labor Rights"],
+  leanings: ["Democratic Mainstays", "Establishment Liberals"],
+  tones: ["Optimistic", "Future-Building"],
+  advertiserName: "Kamala Harris",
+  minSpend: 1000,
+  maxSpend: null,
+  minImpressions: 50000,
+  maxImpressions: null,
+  weightKeyword: 0.3,
+  weightLeaning: 0,
+  weightTones: 0,
+  weightEmbedding: 0,
+  weightRecency: 0.2,
+  weightAdvertiserName: 0.8,
+  weightSpend: 0,
+  weightImpressions: 0
+}
+
+
+`,
       },
       {
         role: "user",
@@ -263,28 +413,28 @@ Parameters:
 
 // Updated processUserQuery function to handle both news and ad searches
 export async function processUserQuery(userQuery: string) {
-  // const newsParams = await analyzeSearchQuery(userQuery);
+  const newsParams = await analyzeNewsSearchQuery(userQuery);
   const adParams = await analyzeAdSearchQuery(userQuery);
 
   const results = [];
 
-  // if (newsParams && newsParams.runSearchNews) {
-  //   console.log("News search parameters:", JSON.stringify(newsParams, null, 2));
-  //   const newsResults = await searchNews(
-  //     newsParams.query,
-  //     newsParams.keywords,
-  //     newsParams.leanings,
-  //     newsParams.tones,
-  //     newsParams.alpha,
-  //     newsParams.beta,
-  //     newsParams.gamma,
-  //     newsParams.delta,
-  //     newsParams.epsilon
-  //   );
-  //   results.push({ type: "news", data: newsResults });
-  // } else {
-  //   console.log("No news search parameters found.");
-  // }
+  if (newsParams && newsParams.runSearchNews) {
+    console.log("News search parameters:", JSON.stringify(newsParams, null, 2));
+    const newsResults = await searchNews(
+      newsParams.query,
+      newsParams.keywords,
+      newsParams.leanings,
+      newsParams.tones,
+      newsParams.alpha,
+      newsParams.beta,
+      newsParams.gamma,
+      newsParams.delta,
+      newsParams.epsilon
+    );
+    results.push({ type: "news", data: newsResults });
+  } else {
+    console.log("No news search parameters found.");
+  }
 
   if (adParams && adParams.runSearchAds) {
     console.log("Ad search parameters:", JSON.stringify(adParams, null, 2));
@@ -294,12 +444,18 @@ export async function processUserQuery(userQuery: string) {
       adParams.keywords,
       adParams.leanings,
       adParams.tones,
-      adParams.alpha,
-      adParams.beta,
-      adParams.gamma,
-      adParams.delta,
-      adParams.epsilon,
-      adParams.zeta
+      adParams.minSpend,
+      adParams.maxSpend,
+      adParams.minImpressions,
+      adParams.maxImpressions,
+      adParams.weightKeyword,
+      adParams.weightLeaning,
+      adParams.weightTones,
+      adParams.weightEmbedding,
+      adParams.weightRecency,
+      adParams.weightAdvertiserName,
+      adParams.weightSpend,
+      adParams.weightImpressions
     );
     results.push({ type: "ads", data: adResults });
   } else {

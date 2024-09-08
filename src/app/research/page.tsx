@@ -90,7 +90,7 @@ export default function PerplexityStylePage() {
     "facebook",
     "instagram",
     "connectedTV",
-    "threads",
+    // "threads",
   ];
   const [loadedPlatforms, setLoadedPlatforms] = useState<string[]>([]);
   const [currentlyLoadingPlatform, setCurrentlyLoadingPlatform] = useState<

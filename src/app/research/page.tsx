@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Navbar from "@/components/ui/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,7 +97,7 @@ export default function PerplexityStylePage() {
     string | null
   >(null);
 
-  const LoadingAnimation = ({
+  const LoadingAnimation = React.memo(({
     loadedPlatforms,
     currentlyLoading,
   }: {
@@ -135,13 +135,15 @@ export default function PerplexityStylePage() {
             ) : platform === currentlyLoading ? (
               <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
             ) : (
-              <div className="w-5 h-5" /> // Placeholder for alignment
+              <div className="w-5 h-5" />
             )}
           </motion.div>
         ))}
       </div>
     </motion.div>
-  );
+  ));
+  
+  LoadingAnimation.displayName = 'LoadingAnimation';
 
   const [searching, setSearching] = useState(false);
   const handleSearch = async () => {
@@ -253,14 +255,12 @@ export default function PerplexityStylePage() {
           ...prevSuggestions,
           [data.data.platform]: data.data.suggestions,
         }));
-        setLoadedPlatforms((prev) => [...prev, data.data.platform]);
+        setLoadedPlatforms((prev) => Array.from(new Set([...prev, data.data.platform])));
 
         const nextPlatformIndex = platformOrder.indexOf(data.data.platform) + 1;
-        if (nextPlatformIndex < platformOrder.length) {
-          setCurrentlyLoadingPlatform(platformOrder[nextPlatformIndex]);
-        } else {
-          setCurrentlyLoadingPlatform(null);
-        }
+        setCurrentlyLoadingPlatform((prev) => 
+          nextPlatformIndex < platformOrder.length ? platformOrder[nextPlatformIndex] : null
+        );
       } else {
         console.error("Received invalid ad suggestion data:", data);
       }
@@ -276,9 +276,9 @@ export default function PerplexityStylePage() {
 
   const SearchStatusAnimation = ({ status }: { status: string }) => (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      // initial={{ opacity: 0, y: -20 }}
+      // animate={{ opacity: 1, y: 0 }}
+      // exit={{ opacity: 0, y: -20 }}
       className="mb-4"
     >
       <div className="flex items-center p-2 rounded-md bg-blue-50">
@@ -792,12 +792,12 @@ export default function PerplexityStylePage() {
                       <h2 className="text-xl font-semibold mb-4 text-blue-500">
                         Ad Creative Suggestions
                       </h2>
-                      {loadedPlatforms.length < platformOrder.length && (
-                        <LoadingAnimation
-                          loadedPlatforms={loadedPlatforms}
-                          currentlyLoading={currentlyLoadingPlatform}
-                        />
-                      )}
+                        {loadedPlatforms.length < platformOrder.length && (
+                          <LoadingAnimation
+                            loadedPlatforms={loadedPlatforms}
+                            currentlyLoading={currentlyLoadingPlatform}
+                          />
+                        )}
                       <div className="space-y-4">
                         {Object.entries(adSuggestions).map(
                           ([platform, suggestions]) => (

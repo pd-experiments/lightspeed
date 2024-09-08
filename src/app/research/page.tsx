@@ -437,36 +437,59 @@ export default function PerplexityStylePage() {
           </h1>
           <main className="flex-1 overflow-y-auto p-4">
             {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2">
-                  <Skeleton
-                    isLoading={isLoading}
-                    className="h-64 w-full mb-6"
-                  />
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                    {[...Array(3)].map((_, index) => (
-                      <CardSkeleton key={index} isLoading={isLoading} />
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                    {[...Array(3)].map((_, index) => (
-                      <CardSkeleton key={index} isLoading={isLoading} />
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <Skeleton className="h-8 w-3/4 mb-4" />
-                  <div className="grid grid-cols-2 gap-4">
-                    {[...Array(4)].map((_, index) => (
-                      <Skeleton
-                        key={index}
-                        isLoading={isLoading}
-                        className="h-32 w-full"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div className="md:col-span-2">
+    <Card className="mb-6 shadow-sm rounded-lg overflow-hidden border-none">
+      <CardContent className="p-2 border-none">
+        <Skeleton isLoading={isLoading} className="h-6 w-3/4 mb-2" />
+        <Skeleton isLoading={isLoading} className="h-4 w-full mb-2" />
+        <Skeleton isLoading={isLoading} className="h-4 w-full mb-2" />
+        <Skeleton isLoading={isLoading} className="h-4 w-5/6" />
+      </CardContent>
+    </Card>
+    <div className="mb-6">
+      <Skeleton className="h-6 w-48 mb-2" />
+      <div className="grid grid-cols-4 gap-4">
+        {[...Array(4)].map((_, index) => (
+          <Card key={index} className="w-full">
+            <CardContent className="p-3">
+              <Skeleton isLoading={isLoading} className="h-24 w-full mb-2" />
+              <Skeleton isLoading={isLoading} className="h-4 w-3/4 mb-1" />
+              <Skeleton isLoading={isLoading} className="h-3 w-1/2" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+    <div className="mb-6">
+      <Skeleton className="h-6 w-64 mb-2" />
+      <div className="grid grid-cols-4 gap-4">
+        {[...Array(4)].map((_, index) => (
+          <Card key={index} className="w-full">
+            <CardContent className="p-3">
+              <Skeleton isLoading={isLoading} className="h-24 w-full mb-2" />
+              <Skeleton isLoading={isLoading} className="h-4 w-3/4 mb-1" />
+              <Skeleton isLoading={isLoading} className="h-3 w-1/2" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </div>
+  <div className="md:col-span-1">
+    <Skeleton className="h-6 w-48 mb-4" />
+    {[...Array(5)].map((_, index) => (
+      <Card key={index} className="mb-4">
+        <CardContent className="p-3">
+          <Skeleton isLoading={isLoading} className="h-4 w-1/3 mb-2" />
+          <Skeleton isLoading={isLoading} className="h-3 w-full mb-1" />
+          <Skeleton isLoading={isLoading} className="h-3 w-5/6 mb-1" />
+          <Skeleton isLoading={isLoading} className="h-3 w-4/5" />
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+</div>
             ) : chatHistory.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <div className="w-[80px] h-[80px] bg-blue-50 rounded-full flex items-center justify-center mb-6">

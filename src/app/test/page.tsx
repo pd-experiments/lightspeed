@@ -2,20 +2,24 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StreamedSearchResult } from "@/lib/types/lightspeed-search";
+import { v4 as uuidv4 } from "uuid";
 
 export default function TestPage() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<StreamedSearchResult>({});
   const [status, setStatus] = useState("");
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const handleSearch = async () => {
     setResults({});
     setStatus("Searching...");
 
     const eventSource = new EventSource(
-      `/api/search-engine/structured-search?query=${encodeURIComponent(query)}`
+      `/api/search-engine/structured-search?query=${encodeURIComponent(
+        query
+      )}&openai_client_history_id=${sessionId}`
     );
 
     eventSource.onmessage = (event) => {
@@ -83,6 +87,15 @@ export default function TestPage() {
     });
   };
 
+  const handleClear = () => {
+    setResults({});
+    setStatus("");
+    setSessionId(uuidv4());
+  };
+  useEffect(() => {
+    setSessionId(uuidv4());
+  }, []);
+
   return (
     <div>
       <Input
@@ -90,7 +103,10 @@ export default function TestPage() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
-      <Button onClick={handleSearch}>Search</Button>
+      <div className="flex flex-row gap-2">
+        <Button onClick={handleSearch}>Search</Button>
+        <Button onClick={handleClear}>Reset session</Button>
+      </div>
       <div>Status: {status}</div>
       <div>
         {results.summary && (

@@ -1,10 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { generateSearchSummaryWithCitations } from "@/lib/search/summary-generator";
-import {
-  EnhancedGoogleAd,
-  NewsArticle,
-  TikTok,
-} from "@/lib/types/lightspeed-search";
 import { analyzeNewsSearchQuery, searchNews } from "@/lib/search/search-news";
 import {
   analyzeAdSearchQuery,
@@ -14,7 +9,13 @@ import {
   analyzeTikTokSearchQuery,
   searchTikToks,
 } from "@/lib/search/search-tiktoks";
-import { openai_client } from "@/lib/openai-client";
+import { openai_client, OpenAIWithHistory } from "@/lib/openai-client";
+import { v4 as uuidv4 } from "uuid";
+
+const map_openai_client_history_id_to_client = new Map<
+  string,
+  OpenAIWithHistory
+>();
 
 export default async function handler(
   req: NextApiRequest,
@@ -24,10 +25,52 @@ export default async function handler(
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const { query } = req.query;
+  const { query, openai_client_history_id } = req.query;
+
+  let openai_client_history_id_for_session = openai_client_history_id;
 
   if (!query || typeof query !== "string") {
     return res.status(400).json({ error: "Invalid query" });
+  }
+
+  if (
+    !openai_client_history_id_for_session ||
+    typeof openai_client_history_id_for_session !== "string"
+  ) {
+    // Create a new OpenAIWithHistory client and add it to the map
+    console.log(
+      "Creating new OpenAIWithHistory client for new session (no id)"
+    );
+    openai_client_history_id_for_session = uuidv4();
+    map_openai_client_history_id_to_client.set(
+      openai_client_history_id_for_session,
+      new OpenAIWithHistory()
+    );
+  } else if (
+    !map_openai_client_history_id_to_client.has(
+      openai_client_history_id_for_session
+    )
+  ) {
+    console.log(
+      "Creating new OpenAIWithHistory client for new session (given id)"
+    );
+    map_openai_client_history_id_to_client.set(
+      openai_client_history_id_for_session,
+      new OpenAIWithHistory()
+    );
+  }
+
+  const openai_client_with_history = map_openai_client_history_id_to_client.get(
+    openai_client_history_id_for_session
+  );
+
+  console.log(
+    "OpenAI client history ID for session:",
+    openai_client_history_id_for_session
+  );
+
+  if (!openai_client_with_history) {
+    return res.status(500).json({ error: "Internal server error" });
   }
 
   res.writeHead(200, {
@@ -42,9 +85,9 @@ export default async function handler(
 
   try {
     const searchPromises = [
-      runNewsSearch(query, sendEvent),
-      runAdSearch(query, sendEvent),
-      runTikTokSearch(query, sendEvent),
+      runNewsSearch(query, sendEvent, openai_client_with_history),
+      runAdSearch(query, sendEvent, openai_client_with_history),
+      runTikTokSearch(query, sendEvent, openai_client_with_history),
     ];
 
     const [newsResults, adResults, tiktokResults] = await Promise.all(
@@ -66,10 +109,39 @@ export default async function handler(
       sendEvent("summary", { message: chunk });
     }
 
+    const adSuggestions = [];
+
     sendEvent("adSuggestionsStart", { message: "Generating ad suggestions" });
-    const adSuggestionsGenerator = generateAdSuggestions({ summary, news: newsResults, ads: adResults, tiktoks: tiktokResults });
+    const adSuggestionsGenerator = generateAdSuggestions({
+      summary,
+      news: newsResults,
+      ads: adResults,
+      tiktoks: tiktokResults,
+    });
     for await (const platformSuggestions of adSuggestionsGenerator) {
       sendEvent("adSuggestions", { data: platformSuggestions });
+      adSuggestions.push(platformSuggestions);
+    }
+
+    if (
+      adResults.length > 0 ||
+      newsResults.length > 0 ||
+      tiktokResults.length > 0 ||
+      adSuggestions.length > 0
+    ) {
+      openai_client_with_history.addMultipleToHistory([
+        { role: "user", content: query },
+        {
+          role: "assistant",
+          content: `
+        Summary: ${JSON.stringify(summary)}\n
+        Ad Results: ${JSON.stringify(adResults)}\n
+        News Results: ${JSON.stringify(newsResults)}\n
+        TikTok Results: ${JSON.stringify(tiktokResults)}
+        Ad Suggestions generated: ${JSON.stringify(adSuggestions)}
+        `,
+        },
+      ]);
     }
 
     sendEvent("done", { message: "Search completed" });
@@ -83,12 +155,17 @@ export default async function handler(
 
 async function runNewsSearch(
   query: string,
-  sendEvent: (event: string, data: any) => void
+  sendEvent: (event: string, data: any) => void,
+  openai_client_with_history: OpenAIWithHistory
 ) {
-  const newsParams = await analyzeNewsSearchQuery(query);
+  const newsParams = await analyzeNewsSearchQuery(
+    openai_client_with_history,
+    query
+  );
   if (newsParams && newsParams.runSearchNews) {
     sendEvent("newsStart", { message: "Starting news search" });
     const results = await searchNews(
+      openai_client_with_history,
       newsParams.query,
       newsParams.keywords,
       newsParams.leanings,
@@ -99,6 +176,18 @@ async function runNewsSearch(
       newsParams.delta,
       newsParams.epsilon
     );
+
+    // openai_client_with_history.addMultipleToHistory([
+    //   {
+    //     role: "user",
+    //     content: query,
+    //   },
+    //   {
+    //     role: "assistant",
+    //     content: JSON.stringify(results),
+    //   },
+    // ]);
+
     sendEvent("newsResults", { type: "news", data: results });
     return results;
   } else {
@@ -109,12 +198,17 @@ async function runNewsSearch(
 
 async function runAdSearch(
   query: string,
-  sendEvent: (event: string, data: any) => void
+  sendEvent: (event: string, data: any) => void,
+  openai_client_with_history: OpenAIWithHistory
 ) {
-  const adParams = await analyzeAdSearchQuery(query);
+  const adParams = await analyzeAdSearchQuery(
+    openai_client_with_history,
+    query
+  );
   if (adParams && adParams.runSearchAds) {
     sendEvent("adStart", { message: "Starting ad search" });
     const results = await searchAds(
+      openai_client_with_history,
       adParams.query,
       adParams.advertiserName,
       adParams.keywords,
@@ -133,6 +227,16 @@ async function runAdSearch(
       adParams.weightSpend,
       adParams.weightImpressions
     );
+    // openai_client_with_history.addMultipleToHistory([
+    //   {
+    //     role: "user",
+    //     content: query,
+    //   },
+    //   {
+    //     role: "assistant",
+    //     content: JSON.stringify(results),
+    //   },
+    // ]);
     sendEvent("adResults", { type: "ads", data: results });
     return results;
   } else {
@@ -143,12 +247,17 @@ async function runAdSearch(
 
 async function runTikTokSearch(
   query: string,
-  sendEvent: (event: string, data: any) => void
+  sendEvent: (event: string, data: any) => void,
+  openai_client_with_history: OpenAIWithHistory
 ) {
-  const tiktoks = await analyzeTikTokSearchQuery(query);
+  const tiktoks = await analyzeTikTokSearchQuery(
+    openai_client_with_history,
+    query
+  );
   if (tiktoks && tiktoks.runSearchTikToks) {
     sendEvent("tiktokStart", { message: "Starting TikTok search" });
     const results = await searchTikToks(
+      openai_client_with_history,
       tiktoks.query,
       tiktoks.keywords,
       tiktoks.leanings,
@@ -162,6 +271,16 @@ async function runTikTokSearch(
       tiktoks.weightRecency,
       tiktoks.weightViews
     );
+    // openai_client_with_history.addMultipleToHistory([
+    //   {
+    //     role: "user",
+    //     content: query,
+    //   },
+    //   {
+    //     role: "assistant",
+    //     content: JSON.stringify(results),
+    //   },
+    // ]);
     sendEvent("tiktokResults", { type: "tiktoks", data: results });
     return results;
   } else {
@@ -176,13 +295,19 @@ export async function* generateAdSuggestions(streamedResults: any): AsyncGenerat
   const platforms = ['tiktok', 'facebook', 'instagram', 'connectedTV', 'threads'];
   const prompt = `Based on the following information, generate brief, trendy ad creative suggestions for Democrats that appeal to younger generations, especially Gen Z:
 
-Summary: ${streamedResults.summary || ''}
+Summary: ${streamedResults.summary || ""}
 
-Relevant News Articles: ${JSON.stringify(streamedResults.news ? streamedResults.news.slice(0, 5) : [])}
+Relevant News Articles: ${JSON.stringify(
+    streamedResults.news ? streamedResults.news.slice(0, 5) : []
+  )}
 
-Relevant Political Ads: ${JSON.stringify(streamedResults.ads ? streamedResults.ads.slice(0, 5) : [])}
+Relevant Political Ads: ${JSON.stringify(
+    streamedResults.ads ? streamedResults.ads.slice(0, 5) : []
+  )}
 
-Relevant TikToks: ${JSON.stringify(streamedResults.tiktoks ? streamedResults.tiktoks.slice(0, 5) : [])}
+Relevant TikToks: ${JSON.stringify(
+    streamedResults.tiktoks ? streamedResults.tiktoks.slice(0, 5) : []
+  )}
 
 Generate 3 concise, engaging ad creative suggestions for each platform (tiktok, facebook, instagram, connectedTV, threads) in the following JSON format:
 {
@@ -214,7 +339,7 @@ Ensure content is brief, to the point, and aligns with current trending narrativ
       stream: true,
     });
 
-    let accumulatedContent = '';
+    let accumulatedContent = "";
 
     for await (const chunk of stream) {
       if (chunk.choices[0]?.delta?.content) {
@@ -223,7 +348,9 @@ Ensure content is brief, to the point, and aligns with current trending narrativ
     }
 
     try {
-      const cleanedContent = accumulatedContent.replace(/```json\n?|\n?```/g, '').trim();
+      const cleanedContent = accumulatedContent
+        .replace(/```json\n?|\n?```/g, "")
+        .trim();
       const parsedContent = JSON.parse(cleanedContent);
       yield parsedContent;
     } catch (error) {

@@ -84,6 +84,10 @@ export default async function handler(
       | "tone"
       | "last_shown"
       | "first_shown"
+      | "min_impressions"
+      | "max_impressions"
+      | "min_spend"
+      | "max_spend"
     >[] = [];
 
     if (adParams && adParams.runSearchAds) {

@@ -520,9 +520,9 @@ Ad Results: ${JSON.stringify(adResults)}
 
 News Results: ${JSON.stringify(newsResults)}
 
-Please provide a concise summary of the search results, focusing on how they relate to the user's original query. Include key insights from both the ads and news articles, highlighting any trends, contradictions, or particularly relevant information. If an ad or news result doesn't seem relevant to the user query, you should ignore it. Limit your response to 3-4 paragraphs.
+Please provide a concise summary of the search results, focusing on how they relate to the user's original query. Include key insights from both the ads and news articles, highlighting any trends, contradictions, or particularly relevant information. With ads in particular, if there are particularly interesting metadata, you should mention those (e.g. high impressions means successful ad, low spend means cheap ad, the combination of the two means a highly successful ad). If an ad or news result doesn't seem relevant to the user query, you should ignore it. Limit your response to 3-4 paragraphs.
 
-When referencing specific information from an ad or news article, include a citation in the following format: <cite>{"type":{media_type},"id":"{id}"}</cite>, where {media_type} is "ad" or "news", and {id} is the id of the ad or news article.
+When referencing specific information from an ad or news article, include a citation in the following format: <begin>{"type":{media_type},"id":{id}}<end>, where {media_type} is "ad" or "news", and {id} is the id of the ad or news article.
 `;
 
   const stream = await openai_client.chat.completions.create({

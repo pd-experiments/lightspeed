@@ -431,6 +431,7 @@ export type Database = {
       }
       int_ads__google_ads_embeddings: {
         Row: {
+          advertiser_name_embedding: string | null
           keywords: string[]
           political_leaning: string | null
           summary: string
@@ -439,6 +440,7 @@ export type Database = {
           versioned_ad_id: string
         }
         Insert: {
+          advertiser_name_embedding?: string | null
           keywords: string[]
           political_leaning?: string | null
           summary: string
@@ -447,6 +449,7 @@ export type Database = {
           versioned_ad_id: string
         }
         Update: {
+          advertiser_name_embedding?: string | null
           keywords?: string[]
           political_leaning?: string | null
           summary?: string
@@ -468,6 +471,7 @@ export type Database = {
         Row: {
           advertisement_url: string
           advertiser_name: string | null
+          advertiser_name_embedding: string | null
           advertiser_url: string | null
           content: string | null
           days_ran_for: number | null
@@ -478,6 +482,10 @@ export type Database = {
           id: string
           keywords: string[] | null
           last_shown: string | null
+          max_impressions: number | null
+          max_spend: number | null
+          min_impressions: number | null
+          min_spend: number | null
           political_leaning: string | null
           summary: string | null
           summary_embeddings: string | null
@@ -488,6 +496,7 @@ export type Database = {
         Insert: {
           advertisement_url: string
           advertiser_name?: string | null
+          advertiser_name_embedding?: string | null
           advertiser_url?: string | null
           content?: string | null
           days_ran_for?: number | null
@@ -498,6 +507,10 @@ export type Database = {
           id: string
           keywords?: string[] | null
           last_shown?: string | null
+          max_impressions?: number | null
+          max_spend?: number | null
+          min_impressions?: number | null
+          min_spend?: number | null
           political_leaning?: string | null
           summary?: string | null
           summary_embeddings?: string | null
@@ -508,6 +521,7 @@ export type Database = {
         Update: {
           advertisement_url?: string
           advertiser_name?: string | null
+          advertiser_name_embedding?: string | null
           advertiser_url?: string | null
           content?: string | null
           days_ran_for?: number | null
@@ -518,6 +532,10 @@ export type Database = {
           id?: string
           keywords?: string[] | null
           last_shown?: string | null
+          max_impressions?: number | null
+          max_spend?: number | null
+          min_impressions?: number | null
+          min_spend?: number | null
           political_leaning?: string | null
           summary?: string | null
           summary_embeddings?: string | null
@@ -949,8 +967,10 @@ export type Database = {
           created_at: string
           gender_targeting: Json | null
           geo_targeting: Json | null
+          impressions: string | null
           media_links: string[] | null
           properties: Json | null
+          spend: string | null
           updated_at: string
         }
         Insert: {
@@ -961,8 +981,10 @@ export type Database = {
           created_at?: string
           gender_targeting?: Json | null
           geo_targeting?: Json | null
+          impressions?: string | null
           media_links?: string[] | null
           properties?: Json | null
+          spend?: string | null
           updated_at?: string
         }
         Update: {
@@ -973,8 +995,10 @@ export type Database = {
           created_at?: string
           gender_targeting?: Json | null
           geo_targeting?: Json | null
+          impressions?: string | null
           media_links?: string[] | null
           properties?: Json | null
+          spend?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1474,32 +1498,6 @@ export type Database = {
         }
         Returns: unknown
       }
-      int_ads__google_ads_enhanced__semantic_search: {
-        Args: {
-          query_embedding: string
-          match_threshold: number
-        }
-        Returns: {
-          advertisement_url: string
-          advertiser_name: string | null
-          advertiser_url: string | null
-          content: string | null
-          days_ran_for: number | null
-          first_shown: string | null
-          format: string | null
-          gender_targeting: Json | null
-          geo_targeting: Json | null
-          id: string
-          keywords: string[] | null
-          last_shown: string | null
-          political_leaning: string | null
-          summary: string | null
-          summary_embeddings: string | null
-          targeted_ages: string[] | null
-          tone: string[] | null
-          version: number | null
-        }[]
-      }
       ivfflat_bit_support: {
         Args: {
           "": unknown
@@ -1577,47 +1575,20 @@ export type Database = {
             }
             Returns: unknown
           }
-      match_documents:
-        | {
-            Args: {
-              query_embedding: string
-              match_threshold: number
-            }
-            Returns: {
-              advertisement_url: string
-              advertiser_name: string | null
-              advertiser_url: string | null
-              content: string | null
-              days_ran_for: number | null
-              first_shown: string | null
-              format: string | null
-              gender_targeting: Json | null
-              geo_targeting: Json | null
-              id: string
-              keywords: string[] | null
-              last_shown: string | null
-              political_leaning: string | null
-              summary: string | null
-              summary_embeddings: string | null
-              targeted_ages: string[] | null
-              tone: string[] | null
-              version: number | null
-            }[]
-          }
-        | {
-            Args: {
-              query_embedding: string
-              match_threshold: number
-              match_count: number
-              video_uuid_specific: string
-            }
-            Returns: {
-              video_uuid: string
-              timestamp: string
-              text: string
-              similarity: number
-            }[]
-          }
+      match_documents: {
+        Args: {
+          query_embedding: string
+          match_threshold: number
+          match_count: number
+          video_uuid_specific: string
+        }
+        Returns: {
+          video_uuid: string
+          timestamp: string
+          text: string
+          similarity: number
+        }[]
+      }
       match_documents_grouped: {
         Args: {
           query_embedding: string
@@ -1634,6 +1605,216 @@ export type Database = {
           end_timestamp: string
           text: string
           similarity: number
+        }[]
+      }
+      search_ads_advanced:
+        | {
+            Args: {
+              _keywords: string[]
+              _embedding: string
+              _leaning: string[]
+              _tones: string[]
+              _advertiser_name_embedding: string
+              _alpha?: number
+              _beta?: number
+              _gamma?: number
+              _delta?: number
+              _epsilon?: number
+              _zeta?: number
+            }
+            Returns: {
+              id: string
+              advertisement_url: string
+              advertiser_name: string
+              advertiser_url: string
+              first_shown: string
+              last_shown: string
+              days_ran_for: number
+              format: string
+              content: string
+              version: number
+              targeted_ages: string[]
+              gender_targeting: Json
+              geo_targeting: Json
+              keywords: string[]
+              summary: string
+              political_leaning: string
+              tone: string[]
+              keyword_score: number
+              leaning_score: number
+              tones_score: number
+              embedding_score: number
+              date_score: number
+              advertiser_name_score: number
+              final_score: number
+            }[]
+          }
+        | {
+            Args: {
+              _keywords: string[]
+              _embedding: string
+              _leaning: string[]
+              _tones: string[]
+              _advertiser_name_embedding: string
+              _min_spend?: number
+              _max_spend?: number
+              _min_impressions?: number
+              _max_impressions?: number
+              _keyword_weight?: number
+              _leaning_weight?: number
+              _tones_weight?: number
+              _embedding_weight?: number
+              _date_weight?: number
+              _advertiser_name_weight?: number
+              _spend_weight?: number
+              _impressions_weight?: number
+            }
+            Returns: {
+              id: string
+              advertisement_url: string
+              advertiser_name: string
+              advertiser_url: string
+              first_shown: string
+              last_shown: string
+              days_ran_for: number
+              format: string
+              content: string
+              version: number
+              targeted_ages: string[]
+              gender_targeting: Json
+              geo_targeting: Json
+              keywords: string[]
+              summary: string
+              political_leaning: string
+              tone: string[]
+              keyword_score: number
+              leaning_score: number
+              tones_score: number
+              embedding_score: number
+              date_score: number
+              advertiser_name_score: number
+              spend_score: number
+              impressions_score: number
+              final_score: number
+            }[]
+          }
+        | {
+            Args: {
+              _keywords: string[]
+              _embedding: string
+              _leaning: string[]
+              _tones: string[]
+              _advertiser_name_embedding: string
+              _weight_keyword?: number
+              _weight_leaning?: number
+              _weight_tones?: number
+              _weight_embedding?: number
+              _weight_recency?: number
+              _weight_advertiser_name?: number
+              _weight_spend?: number
+              _weight_impressions?: number
+            }
+            Returns: {
+              id: string
+              advertisement_url: string
+              advertiser_name: string
+              advertiser_url: string
+              first_shown: string
+              last_shown: string
+              days_ran_for: number
+              format: string
+              content: string
+              version: number
+              targeted_ages: string[]
+              gender_targeting: Json
+              geo_targeting: Json
+              keywords: string[]
+              summary: string
+              political_leaning: string
+              tone: string[]
+              min_spend: number
+              max_spend: number
+              min_impressions: number
+              max_impressions: number
+              keyword_score: number
+              leaning_score: number
+              tones_score: number
+              embedding_score: number
+              date_score: number
+              advertiser_name_score: number
+              spend_score: number
+              impressions_score: number
+              final_score: number
+            }[]
+          }
+        | {
+            Args: {
+              _keywords: string[]
+              _embedding: string
+              _leaning: string[]
+              _tones: string[]
+              _alpha?: number
+              _beta?: number
+              _gamma?: number
+              _delta?: number
+              _epsilon?: number
+            }
+            Returns: {
+              id: string
+              advertisement_url: string
+              advertiser_name: string
+              advertiser_url: string
+              first_shown: string
+              last_shown: string
+              days_ran_for: number
+              format: string
+              content: string
+              version: number
+              targeted_ages: string[]
+              gender_targeting: Json
+              geo_targeting: Json
+              keywords: string[]
+              summary: string
+              political_leaning: string
+              tone: string[]
+              keyword_score: number
+              leaning_score: number
+              tones_score: number
+              embedding_score: number
+              date_score: number
+              final_score: number
+            }[]
+          }
+      search_news_advanced: {
+        Args: {
+          _keywords: string[]
+          _embedding: string
+          _leaning: string[]
+          _tones: string[]
+          _alpha?: number
+          _beta?: number
+          _gamma?: number
+          _delta?: number
+          _epsilon?: number
+        }
+        Returns: {
+          id: string
+          source_url: string
+          url: string
+          title: string
+          authors: string[]
+          publish_date: string
+          ai_summary: string
+          political_keywords: string[]
+          political_leaning: string
+          political_tones: string[]
+          issues: string[]
+          keyword_score: number
+          leaning_score: number
+          tones_score: number
+          embedding_score: number
+          date_score: number
+          final_score: number
         }[]
       }
       sparsevec_out: {

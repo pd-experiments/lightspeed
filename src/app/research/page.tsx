@@ -22,10 +22,13 @@ import { MinAdSearchCard } from "@/components/research/newsearch/MinAdsCard";
 import { ChevronRight } from "lucide-react";
 import { Lightbulb, MessageSquare, FileText, Settings } from "lucide-react";
 import { StreamedSearchResult } from "@/lib/types/lightspeed-search";
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkle } from 'lucide-react';
 import axios from 'axios';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { FacebookEmbed, InstagramEmbed, TikTokEmbed, ThreadsEmbed, ConnectedTVEmbed } from '@/components/research/socialMediaEmbedsTrending';
+import { AdSuggestionCollapsible } from '@/components/research/AdSuggestionCollapsible';
+import { Loader2, CheckCircle2 } from 'lucide-react';
 
 export default function PerplexityStylePage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -59,10 +62,53 @@ export default function PerplexityStylePage() {
   const [streamedResults, setStreamedResults] = useState<StreamedSearchResult>({});
   const [searchStatus, setSearchStatus] = useState("");
 
+  const platformOrder = ['tiktok', 'facebook', 'instagram', 'connectedTV', 'threads'];
+  const [loadedPlatforms, setLoadedPlatforms] = useState<string[]>([]);
+  const [currentlyLoadingPlatform, setCurrentlyLoadingPlatform] = useState<string | null>(null);
+
+  const LoadingAnimation = ({ loadedPlatforms, currentlyLoading }: { loadedPlatforms: string[], currentlyLoading: string | null }) => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="mb-4"
+    >
+      <p className="text-sm text-blue-500 font-medium mb-2">
+        Generating suggestions for:
+      </p>
+      <div className="space-y-2">
+        {platformOrder.map((platform) => (
+          <motion.div
+            key={platform}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`flex items-center p-2 rounded-md ${
+              loadedPlatforms.includes(platform)
+                ? 'bg-blue-50'
+                : platform === currentlyLoading
+                ? 'bg-blue-50'
+                : 'bg-gray-50'
+            }`}
+          >
+            <span className="flex-grow text-sm capitalize text-blue-700">
+              {platform}
+            </span>
+            {loadedPlatforms.includes(platform) ? (
+              <CheckCircle2 className="w-5 h-5 fill-blue-500 text-white" />
+            ) : platform === currentlyLoading ? (
+              <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+            ) : (
+              <div className="w-5 h-5" /> // Placeholder for alignment
+            )}
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+
   const handleSearch = async () => {
     setIsLoading(true);
     setStreamedResults({});
-    setSearchStatus("Searching...");
     setChatHistory([...chatHistory, { query: searchQuery, answer: "" }]);
     setCurrentChat(searchQuery);
 
@@ -71,15 +117,17 @@ export default function PerplexityStylePage() {
     );
 
     eventSource.onmessage = (event) => {
+      setSearchStatus("Searching...");
       const data = JSON.parse(event.data);
       setStreamedResults((prevResults) => ({ ...prevResults, ...data }));
       setIsLoading(false);
+      setSearchStatus("Grabbing relevant data from social media, ads, and the web...");
     };
 
-    eventSource.addEventListener("newsStart", () => setSearchStatus("Starting news search"));
-    eventSource.addEventListener("adStart", () => setSearchStatus("Starting ad search"));
-    eventSource.addEventListener("newsSkipped", () => setSearchStatus("News search skipped"));
-    eventSource.addEventListener("adSkipped", () => setSearchStatus("Ad search skipped"));
+    // eventSource.addEventListener("newsStart", () => setSearchStatus("Fetching news articles"));
+    // eventSource.addEventListener("adStart", () => setSearchStatus("Fetching political ads"));
+    // eventSource.addEventListener("newsSkipped", () => setSearchStatus("News search skipped"));
+    // eventSource.addEventListener("adSkipped", () => setSearchStatus("Ad search skipped"));
 
     eventSource.addEventListener("newsResults", (event) => {
       setIsLoading(false);
@@ -105,6 +153,11 @@ export default function PerplexityStylePage() {
       setIsLoading(false);
     });
 
+    eventSource.addEventListener("summaryStart", () => {
+      console.log("summaryStart");
+      setSearchStatus("Generating summary and suggestions...");
+    });
+
     eventSource.addEventListener("summary", (event) => {
       setIsLoading(false);
       const data = JSON.parse(event.data);
@@ -124,13 +177,27 @@ export default function PerplexityStylePage() {
       });
     });
 
+    eventSource.addEventListener("adSuggestionsStart", () => {
+      setSearchStatus("Generating ad creative suggestions");
+      setCurrentlyLoadingPlatform(platformOrder[0]);
+    });
+
     eventSource.addEventListener("adSuggestions", (event) => {
+      setSearchStatus("Generating ad creative suggestions");
       const data = JSON.parse(event.data);
       if (data.data && data.data.platform && Array.isArray(data.data.suggestions)) {
         setAdSuggestions((prevSuggestions) => ({
           ...prevSuggestions,
           [data.data.platform]: data.data.suggestions
         }));
+        setLoadedPlatforms((prev) => [...prev, data.data.platform]);
+        
+        const nextPlatformIndex = platformOrder.indexOf(data.data.platform) + 1;
+        if (nextPlatformIndex < platformOrder.length) {
+          setCurrentlyLoadingPlatform(platformOrder[nextPlatformIndex]);
+        } else {
+          setCurrentlyLoadingPlatform(null);
+        }
       } else {
         console.error("Received invalid ad suggestion data:", data);
       }
@@ -142,6 +209,22 @@ export default function PerplexityStylePage() {
       setSearchQuery("");
     });
   };
+
+  const SearchStatusAnimation = ({ status }: { status: string }) => (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="mb-4"
+    >
+      <div className="flex items-center p-2 rounded-md bg-blue-50">
+        <span className="flex-grow text-sm text-blue-600">
+          {status}
+        </span>
+        <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+      </div>
+    </motion.div>
+  );
 
   const fetchSources = useCallback(async (citations: string[]) => {
     const { data, error } = await supabase
@@ -173,17 +256,24 @@ export default function PerplexityStylePage() {
     if (!summary) return null;
   
     const parts = summary.split(/(<begin>.*?<end>)/);
+    let citationCounter = 0;
+    const citationMap = new Map();
+  
     return parts.map((part, index) => {
       if (part.startsWith('<begin>')) {
         try {
           const citation = JSON.parse(part.replace(/<begin>|<end>/g, ''));
+          if (!citationMap.has(citation.id)) {
+            citationMap.set(citation.id, ++citationCounter);
+          }
+          const citationNumber = citationMap.get(citation.id);
           return (
             <sup 
               key={index} 
               className="text-blue-600 cursor-pointer ml-0.5 font-medium text-xs hover:text-blue-800 transition-colors duration-200"
               title="Click to view source" 
             >
-              [{sources.findIndex(source => source.id === citation.id) + 1}]
+              [{citationNumber}]
             </sup>
           );
         } catch (error) {
@@ -308,7 +398,7 @@ export default function PerplexityStylePage() {
                     { icon: <Lightbulb className="w-5 h-5" />, text: "Generate a summary of hot topics related to the 2024 election." },
                     { icon: <MessageSquare className="w-5 h-5" />, text: "What messaging would be most effective for a pro-choice candidate in a Pennsylvania swing district?" },
                     { icon: <FileText className="w-5 h-5" />, text: "What are people saying about Donald Trump's 2024 presidential campaign?" },
-                    { icon: <Settings className="w-5 h-5" />, text: "What are the key policy positions of Kamala Harris' 2024 presidential campaign?" },
+                    { icon: <Settings className="w-5 h-5" />, text: "What are people saying about the 2024 Paris Olympics??" },
                   ].map((suggestion, index) => (
                     <Button
                       key={index}
@@ -327,6 +417,11 @@ export default function PerplexityStylePage() {
             <div className="md:col-span-2 max-md:col-span-2">
               <Card className="mb-6 shadow-sm rounded-lg overflow-hidden border-none">
                 <CardContent className="p-2 border-none">
+                  {searchStatus && loadedPlatforms.length < platformOrder.length && (
+                    <AnimatePresence>
+                      <SearchStatusAnimation status={searchStatus} />
+                    </AnimatePresence>
+                  )}
                   <motion.p 
                     className="text-md text-gray-800"
                     initial={{ opacity: 0 }}
@@ -362,7 +457,7 @@ export default function PerplexityStylePage() {
                 </CardContent>
               </Card>
   
-              {streamedResults.news && streamedResults.summary && (
+              {streamedResults.news && streamedResults.news.length > 0 && streamedResults.summary && (
                 <motion.div 
                   className="mb-6"
                   variants={containerVariants}
@@ -402,15 +497,14 @@ export default function PerplexityStylePage() {
                   </div>
                 </motion.div>
               )}
-  
-              {streamedResults.ads && streamedResults.summary && (
+              {streamedResults.ads && streamedResults.ads.length > 0 && streamedResults.summary && (
                 <motion.div 
                   className="mb-6"
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
                 >
-                  <h3 className="text-lg font-semibold mb-2">Ads</h3>
+                  <h3 className="text-lg font-medium mb-2 text-blue-500">Relevant Political Advertisements</h3>
                   <div className="relative w-full">
                     <div className={`${expandedSections.ads ? 'flex overflow-x-auto pb-2 space-x-4 no-scrollbar' : 'grid grid-cols-4 gap-4'}`}>
                       {streamedResults.ads.slice(0, expandedSections.ads ? undefined : 3).map((adSearchResult, index) => (
@@ -443,77 +537,19 @@ export default function PerplexityStylePage() {
               </div>
 
             <div className="md:col-span-1 max-md:col-span-1">
-            {/* {streamedResults && streamedResults.summary && (
-              <motion.div 
-                // className=""
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                <h2 className="text-xl font-semibold mb-4 text-blue-500">Related Images</h2>
+              {(loadedPlatforms.length > 0 || currentlyLoadingPlatform) && (
                 <motion.div 
-                  className="grid grid-cols-2 gap-4"
-                  variants={containerVariants}
-                >
-                  {dummySearchResults.images.map((image, index) => (
-                    <motion.div 
-                      key={index} 
-                      className="relative aspect-square rounded-lg overflow-hidden shadow-sm"
-                      variants={itemVariants}
-                    >
-                      <Image
-                        src={image.url}
-                        alt={image.alt}
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded-lg"
-                      />
-                    </motion.div>
-                  ))}
-                </motion.div>
-              </motion.div>
-            )} */}
-
-            {Object.entries(adSuggestions).length > 0 && (
-                <motion.div 
-                  // className="mt-8"
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
                 >
-                  <h2 className="text-xl font-semibold mb-4 text-blue-500">Trending Ad Creative Suggestions</h2>
-                  <div className="grid grid-cols-1 gap-6">
+                  <h2 className="text-xl font-semibold mb-4 text-blue-500">Ad Creative Suggestions</h2>
+                  {loadedPlatforms.length < platformOrder.length && <LoadingAnimation loadedPlatforms={loadedPlatforms} currentlyLoading={currentlyLoadingPlatform} />}
+                  <div className="space-y-4">
                     {Object.entries(adSuggestions).map(([platform, suggestions]) => (
-                      <Card key={platform} className="overflow-hidden">
-                        <CardHeader>
-                          <CardTitle className="text-lg capitalize">{platform}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <Carousel className="w-full">
-                            <CarouselContent>
-                              {suggestions.map((suggestion: any, index: number) => (
-                                <CarouselItem key={index}>
-                                  <div className="p-4">
-                                    <h3 className="font-semibold">{suggestion.title}</h3>
-                                    <p className="text-sm text-gray-600">{suggestion.description}</p>
-                                    {suggestion.hashtags && (
-                                      <div className="mt-2">
-                                        {suggestion.hashtags.map((tag: string) => (
-                                          <Badge key={tag} variant="secondary" className="mr-1">
-                                            {tag}
-                                          </Badge>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                </CarouselItem>
-                              ))}
-                            </CarouselContent>
-                            <CarouselPrevious />
-                            <CarouselNext />
-                          </Carousel>
-                        </CardContent>
-                      </Card>
+                      <motion.div key={platform} variants={itemVariants}>
+                        <AdSuggestionCollapsible platform={platform} suggestions={suggestions} />
+                      </motion.div>
                     ))}
                   </div>
                 </motion.div>

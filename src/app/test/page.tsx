@@ -36,6 +36,13 @@ export default function TestPage() {
       setStatus("Ad search skipped")
     );
 
+    eventSource.addEventListener("tiktokStart", () =>
+      setStatus("Starting TikTok search")
+    );
+    eventSource.addEventListener("tiktokSkipped", () =>
+      setStatus("TikTok search skipped")
+    );
+
     eventSource.addEventListener("newsResults", (event) => {
       const data = JSON.parse(event.data);
       setResults((prevResults) => ({ ...prevResults, news: data.data }));
@@ -44,6 +51,11 @@ export default function TestPage() {
     eventSource.addEventListener("adResults", (event) => {
       const data = JSON.parse(event.data);
       setResults((prevResults) => ({ ...prevResults, ads: data.data }));
+    });
+
+    eventSource.addEventListener("tiktokResults", (event) => {
+      const data = JSON.parse(event.data);
+      setResults((prevResults) => ({ ...prevResults, tiktoks: data.data }));
     });
     eventSource.addEventListener("error", (event: Event) => {
       if (event instanceof MessageEvent) {
@@ -83,23 +95,31 @@ export default function TestPage() {
       <div>
         {results.summary && (
           <>
-            <h3>Summary</h3>
+            <h3 className="text-lg font-bold">Summary</h3>
             <p>{results.summary}</p>
           </>
         )}
-        {results.news && (
+        {results.tiktoks && (
           <>
-            <h3>News Result</h3>
-            <pre className="text-[6px]">
-              {JSON.stringify(results.news, null, 2)}
+            <h3 className="text-lg font-bold">TikTok Result</h3>
+            <pre className="text-xs">
+              {JSON.stringify(results.tiktoks, null, 2)}
             </pre>
           </>
         )}
         {results.ads && (
           <>
-            <h3>Ad Result</h3>
-            <pre className="text-[6px]">
+            <h3 className="text-lg font-bold">Ad Result</h3>
+            <pre className="text-xs">
               {JSON.stringify(results.ads, null, 2)}
+            </pre>
+          </>
+        )}
+        {results.news && (
+          <>
+            <h3 className="text-lg font-bold">News Result</h3>
+            <pre className="text-xs">
+              {JSON.stringify(results.news, null, 2)}
             </pre>
           </>
         )}

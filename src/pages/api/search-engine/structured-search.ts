@@ -2,12 +2,18 @@ import { NextApiRequest, NextApiResponse } from "next";
 import {
   analyzeAdSearchQuery,
   analyzeNewsSearchQuery,
+  analyzeTikTokSearchQuery,
   generateSearchSummary,
   generateSearchSummaryWithCitations,
   searchAds,
   searchNews,
+  searchTikToks,
 } from "@/lib/new-search-engine";
-import { EnhancedGoogleAd, NewsArticle } from "@/lib/types/lightspeed-search";
+import {
+  EnhancedGoogleAd,
+  NewsArticle,
+  TikTok,
+} from "@/lib/types/lightspeed-search";
 
 export default async function handler(
   req: NextApiRequest,
@@ -116,11 +122,51 @@ export default async function handler(
       sendEvent("adSkipped", { message: "No ad search parameters found" });
     }
 
-    // const summary = await generateSearchSummary(query, adResults, newsResults);
+    const tiktoks = await analyzeTikTokSearchQuery(query);
+
+    let tiktokResults: Pick<
+      TikTok,
+      | "id"
+      | "author"
+      | "created_at"
+      | "views"
+      | "summary"
+      | "caption"
+      | "hashtags"
+      | "keywords"
+      | "political_leaning"
+      | "tone"
+      | "topic"
+    >[] = [];
+
+    if (tiktoks && tiktoks.runSearchTikToks) {
+      sendEvent("tiktokStart", { message: "Starting TikTok search" });
+      tiktokResults = await searchTikToks(
+        tiktoks.query,
+        tiktoks.keywords,
+        tiktoks.leanings,
+        tiktoks.tones,
+        tiktoks.minViews,
+        tiktoks.maxViews,
+        tiktoks.weightKeyword,
+        tiktoks.weightLeaning,
+        tiktoks.weightTones,
+        tiktoks.weightEmbedding,
+        tiktoks.weightRecency,
+        tiktoks.weightViews
+      );
+      sendEvent("tiktokResults", { type: "tiktoks", data: tiktokResults });
+    } else {
+      sendEvent("tiktokSkipped", {
+        message: "No TikTok search parameters found",
+      });
+    }
+
     const summary = await generateSearchSummaryWithCitations(
       query,
       adResults,
-      newsResults
+      newsResults,
+      tiktokResults
     );
     for await (const chunk of summary) {
       sendEvent("summary", { message: chunk });

@@ -10,6 +10,7 @@ import {
   PoliticalLeaningEnum,
   PoliticalTone,
   PoliticalToneEnum,
+  TikTok,
 } from "./types/lightspeed-search";
 import { z } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
@@ -225,7 +226,7 @@ export async function analyzeAdSearchQuery(
   userQuery: string
 ): Promise<SearchAdsParams | null> {
   const completion = await openai_client.beta.chat.completions.parse({
-    model: "gpt-4o-2024-08-06",
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
@@ -413,71 +414,133 @@ Output:
   return parsed;
 }
 
-// Function to generate AI summary of search results
-export async function* generateSearchSummary(
-  userQuery: string,
-  adResults: Pick<
-    EnhancedGoogleAd,
-    | "id"
-    | "summary"
-    | "advertiser_name"
-    | "gender_targeting"
-    | "geo_targeting"
-    | "targeted_ages"
-    | "days_ran_for"
-    | "keywords"
-    | "political_leaning"
-    | "tone"
-    | "last_shown"
-    | "first_shown"
-  >[],
-  newsResults: Pick<
-    NewsArticle,
-    | "id"
-    | "ai_summary"
-    | "authors"
-    | "created_at"
-    | "political_keywords"
-    | "political_leaning"
-    | "political_tones"
-    | "issues"
-    | "publish_date"
-    | "title"
-    | "source_url"
-  >[]
-): AsyncGenerator<string, void, unknown> {
-  const prompt = `
-User Query: "${userQuery}"
+// Updated function to search TikToks
+export async function searchTikToks(
+  query: string,
+  keywords: PoliticalKeyword[],
+  leanings: PoliticalLeaning[],
+  tones: PoliticalTone[],
+  minViews: number | null = null,
+  maxViews: number | null = null,
+  weightKeyword: number = 0.25,
+  weightLeaning: number = 0.2,
+  weightTones: number = 0.1,
+  weightEmbedding: number = 0.35,
+  weightRecency: number = 0.1,
+  weightViews: number = 0.1
+): Promise<any[]> {
+  try {
+    const queryEmbedding = await getEmbedding(query);
 
-Ad Results: ${JSON.stringify(adResults)}
+    const { data, error } = await supabase.rpc("search_tiktok_advanced", {
+      _keywords: keywords,
+      _embedding: queryEmbedding,
+      _leaning: leanings,
+      _tones: tones,
+      _min_views: minViews,
+      _max_views: maxViews,
+      _keyword_weight: weightKeyword,
+      _leaning_weight: weightLeaning,
+      _tones_weight: weightTones,
+      _embedding_weight: weightEmbedding,
+      _date_weight: weightRecency,
+      _views_weight: weightViews,
+    });
 
-News Results: ${JSON.stringify(newsResults)}
+    if (error) {
+      console.error("Error calling search TikToks RPC:", error);
+      return [];
+    }
 
-Please provide a concise summary of the search results, focusing on how they relate to the user's original query. Include key insights from both the ads and news articles, highlighting any trends, contradictions, metadata, or particularly relevant information. If an ad or news result doesn't seem relevant to the user query, you should ignore it. Limit your response to 3-4 paragraphs.
-`;
+    return data.slice(0, 20);
+  } catch (error) {
+    console.error("Error in searchTikToks function:", error);
+    return [];
+  }
+}
 
-  const stream = await openai_client.chat.completions.create({
+// Updated Zod schema for TikTok search parameters
+const SearchTikToksParamsSchema = z.object({
+  runSearchTikToks: z.boolean(),
+  query: z.string(),
+  keywords: z.array(PoliticalKeywordEnum),
+  leanings: z.array(PoliticalLeaningEnum),
+  tones: z.array(PoliticalToneEnum),
+  minViews: z.number().nullable(),
+  maxViews: z.number().nullable(),
+  weightKeyword: z.number(),
+  weightLeaning: z.number(),
+  weightTones: z.number(),
+  weightEmbedding: z.number(),
+  weightRecency: z.number(),
+  weightViews: z.number(),
+});
+
+type SearchTikToksParams = z.infer<typeof SearchTikToksParamsSchema>;
+
+export async function analyzeTikTokSearchQuery(
+  userQuery: string
+): Promise<SearchTikToksParams | null> {
+  const completion = await openai_client.beta.chat.completions.parse({
     model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
-        content:
-          "You are an AI assistant tasked with summarizing search results related to political topics. Provide clear, unbiased insights based on the given information.",
+        content: `You are an AI assistant that analyzes user queries to determine if they should be processed by the searchTikToks function. If applicable, you should provide appropriate parameters for the function.
+
+Rules:
+1. Determine if the user query should be processed by the searchTikToks function, i.e. if you think giving TikTok data back to the user is relevant, then you should set runSearchTikToks to true. Otherwise, set runSearchTikToks to false.
+2. If relevant, set runSearchTikToks to true and provide parameters.
+3. If not relevant, set runSearchTikToks to false and use default values for other fields.
+4. When setting weights, ensure that they sum up to 1.
+5. TikTok success is measured by high views.
+6. At most 4 weights can be non-zero. The rest should be zero.
+7. Summary embedings should always be weighted highly.
+
+Parameters:
+- query: Construct a thorough search query of what specifically the user wants.
+- keywords: Relevant political keywords (array of PoliticalKeyword enum values)
+- leanings: Relevant political leanings (array of PoliticalLeaning enum values)
+- tones: Relevant political tones (array of PoliticalTone enum values)
+- minViews: Minimum views, if specified in the query (null if not specified)
+- maxViews: Maximum views, if specified in the query (null if not specified)
+- weightKeyword: Weight for keyword matches (0-1). This should be significantly higher if the user is asking for TikToks with specific keywords.
+- weightLeaning: Weight for leaning matches (0-1). This should be significantly higher if the user is asking for TikToks from a specific political leaning.
+- weightTones: Weight for tone matches (0-1). This should be significantly higher if the user is asking for TikToks with a specific political tone.
+- weightEmbedding: Weight for specific query's embedding similarity (0-1). This should be significantly higher if the user is asking for TikToks with a specific topic.
+- weightRecency: Weight for date recency (0-1). This should be significantly higher if the user is asking for TikToks in a specific time range.
+- weightViews: Weight for TikTok views (0-1). This should generally be weighted highly, as TikToks are measured by views.
+
+Provide appropriate values based on the user's query and the given rules.`,
       },
       {
         role: "user",
-        content: prompt,
+        content: userQuery,
       },
     ],
-    max_tokens: 1024,
-    stream: true,
+    response_format: zodResponseFormat(
+      SearchTikToksParamsSchema,
+      "structured_output"
+    ),
   });
 
-  for await (const chunk of stream) {
-    if (chunk.choices[0]?.delta?.content) {
-      yield chunk.choices[0].delta.content;
+  const parsed = completion.choices[0].message.parsed;
+  if (parsed) {
+    if (Array.isArray(parsed.keywords)) {
+      parsed.keywords = parsed.keywords.filter(
+        (keyword) => keyword !== "Unknown"
+      );
+    }
+    if (Array.isArray(parsed.leanings)) {
+      parsed.leanings = parsed.leanings.filter(
+        (leaning) => leaning !== "Unknown"
+      );
+    }
+    if (Array.isArray(parsed.tones)) {
+      parsed.tones = parsed.tones.filter((tone) => tone !== "Unknown");
     }
   }
+  return parsed;
 }
 
 // Function to generate AI summary of search results with citations
@@ -511,6 +574,20 @@ export async function* generateSearchSummaryWithCitations(
     | "publish_date"
     | "title"
     | "source_url"
+  >[],
+  tiktokResults: Pick<
+    TikTok,
+    | "id"
+    | "author"
+    | "created_at"
+    | "views"
+    | "summary"
+    | "caption"
+    | "hashtags"
+    | "keywords"
+    | "political_leaning"
+    | "tone"
+    | "topic"
   >[]
 ): AsyncGenerator<string, void, unknown> {
   const prompt = `
@@ -520,13 +597,15 @@ Ad Results: ${JSON.stringify(adResults)}
 
 News Results: ${JSON.stringify(newsResults)}
 
+TikTok Results: ${JSON.stringify(tiktokResults)}
+
 Please provide a concise summary of the search results, focusing on how they relate to the user's original query. Include key insights from both the ads and news articles, highlighting any trends, contradictions, or particularly relevant information. With ads in particular, if there are particularly interesting metadata, you should mention those (e.g. high impressions means successful ad, low spend means cheap ad, the combination of the two means a highly successful ad). If an ad or news result doesn't seem relevant to the user query, you should ignore it. Limit your response to 3-4 paragraphs.
 
 When referencing specific information from an ad or news article, include a citation in the following format: <begin>{"type":{media_type},"id":{id}}<end>, where {media_type} is "ad" or "news", and {id} is the id of the ad or news article.
 `;
 
   const stream = await openai_client.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     messages: [
       {
         role: "system",
@@ -548,61 +627,3 @@ When referencing specific information from an ad or news article, include a cita
     }
   }
 }
-
-// // Updated processUserQuery function to handle both news and ad searches
-// export async function processUserQuery(userQuery: string) {
-//   const newsParams = await analyzeNewsSearchQuery(userQuery);
-//   const adParams = await analyzeAdSearchQuery(userQuery);
-
-//   const results = [];
-
-//   if (newsParams && newsParams.runSearchNews) {
-//     console.log("News search parameters:", JSON.stringify(newsParams, null, 2));
-//     const newsResults = await searchNews(
-//       newsParams.query,
-//       newsParams.keywords,
-//       newsParams.leanings,
-//       newsParams.tones,
-//       newsParams.alpha,
-//       newsParams.beta,
-//       newsParams.gamma,
-//       newsParams.delta,
-//       newsParams.epsilon
-//     );
-//     results.push({ type: "news", data: newsResults });
-//   } else {
-//     console.log("No news search parameters found.");
-//   }
-
-//   if (adParams && adParams.runSearchAds) {
-//     console.log("Ad search parameters:", JSON.stringify(adParams, null, 2));
-//     const adResults = await searchAds(
-//       adParams.query,
-//       adParams.advertiserName,
-//       adParams.keywords,
-//       adParams.leanings,
-//       adParams.tones,
-//       adParams.minSpend,
-//       adParams.maxSpend,
-//       adParams.minImpressions,
-//       adParams.maxImpressions,
-//       adParams.weightKeyword,
-//       adParams.weightLeaning,
-//       adParams.weightTones,
-//       adParams.weightEmbedding,
-//       adParams.weightRecency,
-//       adParams.weightAdvertiserName,
-//       adParams.weightSpend,
-//       adParams.weightImpressions
-//     );
-//     results.push({ type: "ads", data: adResults });
-//   } else {
-//     console.log("No ad search parameters found.");
-//   }
-
-//   if (results.length === 0) {
-//     return "The query is not suitable for searching news articles or ads.";
-//   }
-
-//   return results;
-// }

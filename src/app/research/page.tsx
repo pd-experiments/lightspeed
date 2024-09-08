@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Navbar from "@/components/ui/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,7 +97,7 @@ export default function PerplexityStylePage() {
     string | null
   >(null);
 
-  const LoadingAnimation = ({
+  const LoadingAnimation = React.memo(({
     loadedPlatforms,
     currentlyLoading,
   }: {
@@ -135,13 +135,15 @@ export default function PerplexityStylePage() {
             ) : platform === currentlyLoading ? (
               <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
             ) : (
-              <div className="w-5 h-5" /> // Placeholder for alignment
+              <div className="w-5 h-5" />
             )}
           </motion.div>
         ))}
       </div>
     </motion.div>
-  );
+  ));
+  
+  LoadingAnimation.displayName = 'LoadingAnimation';
 
   const [searching, setSearching] = useState(false);
   const handleSearch = async () => {
@@ -253,14 +255,12 @@ export default function PerplexityStylePage() {
           ...prevSuggestions,
           [data.data.platform]: data.data.suggestions,
         }));
-        setLoadedPlatforms((prev) => [...prev, data.data.platform]);
+        setLoadedPlatforms((prev) => Array.from(new Set([...prev, data.data.platform])));
 
         const nextPlatformIndex = platformOrder.indexOf(data.data.platform) + 1;
-        if (nextPlatformIndex < platformOrder.length) {
-          setCurrentlyLoadingPlatform(platformOrder[nextPlatformIndex]);
-        } else {
-          setCurrentlyLoadingPlatform(null);
-        }
+        setCurrentlyLoadingPlatform((prev) => 
+          nextPlatformIndex < platformOrder.length ? platformOrder[nextPlatformIndex] : null
+        );
       } else {
         console.error("Received invalid ad suggestion data:", data);
       }
@@ -276,9 +276,9 @@ export default function PerplexityStylePage() {
 
   const SearchStatusAnimation = ({ status }: { status: string }) => (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      // initial={{ opacity: 0, y: -20 }}
+      // animate={{ opacity: 1, y: 0 }}
+      // exit={{ opacity: 0, y: -20 }}
       className="mb-4"
     >
       <div className="flex items-center p-2 rounded-md bg-blue-50">
@@ -437,36 +437,59 @@ export default function PerplexityStylePage() {
           </h1>
           <main className="flex-1 overflow-y-auto p-4">
             {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2">
-                  <Skeleton
-                    isLoading={isLoading}
-                    className="h-64 w-full mb-6"
-                  />
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                    {[...Array(3)].map((_, index) => (
-                      <CardSkeleton key={index} isLoading={isLoading} />
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                    {[...Array(3)].map((_, index) => (
-                      <CardSkeleton key={index} isLoading={isLoading} />
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <Skeleton className="h-8 w-3/4 mb-4" />
-                  <div className="grid grid-cols-2 gap-4">
-                    {[...Array(4)].map((_, index) => (
-                      <Skeleton
-                        key={index}
-                        isLoading={isLoading}
-                        className="h-32 w-full"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div className="md:col-span-2">
+    <Card className="mb-6 shadow-sm rounded-lg overflow-hidden border-none">
+      <CardContent className="p-2 border-none">
+        <Skeleton isLoading={isLoading} className="h-6 w-3/4 mb-2" />
+        <Skeleton isLoading={isLoading} className="h-4 w-full mb-2" />
+        <Skeleton isLoading={isLoading} className="h-4 w-full mb-2" />
+        <Skeleton isLoading={isLoading} className="h-4 w-5/6" />
+      </CardContent>
+    </Card>
+    <div className="mb-6">
+      <Skeleton className="h-6 w-48 mb-2" />
+      <div className="grid grid-cols-4 gap-4">
+        {[...Array(4)].map((_, index) => (
+          <Card key={index} className="w-full">
+            <CardContent className="p-3">
+              <Skeleton isLoading={isLoading} className="h-24 w-full mb-2" />
+              <Skeleton isLoading={isLoading} className="h-4 w-3/4 mb-1" />
+              <Skeleton isLoading={isLoading} className="h-3 w-1/2" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+    <div className="mb-6">
+      <Skeleton className="h-6 w-64 mb-2" />
+      <div className="grid grid-cols-4 gap-4">
+        {[...Array(4)].map((_, index) => (
+          <Card key={index} className="w-full">
+            <CardContent className="p-3">
+              <Skeleton isLoading={isLoading} className="h-24 w-full mb-2" />
+              <Skeleton isLoading={isLoading} className="h-4 w-3/4 mb-1" />
+              <Skeleton isLoading={isLoading} className="h-3 w-1/2" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </div>
+  <div className="md:col-span-1">
+    <Skeleton className="h-6 w-48 mb-4" />
+    {[...Array(5)].map((_, index) => (
+      <Card key={index} className="mb-4">
+        <CardContent className="p-3">
+          <Skeleton isLoading={isLoading} className="h-4 w-1/3 mb-2" />
+          <Skeleton isLoading={isLoading} className="h-3 w-full mb-1" />
+          <Skeleton isLoading={isLoading} className="h-3 w-5/6 mb-1" />
+          <Skeleton isLoading={isLoading} className="h-3 w-4/5" />
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+</div>
             ) : chatHistory.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <div className="w-[80px] h-[80px] bg-blue-50 rounded-full flex items-center justify-center mb-6">
@@ -792,12 +815,12 @@ export default function PerplexityStylePage() {
                       <h2 className="text-xl font-semibold mb-4 text-blue-500">
                         Ad Creative Suggestions
                       </h2>
-                      {loadedPlatforms.length < platformOrder.length && (
-                        <LoadingAnimation
-                          loadedPlatforms={loadedPlatforms}
-                          currentlyLoading={currentlyLoadingPlatform}
-                        />
-                      )}
+                        {loadedPlatforms.length < platformOrder.length && (
+                          <LoadingAnimation
+                            loadedPlatforms={loadedPlatforms}
+                            currentlyLoading={currentlyLoadingPlatform}
+                          />
+                        )}
                       <div className="space-y-4">
                         {Object.entries(adSuggestions).map(
                           ([platform, suggestions]) => (

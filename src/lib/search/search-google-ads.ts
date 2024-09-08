@@ -1,4 +1,8 @@
-import { getEmbedding, openai_client } from "../openai-client";
+import {
+  getEmbedding,
+  openai_client,
+  OpenAIWithHistory,
+} from "../openai-client";
 import { supabase } from "../supabaseClient";
 import {
   EnhancedGoogleAd,
@@ -15,6 +19,7 @@ import { RelevanceScoreSchema } from "../utils";
 
 // Updated function to search ads
 export async function searchAds(
+  openai_client: OpenAIWithHistory,
   query: string,
   advertiserName: string,
   keywords: PoliticalKeyword[],
@@ -67,7 +72,9 @@ export async function searchAds(
     // Create an array of promises for getAdRelevanceScore
     const relevanceScorePromises = data
       .slice(0, 50)
-      .map((ad: EnhancedGoogleAd) => getAdRelevanceScore(query, ad));
+      .map((ad: EnhancedGoogleAd) =>
+        getAdRelevanceScore(openai_client, query, ad)
+      );
     // Execute all promises concurrently
     const relevanceScores = await Promise.all(relevanceScorePromises);
 
@@ -106,14 +113,11 @@ const SearchAdsParamsSchema = z.object({
 type SearchAdsParams = z.infer<typeof SearchAdsParamsSchema>;
 
 export async function analyzeAdSearchQuery(
+  openai_client: OpenAIWithHistory,
   userQuery: string
 ): Promise<SearchAdsParams | null> {
-  const completion = await openai_client.beta.chat.completions.parse({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `You are an AI assistant that analyzes user queries to determine if they should be processed by the searchAds function. If applicable, you should provide appropriate parameters for the function.
+  const parsed = await openai_client.sendParsedMessage(
+    `You are an AI assistant that analyzes user queries to determine if they should be processed by the searchAds function. If applicable, you should provide appropriate parameters for the function.
   
   Rules:
   1. Determine if the user query should be processed by the searchAds function, i.e. if you think giving ad data back to the user is relevant, then you should set runSearchAds to true. Otherwise, set runSearchAds to false.
@@ -264,19 +268,10 @@ export async function analyzeAdSearchQuery(
     weightImpressions: 0
   }
   `,
-      },
-      {
-        role: "user",
-        content: userQuery,
-      },
-    ],
-    response_format: zodResponseFormat(
-      SearchAdsParamsSchema,
-      "structured_output"
-    ),
-  });
-
-  const parsed = completion.choices[0].message.parsed;
+    userQuery,
+    SearchAdsParamsSchema,
+    false
+  );
   if (parsed) {
     if (Array.isArray(parsed.keywords)) {
       parsed.keywords = parsed.keywords.filter(
@@ -297,37 +292,25 @@ export async function analyzeAdSearchQuery(
 }
 
 export async function getAdRelevanceScore(
+  openai_client: OpenAIWithHistory,
   userQuery: string,
   ad: EnhancedGoogleAd
 ): Promise<number> {
-  const completion = await openai_client.beta.chat.completions.parse({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `You are an AI assistant that analyzes the relevance of a Google Ad to a user's query. 
+  const parsed = await openai_client.sendParsedMessage(
+    `You are an AI assistant that analyzes the relevance of a Google Ad to a user's query. 
           You should return a relevance score between 0 and 1, where 1 is most relevant and 0 is least relevant.
           Consider all aspects of the ad, including its summary, advertiser name, targeting, keywords, political leaning, and tone.
           Pay special attention to how well the ad's content and (very importantly) metadata aligns with the user's query intent. In case it is useful, the date today is ${
             new Date().toISOString().split("T")[0]
           }.`,
-      },
-      {
-        role: "user",
-        content: `User Query: "${userQuery}"
+    `User Query: "${userQuery}"
   
   Ad Details:
   ${JSON.stringify(ad, null, 2)}
   
   Please analyze the relevance of this ad to the user's query and provide a relevance score between 0 and 1.`,
-      },
-    ],
-    response_format: zodResponseFormat(
-      RelevanceScoreSchema,
-      "structured_output"
-    ),
-  });
-
-  const parsed = completion.choices[0].message.parsed;
-  return parsed?.relevanceScore ?? 0;
+    RelevanceScoreSchema,
+    false
+  );
+  return parsed.relevanceScore ?? 0;
 }

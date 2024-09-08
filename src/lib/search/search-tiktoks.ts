@@ -1,8 +1,10 @@
-import { getEmbedding, openai_client } from "../openai-client";
+import {
+  getEmbedding,
+  openai_client,
+  OpenAIWithHistory,
+} from "../openai-client";
 import { supabase } from "../supabaseClient";
 import {
-  EnhancedGoogleAd,
-  NewsArticle,
   PoliticalKeyword,
   PoliticalKeywordEnum,
   PoliticalLeaning,
@@ -17,6 +19,7 @@ import { RelevanceScoreSchema } from "../utils";
 
 // Updated function to search TikToks
 export async function searchTikToks(
+  openai_client: OpenAIWithHistory,
   query: string,
   keywords: PoliticalKeyword[],
   leanings: PoliticalLeaning[],
@@ -58,7 +61,9 @@ export async function searchTikToks(
     // Create an array of promises for getTikTokRelevanceScore
     const relevanceScorePromises = data
       .slice(0, 50)
-      .map((tiktok: TikTok) => getTikTokRelevanceScore(query, tiktok));
+      .map((tiktok: TikTok) =>
+        getTikTokRelevanceScore(openai_client, query, tiktok)
+      );
     // Execute all promises concurrently
     const relevanceScores = await Promise.all(relevanceScorePromises);
 
@@ -92,14 +97,11 @@ const SearchTikToksParamsSchema = z.object({
 type SearchTikToksParams = z.infer<typeof SearchTikToksParamsSchema>;
 
 export async function analyzeTikTokSearchQuery(
+  openai_client: OpenAIWithHistory,
   userQuery: string
 ): Promise<SearchTikToksParams | null> {
-  const completion = await openai_client.beta.chat.completions.parse({
-    model: "gpt-4o-2024-08-06",
-    messages: [
-      {
-        role: "system",
-        content: `You are an AI assistant that analyzes user queries to determine if they should be processed by the searchTikToks function. If applicable, you should provide appropriate parameters for the function.
+  const parsed = await openai_client.sendParsedMessage(
+    `You are an AI assistant that analyzes user queries to determine if they should be processed by the searchTikToks function. If applicable, you should provide appropriate parameters for the function.
 
 Rules:
 1. Determine if the user query should be processed by the searchTikToks function, i.e. if you think giving TikTok data back to the user is relevant, then you should set runSearchTikToks to true. Otherwise, set runSearchTikToks to false.
@@ -124,19 +126,11 @@ Parameters:
 - weightViews: Weight for TikTok views (0-1)
 
 Provide appropriate values based on the user's query and the given rules.`,
-      },
-      {
-        role: "user",
-        content: userQuery,
-      },
-    ],
-    response_format: zodResponseFormat(
-      SearchTikToksParamsSchema,
-      "structured_output"
-    ),
-  });
+    userQuery,
+    SearchTikToksParamsSchema,
+    false
+  );
 
-  const parsed = completion.choices[0].message.parsed;
   if (parsed) {
     if (Array.isArray(parsed.keywords)) {
       parsed.keywords = parsed.keywords.filter(
@@ -156,37 +150,25 @@ Provide appropriate values based on the user's query and the given rules.`,
 }
 
 export async function getTikTokRelevanceScore(
+  openai_client: OpenAIWithHistory,
   userQuery: string,
   tiktok: TikTok
 ): Promise<number> {
-  const completion = await openai_client.beta.chat.completions.parse({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `You are an AI assistant that analyzes the relevance of a TikTok to a user's query. 
+  const parsed = await openai_client.sendParsedMessage(
+    `You are an AI assistant that analyzes the relevance of a TikTok to a user's query. 
           You should return a relevance score between 0 and 1, where 1 is most relevant and 0 is least relevant.
           Consider all aspects of the TikTok, including its description, hashtags, and views.
           Pay special attention to how well the TikTok's content and (very importantly) metadata aligns with the user's query intent. In case it is useful, the date today is ${
             new Date().toISOString().split("T")[0]
           }.`,
-      },
-      {
-        role: "user",
-        content: `User Query: "${userQuery}"
+    `User Query: "${userQuery}"
   
   TikTok Details:
   ${JSON.stringify(tiktok, null, 2)}
   
   Please analyze the relevance of this TikTok to the user's query and provide a relevance score between 0 and 1.`,
-      },
-    ],
-    response_format: zodResponseFormat(
-      RelevanceScoreSchema,
-      "structured_output"
-    ),
-  });
-
-  const parsed = completion.choices[0].message.parsed;
-  return parsed?.relevanceScore ?? 0;
+    RelevanceScoreSchema,
+    false
+  );
+  return parsed.relevanceScore ?? 0;
 }

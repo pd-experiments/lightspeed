@@ -2,15 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { StreamedSearchResult } from "@/lib/types/lightspeed-search";
 
 export default function TestPage() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<StreamedSearchResult>({});
   const [status, setStatus] = useState("");
 
   const handleSearch = async () => {
-    setResults([]);
+    setResults({});
     setStatus("Searching...");
 
     const eventSource = new EventSource(
@@ -19,7 +20,7 @@ export default function TestPage() {
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      setResults((prevResults) => [...prevResults, data]);
+      setResults((prevResults) => ({ ...prevResults, ...data }));
     };
 
     eventSource.addEventListener("newsStart", () =>
@@ -37,18 +38,12 @@ export default function TestPage() {
 
     eventSource.addEventListener("newsResults", (event) => {
       const data = JSON.parse(event.data);
-      setResults((prevResults: any[]) => [
-        ...prevResults,
-        { type: "news", data: data.data },
-      ]);
+      setResults((prevResults) => ({ ...prevResults, news: data.data }));
     });
 
     eventSource.addEventListener("adResults", (event) => {
       const data = JSON.parse(event.data);
-      setResults((prevResults: any[]) => [
-        ...prevResults,
-        { type: "ads", data: data.data },
-      ]);
+      setResults((prevResults) => ({ ...prevResults, ads: data.data }));
     });
     eventSource.addEventListener("error", (event: Event) => {
       if (event instanceof MessageEvent) {
@@ -58,6 +53,16 @@ export default function TestPage() {
         setStatus("An error occurred");
       }
       eventSource.close();
+    });
+
+    eventSource.addEventListener("summary", (event) => {
+      const data = JSON.parse(event.data);
+      setResults((prevResults) => ({
+        ...prevResults,
+        summary: prevResults.summary
+          ? prevResults.summary + data.message
+          : data.message,
+      }));
     });
 
     eventSource.addEventListener("done", () => {
@@ -76,14 +81,28 @@ export default function TestPage() {
       <Button onClick={handleSearch}>Search</Button>
       <div>Status: {status}</div>
       <div>
-        {results.map((result, index) => (
-          <div key={index}>
-            <h3>{result.type === "news" ? "News Result" : "Ad Result"}</h3>
+        {results.summary && (
+          <>
+            <h3>Summary</h3>
+            <p>{results.summary}</p>
+          </>
+        )}
+        {results.news && (
+          <>
+            <h3>News Result</h3>
             <pre className="text-[6px]">
-              {JSON.stringify(result.data, null, 2)}
+              {JSON.stringify(results.news, null, 2)}
             </pre>
-          </div>
-        ))}
+          </>
+        )}
+        {results.ads && (
+          <>
+            <h3>Ad Result</h3>
+            <pre className="text-[6px]">
+              {JSON.stringify(results.ads, null, 2)}
+            </pre>
+          </>
+        )}
       </div>
     </div>
   );

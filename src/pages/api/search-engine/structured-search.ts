@@ -2,10 +2,12 @@ import { NextApiRequest, NextApiResponse } from "next";
 import {
   analyzeAdSearchQuery,
   analyzeNewsSearchQuery,
-  processUserQuery,
+  generateSearchSummary,
+  generateSearchSummaryWithCitations,
   searchAds,
   searchNews,
 } from "@/lib/new-search-engine";
+import { EnhancedGoogleAd, NewsArticle } from "@/lib/types/lightspeed-search";
 
 export default async function handler(
   req: NextApiRequest,
@@ -34,9 +36,23 @@ export default async function handler(
   try {
     const newsParams = await analyzeNewsSearchQuery(query);
 
+    let newsResults: Pick<
+      NewsArticle,
+      | "id"
+      | "ai_summary"
+      | "authors"
+      | "created_at"
+      | "political_keywords"
+      | "political_leaning"
+      | "political_tones"
+      | "issues"
+      | "publish_date"
+      | "title"
+      | "source_url"
+    >[] = [];
     if (newsParams && newsParams.runSearchNews) {
       sendEvent("newsStart", { message: "Starting news search" });
-      const newsResults = await searchNews(
+      newsResults = await searchNews(
         newsParams.query,
         newsParams.keywords,
         newsParams.leanings,
@@ -54,9 +70,25 @@ export default async function handler(
 
     const adParams = await analyzeAdSearchQuery(query);
 
+    let adResults: Pick<
+      EnhancedGoogleAd,
+      | "id"
+      | "summary"
+      | "advertiser_name"
+      | "gender_targeting"
+      | "geo_targeting"
+      | "targeted_ages"
+      | "days_ran_for"
+      | "keywords"
+      | "political_leaning"
+      | "tone"
+      | "last_shown"
+      | "first_shown"
+    >[] = [];
+
     if (adParams && adParams.runSearchAds) {
       sendEvent("adStart", { message: "Starting ad search" });
-      const adResults = await searchAds(
+      adResults = await searchAds(
         adParams.query,
         adParams.advertiserName,
         adParams.keywords,
@@ -78,6 +110,16 @@ export default async function handler(
       sendEvent("adResults", { type: "ads", data: adResults });
     } else {
       sendEvent("adSkipped", { message: "No ad search parameters found" });
+    }
+
+    // const summary = await generateSearchSummary(query, adResults, newsResults);
+    const summary = await generateSearchSummaryWithCitations(
+      query,
+      adResults,
+      newsResults
+    );
+    for await (const chunk of summary) {
+      sendEvent("summary", { message: chunk });
     }
 
     sendEvent("done", { message: "Search completed" });

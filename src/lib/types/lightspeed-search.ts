@@ -148,13 +148,13 @@ export const LightspeedSearchQuerySchema = z.object({
   sortBy: z.enum(["success", "recency"]).optional(),
 });
 
-type EnhancedGoogleAd =
+export type EnhancedGoogleAd =
   Database["public"]["Tables"]["int_ads__google_ads_enhanced"]["Row"];
-type TikTok = Database["public"]["Tables"]["tiktok_videos"]["Row"];
-type IGThread = Database["public"]["Tables"]["threads"]["Row"];
-type NewsArticle = Database["public"]["Tables"]["int_news"]["Row"];
+export type TikTok = Database["public"]["Tables"]["tiktok_videos"]["Row"];
+export type IGThread = Database["public"]["Tables"]["threads"]["Row"];
+export type NewsArticle = Database["public"]["Tables"]["int_news"]["Row"];
 
-type SearchResults = {
+export type SearchResults = {
   ads?: EnhancedGoogleAd[];
   tikToks?: TikTok[];
   threads?: IGThread[];
@@ -167,7 +167,6 @@ export type {
   PoliticalTone,
   TargetAudience,
   LightspeedSearchQuery,
-  SearchResults,
 };
 
 export const PoliticalKeywordEnum = z.enum([
@@ -218,3 +217,9 @@ export const PoliticalToneEnum = z.enum([
   "Compassionate",
   "Authoritative",
 ]);
+
+export type StreamedSearchResult = {
+  ads?: EnhancedGoogleAd[];
+  news?: NewsArticle[];
+  summary?: string;
+};

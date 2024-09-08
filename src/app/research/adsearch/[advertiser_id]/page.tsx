@@ -126,9 +126,9 @@ export default function AdvertiserDetailsPage({
             </div>
             {isLoadingAds && (
               <div className="flex flex-row gap-4 w-full">
-                <CardSkeleton />
-                <CardSkeleton />
-                <CardSkeleton />
+                <CardSkeleton isLoading={isLoadingAds} />
+                <CardSkeleton isLoading={isLoadingAds} />
+                <CardSkeleton isLoading={isLoadingAds} />
               </div>
             )}
 

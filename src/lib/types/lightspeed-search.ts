@@ -169,3 +169,52 @@ export type {
   LightspeedSearchQuery,
   SearchResults,
 };
+
+export const PoliticalKeywordEnum = z.enum([
+  "Unknown",
+  "Immigration",
+  "Gun Rights",
+  "Healthcare",
+  "Climate Change",
+  "Economy",
+  "Education",
+  "National Security",
+  "Tax Policy",
+  "Social Security",
+  "Abortion",
+  "Civil Rights",
+  "Criminal Justice Reform",
+  "Foreign Policy",
+  "Voting Rights",
+  "Labor Rights",
+  "LGBTQ+ Rights",
+  "Drug Policy",
+  "Infrastructure",
+  "Trade Policy",
+  "Government Spending",
+]);
+
+export const PoliticalLeaningEnum = z.enum([
+  "Unknown",
+  "Faith and Flag Conservatives",
+  "Committed Conservatives",
+  "Populist Right",
+  "Ambivalent Right",
+  "Moderate",
+  "Outsider Left",
+  "Democratic Mainstays",
+  "Establishment Liberals",
+  "Progressive Left",
+]);
+
+export const PoliticalToneEnum = z.enum([
+  "Unknown",
+  "Attack on Opponent(s)",
+  "Patriotic",
+  "Fearmongering",
+  "Optimistic",
+  "Future-Building",
+  "Anger",
+  "Compassionate",
+  "Authoritative",
+]);

@@ -343,8 +343,8 @@ def process_image(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def process_record(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
     if record.format == "Video":
-        return process_video(record)
-        # return None
+        # return process_video(record)
+        return None
     elif record.format == "Text":
         return process_text(record)
     elif record.format == "Image":

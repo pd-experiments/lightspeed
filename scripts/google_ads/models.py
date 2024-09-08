@@ -42,6 +42,8 @@ class GoogleAd(BaseModel):
     gender_targeting: Targeting | None
     geo_targeting: Targeting | None
     media_links: list[str] | None
+    spend: str | None = None
+    impressions: str | None = None
 
 
 class Transcript(BaseModel):

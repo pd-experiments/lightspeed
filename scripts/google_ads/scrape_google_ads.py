@@ -261,7 +261,7 @@ def scrape_ad_data_from_url(url: str, driver: WebDriver | None = None):
                     "stat": stat,
                 }
             )
-
+        ad_details["stats"] = stats
         # Targeting criteria
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CLASS_NAME, "targeting-details"))

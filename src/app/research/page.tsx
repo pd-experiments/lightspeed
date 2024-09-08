@@ -470,7 +470,6 @@ export default function PerplexityStylePage() {
                   )}
                 </CardContent>
               </Card>
-  
               {streamedResults.news && streamedResults.news.length > 0 && streamedResults.summary && (
                 <motion.div 
                   className="mb-6"

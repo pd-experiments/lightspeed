@@ -299,7 +299,7 @@ export async function* generateAdSuggestions(
     "facebook",
     "instagram",
     "connectedTV",
-    "threads",
+    // "threads",
   ];
 
   const prompt = `Based on the following information, generate brief, trendy ad creative suggestions for Democrats that appeal to younger generations, especially Gen Z:

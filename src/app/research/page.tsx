@@ -443,7 +443,7 @@ export default function PerplexityStylePage() {
               </div>
 
             <div className="md:col-span-1 max-md:col-span-1">
-            {streamedResults && streamedResults.summary && (
+            {/* {streamedResults && streamedResults.summary && (
               <motion.div 
                 // className=""
                 variants={containerVariants}
@@ -472,11 +472,11 @@ export default function PerplexityStylePage() {
                   ))}
                 </motion.div>
               </motion.div>
-            )}
+            )} */}
 
             {Object.entries(adSuggestions).length > 0 && (
                 <motion.div 
-                  className="mt-8"
+                  // className="mt-8"
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"

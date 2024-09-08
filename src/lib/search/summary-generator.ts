@@ -1,4 +1,4 @@
-import { perplexity_client } from "../perplexity-client";
+import { openai_client } from "../openai-client";
 import {
   EnhancedGoogleAd,
   NewsArticle,
@@ -66,8 +66,8 @@ Please provide a concise summary of the search results, focusing on how they rel
 When referencing specific information from an ad or news article, include a citation in the following format: <begin>{"type":{media_type},"id":{id}}<end>, where {media_type} is "ad" or "news", and {id} is the id of the ad or news article.
 `;
 
-  const stream = await perplexity_client.chat.completions.create({
-    model: "llama-3.1-sonar-large-128k-online",
+  const stream = await openai_client.chat.completions.create({
+    model: "gpt-4o",
     messages: [
       {
         role: "system",
@@ -115,7 +115,7 @@ Generate and yield suggestions for one platform at a time.`;
 
   for (const platform of platforms) {
     const stream = await openai_client.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         { role: "system", content: "You are an expert political ad strategist. Your responses should always be in valid JSON format." },
         { role: "user", content: `${prompt}\n\nNow, generate suggestions for the ${platform} platform.` }

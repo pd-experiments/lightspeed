@@ -167,8 +167,8 @@ async function runTikTokSearch(
   }
 }
 
-
-export async function* generateAdSuggestions(streamedResults: any): AsyncGenerator<string, void, unknown> {
+export async function* generateAdSuggestions(streamedResults: any): AsyncGenerator<object, void, unknown> {
+  const platforms = ['tiktok', 'facebook', 'instagram', 'connectedTV'];
   const prompt = `Based on the following information, generate trending ad creative suggestions for Democrats for TikTok, Facebook, Instagram, and Connected TV:
 
 Summary: ${streamedResults.summary || ''}
@@ -178,44 +178,45 @@ Relevant News Articles: ${JSON.stringify(streamedResults.news ? streamedResults.
 Relevant Political Ads: ${JSON.stringify(streamedResults.ads ? streamedResults.ads.slice(0, 5) : [])}
 
 Relevant TikToks: ${JSON.stringify(streamedResults.tiktoks ? streamedResults.tiktoks.slice(0, 5) : [])}
+
 Generate 3 ad creative suggestions for each platform (TikTok, Facebook, Instagram, Connected TV) in the following JSON format:
 {
-  "tiktok": [
+  "platform": "platform_name",
+  "suggestions": [
     { "title": "Ad title", "description": "Brief ad description", "hashtags": ["tag1", "tag2"] },
     ...
-  ],
-  "facebook": [...],
-  "instagram": [...],
-  "connectedTV": [...]
+  ]
 }
 
-Ensure that your response is a valid JSON object.`;
+Generate and yield suggestions for one platform at a time. Do not include any markdown formatting in your response.`;
 
-  const stream = await openai_client.chat.completions.create({
-    model: "gpt-4",
-    messages: [
-      { role: "system", content: "You are an expert political ad strategist. Your responses should always be in valid JSON format." },
-      { role: "user", content: prompt }
-    ],
-    temperature: 0.7,
-    max_tokens: 1500,
-    stream: true,
-  });
+  for (const platform of platforms) {
+    const stream = await openai_client.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: "You are an expert political ad strategist. Your responses should always be in valid JSON format without any markdown formatting." },
+        { role: "user", content: `${prompt}\n\nNow, generate suggestions for the ${platform} platform.` }
+      ],
+      temperature: 0.7,
+      max_tokens: 500,
+      stream: true,
+    });
 
-  let accumulatedContent = '';
+    let accumulatedContent = '';
 
-  for await (const chunk of stream) {
-    if (chunk.choices[0]?.delta?.content) {
-      accumulatedContent += chunk.choices[0].delta.content;
-      yield chunk.choices[0].delta.content;
+    for await (const chunk of stream) {
+      if (chunk.choices[0]?.delta?.content) {
+        accumulatedContent += chunk.choices[0].delta.content;
+      }
     }
-  }
 
-  // After the stream is complete, try to parse the accumulated content as JSON
-  try {
-    JSON.parse(accumulatedContent);
-  } catch (error) {
-    console.error("Failed to parse accumulated content as JSON:", error);
-    yield JSON.stringify({ error: "Failed to generate valid JSON suggestions" });
+    try {
+      const cleanedContent = accumulatedContent.replace(/```json\n?|\n?```/g, '').trim();
+      const parsedContent = JSON.parse(cleanedContent);
+      yield parsedContent;
+    } catch (error) {
+      console.error(`Failed to parse ${platform} suggestions:`, error);
+      yield { platform, error: "Failed to generate valid JSON suggestions" };
+    }
   }
 }

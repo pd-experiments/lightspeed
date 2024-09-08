@@ -291,8 +291,16 @@ async function runTikTokSearch(
   }
 }
 
-export async function* generateAdSuggestions(streamedResults: any): AsyncGenerator<object, void, unknown> {
-  const platforms = ['tiktok', 'facebook', 'instagram', 'connectedTV', 'threads'];
+export async function* generateAdSuggestions(
+  streamedResults: any
+): AsyncGenerator<object, void, unknown> {
+  const platforms = [
+    "tiktok",
+    "facebook",
+    "instagram",
+    "connectedTV",
+    "threads",
+  ];
   const prompt = `Based on the following information, generate brief, trendy ad creative suggestions for Democrats that appeal to younger generations, especially Gen Z:
 
 Summary: ${streamedResults.summary || ""}
@@ -329,10 +337,17 @@ Ensure content is brief, to the point, and aligns with current trending narrativ
 
   for (const platform of platforms) {
     const stream = await openai_client.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
-        { role: "system", content: "You are an expert political ad strategist for the Democratic party. Your responses should always be in valid JSON format without any markdown formatting." },
-        { role: "user", content: `${prompt}\n\nNow, generate suggestions for the ${platform} platform.` }
+        {
+          role: "system",
+          content:
+            "You are an expert political ad strategist for the Democratic party. Your responses should always be in valid JSON format without any markdown formatting.",
+        },
+        {
+          role: "user",
+          content: `${prompt}\n\nNow, generate suggestions for the ${platform} platform.`,
+        },
       ],
       temperature: 0.7,
       max_tokens: 1000,

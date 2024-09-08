@@ -200,18 +200,18 @@ export default function PerplexityStylePage() {
       }));
     });
 
-    eventSource.addEventListener("error", (event: Event) => {
-      setIsLoading(false);
-      console.log("eventSource.addEventListener error", event);
-      if (event instanceof MessageEvent) {
-        const data = JSON.parse(event.data);
-        setSearchStatus(`Error: ${data.error}`);
-      } else {
-        setSearchStatus("An error occurred");
-      }
-      eventSource.close();
-      setIsLoading(false);
-    });
+    // eventSource.addEventListener("error", (event: Event) => {
+    //   setIsLoading(false);
+    //   console.log("eventSource.addEventListener error", event);
+    //   if (event instanceof MessageEvent) {
+    //     const data = JSON.parse(event.data);
+    //     setSearchStatus(`Error: ${data.error}`);
+    //   } else {
+    //     setSearchStatus("An error occurred");
+    //   }
+    //   eventSource.close();
+    //   setIsLoading(false);
+    // });
 
     eventSource.addEventListener("summaryStart", () => {
       console.log("summaryStart");

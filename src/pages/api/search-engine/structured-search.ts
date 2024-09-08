@@ -301,6 +301,7 @@ export async function* generateAdSuggestions(
     "connectedTV",
     "threads",
   ];
+
   const prompt = `Based on the following information, generate brief, trendy ad creative suggestions for Democrats that appeal to younger generations, especially Gen Z:
 
 Summary: ${streamedResults.summary || ""}
@@ -317,60 +318,60 @@ Relevant TikToks: ${JSON.stringify(
     streamedResults.tiktoks ? streamedResults.tiktoks.slice(0, 5) : []
   )}
 
-Generate 3 concise, engaging ad creative suggestions for each platform (tiktok, facebook, instagram, connectedTV, threads) in the following JSON format:
-{
-  "platform": "platform_name",
-  "suggestions": [
-    {
-      "description": "Brief, impactful description (what kind of ad is this?)",
-      "textContent": "Concise, trendy post text",
-      "hashtags": ["trending1", "trending2"],
-      "politicalLeaning": "center-left",
-      "imageDescription": "Brief description of eye-catching visual content",
-      "callToAction": "Clear, motivating CTA"
-    },
-    ...
-  ]
-}
-
-Ensure content is brief, to the point, and aligns with current trending narratives. Focus on issues that resonate with Gen Z and younger millennials. Use platform-specific language and trends. Keep political messaging subtle but effective. Do not include any markdown formatting in your response.`;
+Generate 3 concise, engaging ad creative suggestions for the specified platform. Ensure content is brief, to the point, and aligns with current trending narratives. Focus on issues that resonate with Gen Z and younger millennials. Use platform-specific language and trends. Keep political messaging subtle but effective.`;
 
   for (const platform of platforms) {
-    const stream = await openai_client.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are an expert political ad strategist for the Democratic party. Your responses should always be in valid JSON format without any markdown formatting.",
-        },
-        {
-          role: "user",
-          content: `${prompt}\n\nNow, generate suggestions for the ${platform} platform.`,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 1000,
-      stream: true,
-    });
-
-    let accumulatedContent = "";
-
-    for await (const chunk of stream) {
-      if (chunk.choices[0]?.delta?.content) {
-        accumulatedContent += chunk.choices[0].delta.content;
-      }
-    }
-
     try {
-      const cleanedContent = accumulatedContent
-        .replace(/```json\n?|\n?```/g, "")
-        .trim();
-      const parsedContent = JSON.parse(cleanedContent);
-      yield parsedContent;
+      const response = await openai_client.beta.chat.completions.parse({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert political ad strategist for the Democratic party.",
+          },
+          {
+            role: "user",
+            content: `${prompt}\n\nNow, generate suggestions for the ${platform} platform.`,
+          },
+        ],
+        functions: [
+          {
+            name: "generate_ad_suggestions",
+            parameters: {
+              type: "object",
+              properties: {
+                platform: { type: "string" },
+                suggestions: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      description: { type: "string" },
+                      textContent: { type: "string" },
+                      hashtags: { type: "array", items: { type: "string" } },
+                      politicalLeaning: { type: "string" },
+                      imageDescription: { type: "string" },
+                      callToAction: { type: "string" },
+                    },
+                    required: ["description", "textContent", "hashtags", "politicalLeaning", "imageDescription", "callToAction"],
+                  },
+                },
+              },
+              required: ["platform", "suggestions"],
+            },
+          },
+        ],
+        function_call: { name: "generate_ad_suggestions" },
+      });
+
+      const functionCall = response.choices[0].message.function_call;
+      if (functionCall && functionCall.arguments) {
+        const parsedContent = JSON.parse(functionCall.arguments);
+        yield parsedContent;
+      }
     } catch (error) {
-      console.error(`Failed to parse ${platform} suggestions:`, error);
-      yield { platform, error: "Failed to generate valid JSON suggestions" };
+      console.error(`Failed to generate suggestions for ${platform}:`, error);
+      yield { platform, error: "Failed to generate valid suggestions" };
     }
   }
 }

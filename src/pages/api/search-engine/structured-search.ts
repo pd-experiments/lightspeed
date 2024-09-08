@@ -51,12 +51,17 @@ export default async function handler(
       searchPromises
     );
 
+    sendEvent("newsResults", { type: "news", data: newsResults });
+    sendEvent("adResults", { type: "ads", data: adResults });
+    sendEvent("tiktokResults", { type: "tiktoks", data: tiktokResults });
+
     const summary = await generateSearchSummaryWithCitations(
       query,
       adResults,
       newsResults,
       tiktokResults
     );
+    sendEvent("summaryStart", { message: "Generating summary" });
     for await (const chunk of summary) {
       sendEvent("summary", { message: chunk });
     }
@@ -168,8 +173,8 @@ async function runTikTokSearch(
 }
 
 export async function* generateAdSuggestions(streamedResults: any): AsyncGenerator<object, void, unknown> {
-  const platforms = ['tiktok', 'facebook', 'instagram', 'connectedTV'];
-  const prompt = `Based on the following information, generate trending ad creative suggestions for Democrats for TikTok, Facebook, Instagram, and Connected TV:
+  const platforms = ['tiktok', 'facebook', 'instagram', 'connectedTV', 'threads'];
+  const prompt = `Based on the following information, generate brief, trendy ad creative suggestions for Democrats that appeal to younger generations, especially Gen Z:
 
 Summary: ${streamedResults.summary || ''}
 
@@ -179,26 +184,33 @@ Relevant Political Ads: ${JSON.stringify(streamedResults.ads ? streamedResults.a
 
 Relevant TikToks: ${JSON.stringify(streamedResults.tiktoks ? streamedResults.tiktoks.slice(0, 5) : [])}
 
-Generate 3 ad creative suggestions for each platform (TikTok, Facebook, Instagram, Connected TV) in the following JSON format:
+Generate 3 concise, engaging ad creative suggestions for each platform (tiktok, facebook, instagram, connectedTV, threads) in the following JSON format:
 {
   "platform": "platform_name",
   "suggestions": [
-    { "title": "Ad title", "description": "Brief ad description", "hashtags": ["tag1", "tag2"] },
+    {
+      "description": "Brief, impactful description (what kind of ad is this?)",
+      "textContent": "Concise, trendy post text",
+      "hashtags": ["trending1", "trending2"],
+      "politicalLeaning": "center-left",
+      "imageDescription": "Brief description of eye-catching visual content",
+      "callToAction": "Clear, motivating CTA"
+    },
     ...
   ]
 }
 
-Generate and yield suggestions for one platform at a time. Do not include any markdown formatting in your response.`;
+Ensure content is brief, to the point, and aligns with current trending narratives. Focus on issues that resonate with Gen Z and younger millennials. Use platform-specific language and trends. Keep political messaging subtle but effective. Do not include any markdown formatting in your response.`;
 
   for (const platform of platforms) {
     const stream = await openai_client.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4",
       messages: [
-        { role: "system", content: "You are an expert political ad strategist. Your responses should always be in valid JSON format without any markdown formatting." },
+        { role: "system", content: "You are an expert political ad strategist for the Democratic party. Your responses should always be in valid JSON format without any markdown formatting." },
         { role: "user", content: `${prompt}\n\nNow, generate suggestions for the ${platform} platform.` }
       ],
       temperature: 0.7,
-      max_tokens: 500,
+      max_tokens: 1000,
       stream: true,
     });
 

@@ -1,7 +1,7 @@
 import { FaFacebook, FaInstagram, FaTiktok, FaNewspaper } from "react-icons/fa";
 import { FaThreads } from "react-icons/fa6";
 import { FaDemocrat, FaRepublican} from "react-icons/fa6";
-import { Vote } from "lucide-react"
+import { Tv, Vote } from "lucide-react"
 import { Platform } from "@/lib/types/customTypes";
 
 export function getPlatformIcon(platform: Platform, size: number = 4): React.ReactNode {
@@ -15,6 +15,18 @@ export function getPlatformIcon(platform: Platform, size: number = 4): React.Rea
       case 'Threads': return <FaThreads className={`w-${size} h-${size}`} />;
     }
   }
+
+type PlatformChat = 'facebook' | 'instagram' | 'tiktok' | 'threads' | 'connectedtv';
+
+export function getPlatformIconChat(platform: PlatformChat, size: number = 4): React.ReactNode {
+    switch (platform) {
+      case 'facebook': return <FaFacebook className={`text-blue-500 w-${size} h-${size}`} />;
+      case 'instagram': return <FaInstagram className={`text-blue-500 w-${size} h-${size}`} />;
+      case 'tiktok': return <FaTiktok className={`text-blue-500 w-${size} h-${size}`} />;
+      case 'threads': return <FaThreads className={`text-blue-500 w-${size} h-${size}`} />;
+      case 'connectedtv': return <Tv className={`text-blue-500 w-${size} h-${size}`} />;
+  }
+}
 
 export function getNewsIcon(provider: string, size: number = 4): React.ReactNode {
   switch (provider) {

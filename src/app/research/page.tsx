@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import CardSkeleton from "@/components/research/adsearch/CardSkeleton";
 import { MinNewsCard } from "@/components/research/newsearch/MinNewsCard";
 import { MinAdSearchCard } from "@/components/research/newsearch/MinAdsCard";
+import { MinTiktokCard } from "@/components/research/newsearch/MinTikTokCard";
 import { ChevronRight } from "lucide-react";
 import { Lightbulb, MessageSquare, FileText, Settings } from "lucide-react";
 import { StreamedSearchResult } from "@/lib/types/lightspeed-search";
@@ -39,9 +40,11 @@ export default function PerplexityStylePage() {
   const [expandedSections, setExpandedSections] = useState<{
     news: boolean;
     ads: boolean;
+    tiktoks: boolean;
   }>({
     news: false,
     ads: false,
+    tiktoks: false,
   });
   const [sources, setSources] = useState<any[]>([]);
   const [adSuggestions, setAdSuggestions] = useState<Record<string, any>>({});
@@ -106,7 +109,9 @@ export default function PerplexityStylePage() {
     </motion.div>
   );
 
+  const [searching, setSearching] = useState(false);
   const handleSearch = async () => {
+    setSearching(true);
     setIsLoading(true);
     setStreamedResults({});
     setChatHistory([...chatHistory, { query: searchQuery, answer: "" }]);
@@ -115,6 +120,8 @@ export default function PerplexityStylePage() {
     const eventSource = new EventSource(
       `/api/search-engine/structured-search?query=${encodeURIComponent(searchQuery)}`
     );
+
+    setSearchQuery("");
 
     eventSource.onmessage = (event) => {
       setSearchStatus("Searching...");
@@ -139,6 +146,12 @@ export default function PerplexityStylePage() {
       setIsLoading(false);
       const data = JSON.parse(event.data);
       setStreamedResults((prevResults) => ({ ...prevResults, ads: data.data }));
+    });
+
+    eventSource.addEventListener("tiktokResults", (event) => {
+      setIsLoading(false);
+      const data = JSON.parse(event.data);
+      setStreamedResults((prevResults) => ({ ...prevResults, tiktoks: data.data }));
     });
 
     eventSource.addEventListener("error", (event: Event) => {
@@ -207,6 +220,7 @@ export default function PerplexityStylePage() {
       setSearchStatus("Search completed");
       eventSource.close();
       setSearchQuery("");
+      setSearching(false);
     });
   };
 
@@ -293,7 +307,7 @@ export default function PerplexityStylePage() {
     });
   };
 
-  const handleViewMore = (type: 'news' | 'ads') => {
+  const handleViewMore = (type: 'news' | 'ads' | 'tiktoks') => {
     setExpandedSections(prev => ({
       ...prev,
       [type]: !prev[type]
@@ -534,6 +548,47 @@ export default function PerplexityStylePage() {
                   </div>
                 </motion.div>
               )}
+
+              {streamedResults.tiktoks && streamedResults.tiktoks.length > 0 && streamedResults.summary && (
+                <motion.div 
+                  className="mb-6"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <h3 className="text-lg font-medium mb-2 text-blue-500">Relevant TikToks</h3>
+                  <div className="relative w-full">
+                    <div className={`${expandedSections.tiktoks ? 'flex overflow-x-auto pb-2 space-x-4 no-scrollbar' : 'grid grid-cols-4 gap-4'}`}>
+                    {streamedResults.tiktoks
+                      .filter(tiktok => !sources.some(source => source.id === tiktok.id))
+                      .slice(0, expandedSections.tiktoks ? undefined : 3)
+                      .map((tiktok, index) => (
+                        <motion.div 
+                          key={index} 
+                          className={expandedSections.tiktoks ? "flex-shrink-0 w-64 mr-4" : ""}
+                          variants={itemVariants}
+                        >
+                          <MinTiktokCard tiktok={tiktok} />
+                        </motion.div>
+                      ))}
+                      {streamedResults.tiktoks.length > 3 && (
+                        <motion.div 
+                          className={expandedSections.tiktoks ? "flex-shrink-0 w-64" : ""}
+                          variants={itemVariants}
+                        >
+                          <Card className="h-full flex flex-col justify-between cursor-pointer hover:bg-gray-50" onClick={() => handleViewMore('news')}>
+                            <CardContent className="p-3">
+                              <p className="text-blue-500 font-medium text-sm">
+                                {expandedSections.tiktoks ? 'Show less' : `View ${streamedResults.tiktoks.length - 3} more`}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
               </div>
 
             <div className="md:col-span-1 max-md:col-span-1">
@@ -567,7 +622,7 @@ export default function PerplexityStylePage() {
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
               className="flex-1 mr-2 rounded-full border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
             />
-            <Button onClick={handleSearch} className="bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors duration-200">
+            <Button disabled={searching} onClick={handleSearch} className="bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors duration-200">
               <Search className="mr-2 h-5 w-5" /> Ask
             </Button>
           </div>

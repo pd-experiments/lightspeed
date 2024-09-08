@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { generateSearchSummaryWithCitations } from "@/lib/new-search-engine";
+import { generateSearchSummaryWithCitations } from "@/lib/search/summary-generator";
 import {
   EnhancedGoogleAd,
   NewsArticle,

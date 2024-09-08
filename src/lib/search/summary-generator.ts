@@ -1,16 +1,9 @@
-import { openai_client } from "./openai-client";
-import { supabase } from "./supabaseClient";
+import { perplexity_client } from "../perplexity-client";
 import {
   EnhancedGoogleAd,
   NewsArticle,
-  PoliticalKeyword,
-  PoliticalKeywordEnum,
-  PoliticalLeaning,
-  PoliticalLeaningEnum,
-  PoliticalTone,
-  PoliticalToneEnum,
   TikTok,
-} from "./types/lightspeed-search";
+} from "../types/lightspeed-search";
 
 // Function to generate AI summary of search results with citations
 export async function* generateSearchSummaryWithCitations(
@@ -73,8 +66,8 @@ Please provide a concise summary of the search results, focusing on how they rel
 When referencing specific information from an ad or news article, include a citation in the following format: <begin>{"type":{media_type},"id":{id}}<end>, where {media_type} is "ad" or "news", and {id} is the id of the ad or news article.
 `;
 
-  const stream = await openai_client.chat.completions.create({
-    model: "gpt-4o",
+  const stream = await perplexity_client.chat.completions.create({
+    model: "llama-3.1-sonar-large-128k-online",
     messages: [
       {
         role: "system",

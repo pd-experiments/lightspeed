@@ -1,4 +1,4 @@
-import { openai_client } from "../openai-client";
+import { getEmbedding, openai_client } from "../openai-client";
 import { supabase } from "../supabaseClient";
 import {
   EnhancedGoogleAd,
@@ -11,7 +11,7 @@ import {
 } from "../types/lightspeed-search";
 import { z } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
-import { getEmbedding, RelevanceScoreSchema } from "../utils";
+import { RelevanceScoreSchema } from "../utils";
 
 // Updated function to search ads
 export async function searchAds(

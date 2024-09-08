@@ -51,3 +51,4 @@ venv/
 /scripts/threads_political_analysis.json
 /scripts/tiktok_political_data.json
 /public/demovideonew.mp4
+/requirements.txt

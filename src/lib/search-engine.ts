@@ -168,10 +168,12 @@ export async function LightspeedSearch(
   tiktoksQuery.returns<TikTok[]>().limit(10);
   const { data: tiktokData, error: tiktokError } = await tiktoksQuery;
   if (tiktokError) throw tiktokError;
-  searchResults.tikToks = tiktokData as TikTok[];
-  searchResults.tikToks = searchResults.tikToks.map((tiktok) => {
-    return { ...tiktok, caption_embedding: null, summary_embedding: null };
-  });
+  searchResults.tikToks = (tiktokData || []) as any[];
+  searchResults.tikToks = searchResults.tikToks?.map((tiktok) => ({
+    ...tiktok,
+    caption_embedding: null,
+    summary_embedding: null,
+  }));  
 
   // Get Instagram Threads
   const igThreadsQuery = supabase.from("int_threads").select("*");

@@ -105,7 +105,7 @@ export default function UniversalSearchResults({ query, results, isLoading }: Un
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {results.tikToks.slice(0, 3).map((tiktok, idx) => ( 
-                    <TikTokEmbed key={`tiktok-${idx}`} data={tiktok as TikTokWithCaption} />
+                    <TikTokEmbed key={`tiktok-${idx}`} data={tiktok as any} />
                   ))}
                 </div>
                 <Button variant="ghost" className="mt-4 text-blue-600" onClick={() => handleTabChange("tiktoks")}>
@@ -179,7 +179,7 @@ export default function UniversalSearchResults({ query, results, isLoading }: Un
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {results.tikToks.map((tiktok, idx) => (
-              <TikTokEmbed key={`tiktok-${idx}`} data={tiktok as TikTokWithCaption} />
+              <TikTokEmbed key={`tiktok-${idx}`} data={tiktok as any} />
             ))}
           </div>
         )}

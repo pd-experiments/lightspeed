@@ -151,6 +151,7 @@ def process_video(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
     try:
         video_id: str | None = extract_youtube_video_id(record.content)
         if video_id is None:
+            print("Invalid video id:", record.content)
             return
 
         transcript = get_youtube_transcript(
@@ -180,10 +181,18 @@ def process_video(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
             .data[0]
             .embedding
         )
+        advertiser_name_embedding = (
+            openai.embeddings.create(
+                input=record.advertiser_name, model="text-embedding-3-small"
+            )
+            .data[0]
+            .embedding
+        )
         return EmbeddedGoogleAd(
             versioned_ad_id=record.id,
             summary_embeddings=summary_embeddings,
             **dict(video_description),
+            advertiser_name_embedding=advertiser_name_embedding,
         )
     except (
         NoTranscriptAvailable,
@@ -194,6 +203,8 @@ def process_video(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
         NoTranscriptFound,
         ParseError,
     ) as e:
+        # print(e)
+        print("IP blocked")
         return None
     except Exception as e:
         print(f"Error with ad ({record.advertisement_url}):", type(e))
@@ -224,10 +235,18 @@ def process_text(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
             .data[0]
             .embedding
         )
+        advertiser_name_embedding = (
+            openai.embeddings.create(
+                input=record.advertiser_name, model="text-embedding-3-small"
+            )
+            .data[0]
+            .embedding
+        )
         return EmbeddedGoogleAd(
             versioned_ad_id=record.id,
             summary_embeddings=summary_embeddings,
             **dict(video_description),
+            advertiser_name_embedding=advertiser_name_embedding,
         )
     except Exception as e:
         print(f"Error with ad ({record.advertisement_url}):", type(e))
@@ -303,20 +322,29 @@ def process_image(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
             .data[0]
             .embedding
         )
+        advertiser_name_embedding = (
+            openai.embeddings.create(
+                input=record.advertiser_name, model="text-embedding-3-small"
+            )
+            .data[0]
+            .embedding
+        )
         return EmbeddedGoogleAd(
             versioned_ad_id=record.id,
             summary_embeddings=summary_embeddings,
             **dict(video_description),
+            advertiser_name_embedding=advertiser_name_embedding,
         )
     except Exception as e:
-        print(f"Error with ad ({record.advertisement_url}):", type(e))
+        print(f"Error with ad ({record.advertisement_url}):", type(e), e)
 
 
 # Get transcripts for record and create embeddings
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def process_record(record: VersionedGoogleAd) -> EmbeddedGoogleAd:
     if record.format == "Video":
-        return process_video(record)
+        # return process_video(record)
+        return None
     elif record.format == "Text":
         return process_text(record)
     elif record.format == "Image":
@@ -338,7 +366,8 @@ if __name__ == "__main__":
                         .execute()
                     )
                 else:
-                    print("Row was none")
+                    # print("Row was none")
+                    pass
                 pbar.update(1)
 
             with mp.Pool(mp.cpu_count()) as p:

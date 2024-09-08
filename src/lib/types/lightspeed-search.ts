@@ -36,7 +36,7 @@ type PoliticalLeaning =
   | "Establishment Liberals"
   | "Progressive Left";
 
-type Tone =
+type PoliticalTone =
   | "Unknown"
   | "Attack on Opponent(s)"
   | "Patriotic"
@@ -54,7 +54,7 @@ type LightspeedSearchQuery = {
   specificQuery?: string; // This could be a text description of what precisely the user wants in their query
   politicalKeywords?: PoliticalKeyword[]; // List of keywords to filter by
   politicalLeanings?: PoliticalLeaning[]; // Filter by political leaning
-  tone?: Tone[]; // List of tones to filter by
+  tone?: PoliticalTone[]; // List of tones to filter by
   targetAudiences?: TargetAudience[]; // List of target audience age ranges to filter by
   date_range_start?: Date;
   date_range_end?: Date;
@@ -148,13 +148,13 @@ export const LightspeedSearchQuerySchema = z.object({
   sortBy: z.enum(["success", "recency"]).optional(),
 });
 
-type EnhancedGoogleAd =
+export type EnhancedGoogleAd =
   Database["public"]["Tables"]["int_ads__google_ads_enhanced"]["Row"];
-type TikTok = Database["public"]["Tables"]["tiktok_videos"]["Row"];
-type IGThread = Database["public"]["Tables"]["threads"]["Row"];
-type NewsArticle = Database["public"]["Tables"]["int_news"]["Row"];
+export type TikTok = Database["public"]["Tables"]["tiktok_embeddings"]["Row"];
+export type IGThread = Database["public"]["Tables"]["threads"]["Row"];
+export type NewsArticle = Database["public"]["Tables"]["int_news"]["Row"];
 
-type SearchResults = {
+export type SearchResults = {
   ads?: EnhancedGoogleAd[];
   tikToks?: TikTok[];
   threads?: IGThread[];
@@ -164,8 +164,63 @@ type SearchResults = {
 export type {
   PoliticalKeyword,
   PoliticalLeaning,
-  Tone,
+  PoliticalTone,
   TargetAudience,
   LightspeedSearchQuery,
-  SearchResults,
+};
+
+export const PoliticalKeywordEnum = z.enum([
+  "Unknown",
+  "Immigration",
+  "Gun Rights",
+  "Healthcare",
+  "Climate Change",
+  "Economy",
+  "Education",
+  "National Security",
+  "Tax Policy",
+  "Social Security",
+  "Abortion",
+  "Civil Rights",
+  "Criminal Justice Reform",
+  "Foreign Policy",
+  "Voting Rights",
+  "Labor Rights",
+  "LGBTQ+ Rights",
+  "Drug Policy",
+  "Infrastructure",
+  "Trade Policy",
+  "Government Spending",
+]);
+
+export const PoliticalLeaningEnum = z.enum([
+  "Unknown",
+  "Faith and Flag Conservatives",
+  "Committed Conservatives",
+  "Populist Right",
+  "Ambivalent Right",
+  "Moderate",
+  "Outsider Left",
+  "Democratic Mainstays",
+  "Establishment Liberals",
+  "Progressive Left",
+]);
+
+export const PoliticalToneEnum = z.enum([
+  "Unknown",
+  "Attack on Opponent(s)",
+  "Patriotic",
+  "Fearmongering",
+  "Optimistic",
+  "Future-Building",
+  "Anger",
+  "Compassionate",
+  "Authoritative",
+]);
+
+export type StreamedSearchResult = {
+  ads?: EnhancedGoogleAd[];
+  news?: NewsArticle[];
+  tiktoks?: TikTok[];
+  summary?: string;
 };

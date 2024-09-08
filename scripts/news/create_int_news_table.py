@@ -4,13 +4,13 @@ from uuid import uuid4
 from multiprocessing import Pool, Queue, cpu_count
 from tqdm import tqdm
 import openai
-from news.models import (
+from models import (
     FilteredArticle,
     NewsAISummary,
     NewsValidationResponse,
     RawArticle,
 )
-from helpers.helpers import get_supabase_client
+from scripts.helpers.helpers import get_supabase_client
 from tenacity import (
     retry,
     wait_exponential,

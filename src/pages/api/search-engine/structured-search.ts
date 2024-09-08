@@ -14,6 +14,7 @@ import {
   analyzeTikTokSearchQuery,
   searchTikToks,
 } from "@/lib/search/search-tiktoks";
+import { openai_client } from "@/lib/openai-client";
 
 export default async function handler(
   req: NextApiRequest,
@@ -58,6 +59,12 @@ export default async function handler(
     );
     for await (const chunk of summary) {
       sendEvent("summary", { message: chunk });
+    }
+
+    sendEvent("adSuggestionsStart", { message: "Generating ad suggestions" });
+    const adSuggestionsGenerator = generateAdSuggestions({ summary, news: newsResults, ads: adResults, tiktoks: tiktokResults });
+    for await (const platformSuggestions of adSuggestionsGenerator) {
+      sendEvent("adSuggestions", { data: platformSuggestions });
     }
 
     sendEvent("done", { message: "Search completed" });
@@ -157,5 +164,58 @@ async function runTikTokSearch(
       message: "No TikTok search parameters found",
     });
     return [];
+  }
+}
+
+
+export async function* generateAdSuggestions(streamedResults: any): AsyncGenerator<string, void, unknown> {
+  const prompt = `Based on the following information, generate trending ad creative suggestions for Democrats for TikTok, Facebook, Instagram, and Connected TV:
+
+Summary: ${streamedResults.summary || ''}
+
+Relevant News Articles: ${JSON.stringify(streamedResults.news ? streamedResults.news.slice(0, 5) : [])}
+
+Relevant Political Ads: ${JSON.stringify(streamedResults.ads ? streamedResults.ads.slice(0, 5) : [])}
+
+Relevant TikToks: ${JSON.stringify(streamedResults.tiktoks ? streamedResults.tiktoks.slice(0, 5) : [])}
+Generate 3 ad creative suggestions for each platform (TikTok, Facebook, Instagram, Connected TV) in the following JSON format:
+{
+  "tiktok": [
+    { "title": "Ad title", "description": "Brief ad description", "hashtags": ["tag1", "tag2"] },
+    ...
+  ],
+  "facebook": [...],
+  "instagram": [...],
+  "connectedTV": [...]
+}
+
+Ensure that your response is a valid JSON object.`;
+
+  const stream = await openai_client.chat.completions.create({
+    model: "gpt-4",
+    messages: [
+      { role: "system", content: "You are an expert political ad strategist. Your responses should always be in valid JSON format." },
+      { role: "user", content: prompt }
+    ],
+    temperature: 0.7,
+    max_tokens: 1500,
+    stream: true,
+  });
+
+  let accumulatedContent = '';
+
+  for await (const chunk of stream) {
+    if (chunk.choices[0]?.delta?.content) {
+      accumulatedContent += chunk.choices[0].delta.content;
+      yield chunk.choices[0].delta.content;
+    }
+  }
+
+  // After the stream is complete, try to parse the accumulated content as JSON
+  try {
+    JSON.parse(accumulatedContent);
+  } catch (error) {
+    console.error("Failed to parse accumulated content as JSON:", error);
+    yield JSON.stringify({ error: "Failed to generate valid JSON suggestions" });
   }
 }

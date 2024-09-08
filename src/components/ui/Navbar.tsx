@@ -46,45 +46,45 @@ const navItems: NavItemType[] = [
       },
     ],
   },
-  {
-    icon: <PencilLine className="w-6 h-6 text-blue-500" />,
-    label: "Create",
-    subItems: [
-      {
-        icon: <TagIcon className="w-5 h-5 text-gray-600" />,
-        label: "Taglines",
-        href: "/create/taglines",
-        newTab: false,
-        beta: false,
-      },
-      {
-        icon: <BoltIcon className="w-5 h-5 text-gray-600" />,
-        label: "Ideation",
-        href: "/create/ideation",
-        newTab: false,
-        beta: false,
-      },
-      {
-        icon: <Sparkle className="w-5 h-5 text-gray-600" />,
-        label: "Generate",
-        href: "/create/generate",
-        newTab: false,
-        beta: false,
-      },
-      {
-        icon: <Beaker className="w-5 h-5 text-gray-600" />,
-        label: "Testing",
-        href: "/create/testing",
-        newTab: false,
-        beta: false,
-      },
-    ],
-  },
-  {
-    icon: <Rocket className="w-6 h-6 text-blue-500"/>,
-    label: "Deploy",
-    href: "/deployment",
-  },
+  // {
+  //   icon: <PencilLine className="w-6 h-6 text-blue-500" />,
+  //   label: "Create",
+  //   subItems: [
+  //     {
+  //       icon: <TagIcon className="w-5 h-5 text-gray-600" />,
+  //       label: "Taglines",
+  //       href: "/create/taglines",
+  //       newTab: false,
+  //       beta: false,
+  //     },
+  //     {
+  //       icon: <BoltIcon className="w-5 h-5 text-gray-600" />,
+  //       label: "Ideation",
+  //       href: "/create/ideation",
+  //       newTab: false,
+  //       beta: false,
+  //     },
+  //     {
+  //       icon: <Sparkle className="w-5 h-5 text-gray-600" />,
+  //       label: "Generate",
+  //       href: "/create/generate",
+  //       newTab: false,
+  //       beta: false,
+  //     },
+  //     {
+  //       icon: <Beaker className="w-5 h-5 text-gray-600" />,
+  //       label: "Testing",
+  //       href: "/create/testing",
+  //       newTab: false,
+  //       beta: false,
+  //     },
+  //   ],
+  // },
+  // {
+  //   icon: <Rocket className="w-6 h-6 text-blue-500"/>,
+  //   label: "Deploy",
+  //   href: "/deployment",
+  // },
 ]
 
 export default function Navbar({

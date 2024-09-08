@@ -1,4 +1,8 @@
-import { getEmbedding, openai_client } from "../openai-client";
+import {
+  getEmbedding,
+  openai_client,
+  OpenAIWithHistory,
+} from "../openai-client";
 import { supabase } from "../supabaseClient";
 import {
   NewsArticle,
@@ -15,6 +19,7 @@ import { RelevanceScoreSchema } from "../utils";
 
 // Main function to call the search RPC
 export async function searchNews(
+  openai_client: OpenAIWithHistory,
   query: string,
   keywords: PoliticalKeyword[],
   leanings: PoliticalLeaning[],
@@ -53,7 +58,9 @@ export async function searchNews(
     // Create an array of promises for getArticleRelevanceScore
     const relevanceScorePromises = data
       .slice(0, 50)
-      .map((article: NewsArticle) => getNewsRelevanceScore(query, article));
+      .map((article: NewsArticle) =>
+        getNewsRelevanceScore(query, article, openai_client)
+      );
 
     // Execute all promises concurrently
     const relevanceScores = await Promise.all(relevanceScorePromises);
@@ -85,14 +92,11 @@ const SearchNewsParamsSchema = z.object({
 type SearchNewsParams = z.infer<typeof SearchNewsParamsSchema>;
 
 export async function analyzeNewsSearchQuery(
+  openai_client: OpenAIWithHistory,
   userQuery: string
 ): Promise<SearchNewsParams | null> {
-  const completion = await openai_client.beta.chat.completions.parse({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `You are an AI assistant that analyzes user queries to determine if they should be processed by the searchNews function. If applicable, you should provide appropriate parameters for the function.
+  const parsed = await openai_client.sendParsedMessage(
+    `You are an AI assistant that analyzes user queries to determine if they should be processed by the searchNews function. If applicable, you should provide appropriate parameters for the function.
 
 Rules:
 1. Determine if the user query should be processed by the searchNews function, i.e. if you think giving news data back to the user is relevant, then you should set runSearchNews to true. Otherwise, set runSearchNews to false.
@@ -111,19 +115,10 @@ Parameters:
 - gamma: Weight for tone matches (0-1)
 - delta: Weight for embedding similarity (0-1)
 - epsilon: Weight for date recency (0-1)`,
-      },
-      {
-        role: "user",
-        content: userQuery,
-      },
-    ],
-    response_format: zodResponseFormat(
-      SearchNewsParamsSchema,
-      "structured_output"
-    ),
-  });
-
-  const parsed = completion.choices[0].message.parsed;
+    userQuery,
+    SearchNewsParamsSchema,
+    false
+  );
   if (parsed) {
     if (Array.isArray(parsed.keywords)) {
       parsed.keywords = parsed.keywords.filter(
@@ -145,36 +140,24 @@ Parameters:
 
 export async function getNewsRelevanceScore(
   userQuery: string,
-  newsArticle: NewsArticle
+  newsArticle: NewsArticle,
+  openai_client: OpenAIWithHistory
 ): Promise<number> {
-  const completion = await openai_client.beta.chat.completions.parse({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `You are an AI assistant that analyzes the relevance of a news article to a user's query. 
+  const parsed = await openai_client.sendParsedMessage(
+    `You are an AI assistant that analyzes the relevance of a news article to a user's query. 
           You should return a relevance score between 0 and 1, where 1 is most relevant and 0 is least relevant.
           Consider all aspects of the article, including its title, content, source, keywords, political leaning, and tone.
           Pay special attention to how well the article's content and metadata aligns with the user's query intent. In case it is useful, the date today is ${
             new Date().toISOString().split("T")[0]
           }.`,
-      },
-      {
-        role: "user",
-        content: `User Query: "${userQuery}"
-  
-  News Article Details:
-  ${JSON.stringify(newsArticle, null, 2)}
-  
-  Please analyze the relevance of this news article to the user's query and provide a relevance score between 0 and 1.`,
-      },
-    ],
-    response_format: zodResponseFormat(
-      RelevanceScoreSchema,
-      "structured_output"
-    ),
-  });
+    `User Query: "${userQuery}"
 
-  const parsed = completion.choices[0].message.parsed;
-  return parsed?.relevanceScore ?? 0;
+News Article Details:
+${JSON.stringify(newsArticle, null, 2)}
+
+Please analyze the relevance of this news article to the user's query and provide a relevance score between 0 and 1.`,
+    RelevanceScoreSchema,
+    false
+  );
+  return parsed.relevanceScore ?? 0;
 }

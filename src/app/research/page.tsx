@@ -576,7 +576,7 @@ export default function PerplexityStylePage() {
                           className={expandedSections.tiktoks ? "flex-shrink-0 w-64" : ""}
                           variants={itemVariants}
                         >
-                          <Card className="h-full flex flex-col justify-between cursor-pointer hover:bg-gray-50" onClick={() => handleViewMore('news')}>
+                          <Card className="h-full flex flex-col justify-between cursor-pointer hover:bg-gray-50" onClick={() => handleViewMore('tiktoks')}>
                             <CardContent className="p-3">
                               <p className="text-blue-500 font-medium text-sm">
                                 {expandedSections.tiktoks ? 'Show less' : `View ${streamedResults.tiktoks.length - 3} more`}

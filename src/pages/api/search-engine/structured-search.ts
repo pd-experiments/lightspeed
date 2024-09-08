@@ -124,7 +124,6 @@ export default async function handler(
       tiktokResults.length > 0 ||
       adSuggestions.length > 0
     ) {
-      console.log("Adding history");
       openai_client_with_history.addMultipleToHistory([
         { role: "user", content: query },
         {
@@ -145,7 +144,6 @@ export default async function handler(
     console.error("Error processing user query:", error);
     sendEvent("error", { error: "Error processing user query: " + error });
   } finally {
-    console.log("Final history:", openai_client_with_history.getHistory());
     res.end();
   }
 }

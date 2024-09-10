@@ -5,7 +5,7 @@ import type { z } from "zod"
 
 export default function SidebarWrapper({
   children,
-  defaultCollapsed = false,
+  defaultCollapsed = true,
   openMenus,
   onOpenMenusChange,
   isLoading,

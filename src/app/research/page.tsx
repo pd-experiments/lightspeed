@@ -63,10 +63,8 @@ export default function PerplexityStylePage() {
   const [openaiClientHistoryId, setOpenaiClientHistoryId] = useState<string>(
     uuidv4()
   );
-
-  const [messageHistory, setMessageHistory] = useState<PairedSearchResult[]>(
-    []
-  );
+  
+  const [messageHistory, setMessageHistory] = useState<PairedSearchResult[]>([]);
   const [currentChat, setCurrentChat] = useState<string>("New Chat");
   const [expandedSections, setExpandedSections] = useState<{
     news: boolean;
@@ -79,10 +77,13 @@ export default function PerplexityStylePage() {
   });
   const [sources, setSources] = useState<any[]>([]);
   const [adSuggestions, setAdSuggestions] = useState<Record<string, any>>({});
-
-  const [streamedResults, setStreamedResults] = useState<StreamedSearchResult>(
-    {}
-  );
+  
+  const [streamedResults, setStreamedResults] = useState<StreamedSearchResult>({
+    summary: "",
+    news: [],
+    ads: [],
+    tiktoks: [],
+  });
   const [searchStatus, setSearchStatus] = useState("");
 
   const platformOrder = [
@@ -181,22 +182,25 @@ export default function PerplexityStylePage() {
       const data = JSON.parse(event.data);
       setStreamedResults((prevResults) => ({
         ...prevResults,
-        news: data.data,
+        news: [...prevResults?.news || [], ...data.data],
       }));
     });
-
+    
     eventSource.addEventListener("adResults", (event) => {
       setIsLoading(false);
       const data = JSON.parse(event.data);
-      setStreamedResults((prevResults) => ({ ...prevResults, ads: data.data }));
+      setStreamedResults((prevResults) => ({
+        ...prevResults,
+        ads: [...prevResults?.ads || [], ...data.data],
+      }));
     });
-
+    
     eventSource.addEventListener("tiktokResults", (event) => {
       setIsLoading(false);
       const data = JSON.parse(event.data);
       setStreamedResults((prevResults) => ({
         ...prevResults,
-        tiktoks: data.data,
+        tiktoks: [...prevResults?.tiktoks || [], ...data.data],
       }));
     });
 
@@ -222,16 +226,14 @@ export default function PerplexityStylePage() {
       setIsLoading(false);
       const data = JSON.parse(event.data);
       setStreamedResults((prevResults) => {
-        const updatedSummary = prevResults.summary
-          ? prevResults.summary + data.message
-          : data.message;
-
+        const updatedSummary = (prevResults.summary || "") + (data.message || "");
         setChatHistory((prevHistory) => {
           const updatedHistory = [...prevHistory];
-          updatedHistory[updatedHistory.length - 1].answer = updatedSummary;
+          if (updatedHistory.length > 0) {
+            updatedHistory[updatedHistory.length - 1].answer = updatedSummary;
+          }
           return updatedHistory;
         });
-
         return {
           ...prevResults,
           summary: updatedSummary,
@@ -294,11 +296,14 @@ export default function PerplexityStylePage() {
       .from("int_news")
       .select("id, title, url, ai_summary, publish_date")
       .in("id", citations);
-
+  
     if (error) {
       console.error("Error fetching sources:", error);
     } else {
-      setSources(data || []);
+      setSources((prevSources) => {
+        const newSources = data?.filter((source) => !prevSources.some((prevSource) => prevSource.id === source.id)) || [];
+        return [...prevSources, ...newSources];
+      });
     }
   }, []);
 
@@ -317,15 +322,22 @@ export default function PerplexityStylePage() {
 
   const renderSummaryWithCitations = (summary: string) => {
     if (!summary) return null;
-
-    const parts = summary.split(/(<begin>.*?<end>)/);
+  
+    const parts = summary.split(/(<begin>|<end>)/);
     let citationCounter = 0;
     const citationMap = new Map();
-
+    let isInCitation = false;
+    let currentCitation = '';
+  
     return parts.map((part, index) => {
-      if (part.startsWith("<begin>")) {
+      if (part === '<begin>') {
+        isInCitation = true;
+        currentCitation = '';
+        return null;
+      } else if (part === '<end>') {
+        isInCitation = false;
         try {
-          const citation = JSON.parse(part.replace(/<begin>|<end>/g, ""));
+          const citation = JSON.parse(currentCitation);
           if (!citationMap.has(citation.id)) {
             citationMap.set(citation.id, ++citationCounter);
           }
@@ -343,6 +355,9 @@ export default function PerplexityStylePage() {
           console.error("Error parsing citation:", error);
           return null;
         }
+      } else if (isInCitation) {
+        currentCitation += part;
+        return null;
       } else {
         return (
           <span
@@ -353,7 +368,7 @@ export default function PerplexityStylePage() {
           </span>
         );
       }
-    });
+    }).filter(Boolean);
   };
 
   const handleViewMore = (type: "news" | "ads" | "tiktoks") => {
@@ -544,16 +559,14 @@ export default function PerplexityStylePage() {
                             <SearchStatusAnimation status={searchStatus} />
                           </AnimatePresence>
                         )}
-                      <motion.p
+                      <motion.div
                         className="text-md text-gray-800"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5 }}
                       >
-                        {renderSummaryWithCitations(
-                          streamedResults.summary || ""
-                        )}
-                      </motion.p>
+                        {renderSummaryWithCitations(streamedResults.summary || "")}
+                      </motion.div>
                       {sources.length > 0 &&
                         !isLoading &&
                         streamedResults.summary && (

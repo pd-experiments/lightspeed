@@ -9,42 +9,48 @@ import {
   MagnifyingGlassCircleIcon,
 } from "@heroicons/react/20/solid"
 import { type NavItemType, pageValidator } from "./Sidebar"
-import { Beaker, Megaphone, Newspaper, PencilLine, Rocket, Sparkle, TagIcon, TextSelect } from "lucide-react"
+import { Beaker, LayoutDashboard, Megaphone, Newspaper, PencilLine, Rocket, Sparkle, TagIcon, TextSelect } from "lucide-react"
 import { Header } from "./Header"
 import { useState, useEffect } from "react"
 
 const navItems: NavItemType[] = [
-  {
-    icon: <HomeIcon className="w-6 h-6 text-blue-500" />,
-    label: "Home",
-    href: "/dashboard",
-  },
+  // {
+  //   icon: <HomeIcon className="w-6 h-6 text-blue-500" />,
+  //   label: "Home",
+  //   href: "/dashboard",
+  // },
   {
     icon: <TextSelect className="w-6 h-6 text-blue-500" />,
-    label: "Research",
-    subItems: [
-      {
-        icon: <MagnifyingGlassCircleIcon className="w-5 h-5 text-gray-600" />,
-        label: "Search",
-        href: "/research",
-        newTab: false,
-        beta: false,
-      },
-      {
-        icon: <Newspaper className="w-5 h-5 text-gray-600" />,
-        label: "Ads",
-        href: "/research/ads",
-        newTab: false,
-        beta: false,
-      },
-      {
-        icon: <Megaphone className="w-5 h-5 text-gray-600" />,
-        label: "Conversations",
-        href: "/research/conversations",
-        newTab: false,
-        beta: false,
-      },
-    ],
+    label: "Search",
+    href: "/research",
+    // subItems: [
+    //   {
+    //     icon: <MagnifyingGlassCircleIcon className="w-5 h-5 text-gray-600" />,
+    //     label: "Search",
+    //     href: "/research",
+    //     newTab: false,
+    //     beta: false,
+    //   },
+    //   {
+    //     icon: <Newspaper className="w-5 h-5 text-gray-600" />,
+    //     label: "Ads",
+    //     href: "/research/ads",
+    //     newTab: false,
+    //     beta: false,
+    //   },
+    //   {
+    //     icon: <Megaphone className="w-5 h-5 text-gray-600" />,
+    //     label: "Conversations",
+    //     href: "/research/conversations",
+    //     newTab: false,
+    //     beta: false,
+    //   },
+    // ],
+  },
+  {
+    icon: <LayoutDashboard className="w-6 h-6 text-blue-500" />,
+    label: "Data",
+    href: "/data",
   },
   // {
   //   icon: <PencilLine className="w-6 h-6 text-blue-500" />,

@@ -18,7 +18,8 @@ import { US } from 'country-flag-icons/react/3x2'
 
 const PageEnum = {
   Home: "Home",
-  Research: "Research",
+  Search: "Search",
+  Data: "Data",
   Create: "Create",
   Ideation: "Ideation",
   Generate: "Generate",

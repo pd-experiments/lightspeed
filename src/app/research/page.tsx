@@ -182,7 +182,7 @@ export default function PerplexityStylePage() {
       const data = JSON.parse(event.data);
       setStreamedResults((prevResults) => ({
         ...prevResults,
-        news: [...prevResults?.news || [], ...data.data],
+        news: [...(prevResults.news || []), ...(data.data || [])],
       }));
     });
     
@@ -191,7 +191,7 @@ export default function PerplexityStylePage() {
       const data = JSON.parse(event.data);
       setStreamedResults((prevResults) => ({
         ...prevResults,
-        ads: [...prevResults?.ads || [], ...data.data],
+        ads: [...(prevResults.ads || []), ...(data.data || [])],
       }));
     });
     
@@ -200,7 +200,7 @@ export default function PerplexityStylePage() {
       const data = JSON.parse(event.data);
       setStreamedResults((prevResults) => ({
         ...prevResults,
-        tiktoks: [...prevResults?.tiktoks || [], ...data.data],
+        tiktoks: [...(prevResults.tiktoks || []), ...(data.data || [])],
       }));
     });
 
@@ -315,10 +315,13 @@ export default function PerplexityStylePage() {
           const parsed = JSON.parse(citation.replace(/<begin>|<end>/g, ""));
           return parsed.id;
         });
-        fetchSources(citationIds);
+        const newCitationIds = citationIds.filter(id => !sources.some(source => source.id === id));
+        if (newCitationIds.length > 0) {
+          fetchSources(newCitationIds);
+        }
       }
     }
-  }, [streamedResults.summary, fetchSources]);
+  }, [streamedResults.summary, fetchSources, sources]);
 
   const renderSummaryWithCitations = (summary: string) => {
     if (!summary) return null;

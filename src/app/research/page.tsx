@@ -99,10 +99,10 @@ export default function PerplexityStylePage() {
   >(null);
 
   const LoadingAnimation = React.memo(({
-    loadedPlatforms,
+    completedPlatforms,
     currentlyLoading,
   }: {
-    loadedPlatforms: string[];
+    completedPlatforms: string[];
     currentlyLoading: string | null;
   }) => (
     <motion.div
@@ -121,7 +121,7 @@ export default function PerplexityStylePage() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className={`flex items-center p-2 rounded-md ${
-              loadedPlatforms.includes(platform)
+              completedPlatforms.includes(platform)
                 ? "bg-blue-50"
                 : platform === currentlyLoading
                 ? "bg-blue-50"
@@ -131,7 +131,7 @@ export default function PerplexityStylePage() {
             <span className="flex-grow text-sm capitalize text-blue-700">
               {platform}
             </span>
-            {loadedPlatforms.includes(platform) ? (
+            {completedPlatforms.includes(platform) ? (
               <CheckCircle2 className="w-5 h-5 fill-blue-500 text-white" />
             ) : platform === currentlyLoading ? (
               <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
@@ -147,6 +147,8 @@ export default function PerplexityStylePage() {
   LoadingAnimation.displayName = 'LoadingAnimation';
 
   const [searching, setSearching] = useState(false);
+  const [completedPlatforms, setCompletedPlatforms] = useState<string[]>([]);
+
   const handleSearch = async () => {
     setSearching(true);
     setIsLoading(true);
@@ -244,30 +246,33 @@ export default function PerplexityStylePage() {
     eventSource.addEventListener("adSuggestionsStart", () => {
       setSearchStatus("Generating ad creative suggestions");
       setCurrentlyLoadingPlatform(platformOrder[0]);
+      setCompletedPlatforms([]);
     });
 
     eventSource.addEventListener("adSuggestions", (event) => {
-      setSearchStatus("Generating ad creative suggestions");
       const data = JSON.parse(event.data);
       if (data.data && data.data.platform) {
         setAdSuggestions((prevSuggestions) => ({
           ...prevSuggestions,
           [data.data.platform]: data.data.suggestions || [],
         }));
-        setLoadedPlatforms((prev) => 
-          Array.from(new Set([...prev, data.data.platform]))
-            .filter(platform => platform !== "threads")
-        );
-
+        
+        setCompletedPlatforms((prev) => [...prev, data.data.platform]);
+        
         const nextPlatformIndex = platformOrder.indexOf(data.data.platform) + 1;
-        setCurrentlyLoadingPlatform((prev) => 
-          nextPlatformIndex < platformOrder.length ? platformOrder[nextPlatformIndex] : null
-        );
-      } else {
-        console.error("Received invalid ad suggestion data:", data);
+        if (nextPlatformIndex < platformOrder.length) {
+          setCurrentlyLoadingPlatform(platformOrder[nextPlatformIndex]);
+        } else {
+          setCurrentlyLoadingPlatform(null);
+        }
       }
     });
-    
+
+    eventSource.addEventListener("adSuggestionsError", (event) => {
+      const data = JSON.parse(event.data);
+      console.error("Ad suggestion error:", data);
+    });
+
     eventSource.addEventListener("done", () => {
       setSearchStatus("Search completed");
       eventSource.close();
@@ -557,7 +562,7 @@ export default function PerplexityStylePage() {
                     <Card className="mb-6 shadow-sm rounded-lg overflow-hidden border-none">
                       <CardContent className="p-2 border-none">
                       {searchStatus &&
-                        loadedPlatforms.length < platformOrder.length && (
+                        completedPlatforms.length < platformOrder.length && (
                           <AnimatePresence>
                             <SearchStatusAnimation status={searchStatus} />
                           </AnimatePresence>
@@ -823,7 +828,7 @@ export default function PerplexityStylePage() {
                 </div>
 
                 <div className="lg:col-span-1">
-                  {(loadedPlatforms.length > 0 || currentlyLoadingPlatform) && (
+                  {(completedPlatforms.length > 0 || currentlyLoadingPlatform) && (
                     <motion.div
                       variants={containerVariants}
                       initial="hidden"
@@ -832,24 +837,24 @@ export default function PerplexityStylePage() {
                       <h2 className="text-xl font-semibold mb-4 text-blue-500">
                         Ad Creative Suggestions
                       </h2>
-                        {loadedPlatforms.length < platformOrder.length && (
+                        {completedPlatforms.length < platformOrder.length && (
                           <LoadingAnimation
-                            loadedPlatforms={loadedPlatforms}
+                            completedPlatforms={completedPlatforms}
                             currentlyLoading={currentlyLoadingPlatform}
                           />
                         )}
-                      <div className="space-y-4">
-                        {Object.entries(adSuggestions).map(
-                          ([platform, suggestions]) => (
-                            <motion.div key={platform} variants={itemVariants}>
-                              <AdSuggestionCollapsible
-                                platform={platform}
-                                suggestions={suggestions}
-                              />
-                            </motion.div>
-                          )
-                        )}
-                      </div>
+                        <div className="space-y-4">
+                          {Object.entries(adSuggestions).map(
+                            ([platform, suggestions]) => (
+                              <motion.div key={platform} variants={itemVariants}>
+                                <AdSuggestionCollapsible
+                                  platform={platform}
+                                  suggestions={suggestions}
+                                />
+                              </motion.div>
+                            )
+                          )}
+                        </div>
                     </motion.div>
                   )}
                 </div>

@@ -17,6 +17,25 @@ const map_openai_client_history_id_to_client = new Map<
   OpenAIWithHistory
 >();
 
+interface AdSuggestion {
+  description: string;
+  textContent: string;
+  hashtags: string[];
+  politicalLeaning: string;
+  imageDescription: string;
+  callToAction: string;
+}
+
+interface AdSuggestionResult {
+  platform: string;
+  suggestions: AdSuggestion[];
+}
+
+interface GenerateAdSuggestionsResult {
+  type: "platformComplete" | "platformError";
+  data: AdSuggestionResult | { platform: string; error: string; suggestions: never[] };
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -118,9 +137,13 @@ export default async function handler(
       ads: adResults,
       tiktoks: tiktokResults,
     });
-    for await (const platformSuggestions of adSuggestionsGenerator) {
-      sendEvent("adSuggestions", { data: platformSuggestions });
-      adSuggestions.push(platformSuggestions);
+    for await (const result of adSuggestionsGenerator) {
+      if (result.type === "platformComplete") {
+        sendEvent("adSuggestions", { data: result.data });
+        adSuggestions.push(result.data);
+      } else if (result.type === "platformError") {
+        sendEvent("adSuggestionsError", { data: result.data });
+      }
     }
 
     if (
@@ -293,7 +316,7 @@ async function runTikTokSearch(
 
 export async function* generateAdSuggestions(
   streamedResults: any
-): AsyncGenerator<object, void, unknown> {
+): AsyncGenerator<GenerateAdSuggestionsResult, void, unknown> {
   const platforms = [
     "tiktok",
     "facebook",
@@ -367,13 +390,13 @@ Generate 3 concise, engaging ad creative suggestions for the specified platform.
       const functionCall = response.choices[0].message.function_call;
       if (functionCall && functionCall.arguments) {
         const parsedContent = JSON.parse(functionCall.arguments);
-        yield parsedContent;
+        yield { type: "platformComplete", data: parsedContent };
       } else {
         throw new Error("Invalid function call response");
       }
     } catch (error) {
       console.error(`Failed to generate suggestions for ${platform}:`, error);
-      yield { platform, error: "Failed to generate valid suggestions", suggestions: [] };
+      yield { type: "platformError", data: { platform, error: "Failed to generate valid suggestions", suggestions: [] } };
     }
   }
 }

@@ -53,6 +53,76 @@ import { AdSuggestionCollapsible } from "@/components/research/AdSuggestionColla
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
+const platformOrder = [
+  "tiktok",
+  "facebook",
+  "instagram",
+  "connectedTV",
+  "threads",
+];
+
+const SearchStatusAnimation = ({ status }: { status: string }) => (
+  <motion.div
+    // initial={{ opacity: 0, y: -20 }}
+    // animate={{ opacity: 1, y: 0 }}
+    // exit={{ opacity: 0, y: -20 }}
+    className="mb-4"
+  >
+    <div className="flex items-center p-2 rounded-md bg-blue-50">
+      <span className="flex-grow text-sm text-blue-600">{status}</span>
+      <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+    </div>
+  </motion.div>
+);
+
+const LoadingAnimation = React.memo(({
+  completedPlatforms,
+  currentlyLoading,
+}: {
+  completedPlatforms: string[];
+  currentlyLoading: string | null;
+}) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="mb-4"
+  >
+    <p className="text-sm text-blue-500 font-medium mb-2">
+      Generating suggestions for:
+    </p>
+    <div className="space-y-2">
+      {platformOrder.map((platform) => (
+        <motion.div
+          key={platform}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`flex items-center p-2 rounded-md ${
+            completedPlatforms.includes(platform)
+              ? "bg-blue-50"
+              : platform === currentlyLoading
+              ? "bg-blue-50"
+              : "bg-gray-50"
+          }`}
+        >
+          <span className="flex-grow text-sm capitalize text-blue-700">
+            {platform}
+          </span>
+          {completedPlatforms.includes(platform) ? (
+            <CheckCircle2 className="w-5 h-5 fill-blue-500 text-white" />
+          ) : platform === currentlyLoading ? (
+            <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+          ) : (
+            <div className="w-5 h-5" />
+          )}
+        </motion.div>
+      ))}
+    </div>
+  </motion.div>
+));
+
+LoadingAnimation.displayName = 'LoadingAnimation';
+
 export default function PerplexityStylePage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any>(null);
@@ -91,65 +161,10 @@ export default function PerplexityStylePage() {
   });
   const [searchStatus, setSearchStatus] = useState("");
 
-  const platformOrder = [
-    "tiktok",
-    "facebook",
-    "instagram",
-    "connectedTV",
-    // "threads",
-  ];
   const [loadedPlatforms, setLoadedPlatforms] = useState<string[]>([]);
   const [currentlyLoadingPlatform, setCurrentlyLoadingPlatform] = useState<
     string | null
   >(null);
-
-  const LoadingAnimation = React.memo(({
-    completedPlatforms,
-    currentlyLoading,
-  }: {
-    completedPlatforms: string[];
-    currentlyLoading: string | null;
-  }) => (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="mb-4"
-    >
-      <p className="text-sm text-blue-500 font-medium mb-2">
-        Generating suggestions for:
-      </p>
-      <div className="space-y-2">
-        {platformOrder.map((platform) => (
-          <motion.div
-            key={platform}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`flex items-center p-2 rounded-md ${
-              completedPlatforms.includes(platform)
-                ? "bg-blue-50"
-                : platform === currentlyLoading
-                ? "bg-blue-50"
-                : "bg-gray-50"
-            }`}
-          >
-            <span className="flex-grow text-sm capitalize text-blue-700">
-              {platform}
-            </span>
-            {completedPlatforms.includes(platform) ? (
-              <CheckCircle2 className="w-5 h-5 fill-blue-500 text-white" />
-            ) : platform === currentlyLoading ? (
-              <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
-            ) : (
-              <div className="w-5 h-5" />
-            )}
-          </motion.div>
-        ))}
-      </div>
-    </motion.div>
-  ));
-  
-  LoadingAnimation.displayName = 'LoadingAnimation';
 
   const [searching, setSearching] = useState(false);
   const [completedPlatforms, setCompletedPlatforms] = useState<string[]>([]);
@@ -297,20 +312,6 @@ export default function PerplexityStylePage() {
       setCurrentlyLoadingPlatform(null);
     });
   }
-
-  const SearchStatusAnimation = ({ status }: { status: string }) => (
-    <motion.div
-      // initial={{ opacity: 0, y: -20 }}
-      // animate={{ opacity: 1, y: 0 }}
-      // exit={{ opacity: 0, y: -20 }}
-      className="mb-4"
-    >
-      <div className="flex items-center p-2 rounded-md bg-blue-50">
-        <span className="flex-grow text-sm text-blue-600">{status}</span>
-        <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
-      </div>
-    </motion.div>
-  );
 
   const fetchSources = useCallback(async (citations: string[]) => {
     const { data, error } = await supabase

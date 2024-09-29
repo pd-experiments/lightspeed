@@ -58,19 +58,23 @@ export async function searchTikToks(
       return [];
     }
 
-    // Create an array of promises for getTikTokRelevanceScore
-    const relevanceScorePromises = data
-      .slice(0, 50)
-      .map((tiktok: TikTok) =>
-        getTikTokRelevanceScore(openai_client, query, tiktok)
-      );
-    // Execute all promises concurrently
-    const relevanceScores = await Promise.all(relevanceScorePromises);
+    // Implement more sophisticated relevance scoring
+    const scoredResults = await Promise.all(
+      data.map(async (tiktok) => {
+        const relevanceScore = await getTikTokRelevanceScore(
+          openai_client,
+          query,
+          tiktok
+        );
+        return { ...tiktok, relevanceScore };
+      })
+    );
 
-    // Filter TikToks based on relevance scores
-    return data
-      .filter((_, index: number) => relevanceScores[index] >= 0.5)
-      .slice(0, 20);
+    // Sort by relevance score, filter out low-scoring results, and limit to 13
+    return scoredResults
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .filter((result) => result.relevanceScore >= 0.6)
+      .slice(0, 13);
   } catch (error) {
     console.error("Error in searchTikToks function:", error);
     return [];
@@ -149,26 +153,59 @@ Provide appropriate values based on the user's query and the given rules.`,
   return parsed;
 }
 
+// Update getTikTokRelevanceScore function to use more advanced NLP techniques
 export async function getTikTokRelevanceScore(
   openai_client: OpenAIWithHistory,
   userQuery: string,
   tiktok: TikTok
 ): Promise<number> {
+  const tiktokEmbedding = await getEmbedding(
+    tiktok.caption + " " + tiktok.hashtags?.join(" ") ?? ""
+  );
+  const queryEmbedding = await getEmbedding(userQuery);
+
+  const cosineSimilarity = calculateCosineSimilarity(
+    queryEmbedding,
+    tiktokEmbedding
+  );
+
   const parsed = await openai_client.sendParsedMessage(
-    `You are an AI assistant that analyzes the relevance of a TikTok to a user's query. 
-          You should return a relevance score between 0 and 1, where 1 is most relevant and 0 is least relevant.
-          Consider all aspects of the TikTok, including its description, hashtags, and views.
-          Pay special attention to how well the TikTok's content and (very importantly) metadata aligns with the user's query intent. In case it is useful, the date today is ${
-            new Date().toISOString().split("T")[0]
-          }.`,
+    `Analyze the relevance of this TikTok to the user's query. Consider the caption, hashtags, views, and other metadata.
+    The embedding similarity score is ${cosineSimilarity}.`,
     `User Query: "${userQuery}"
-  
-  TikTok Details:
-  ${JSON.stringify(tiktok, null, 2)}
-  
-  Please analyze the relevance of this TikTok to the user's query and provide a relevance score between 0 and 1.`,
-    RelevanceScoreSchema,
+    TikTok Details: ${JSON.stringify(tiktok, null, 2)}`,
+    z.object({ relevanceScore: z.number() }),
     false
   );
-  return parsed.relevanceScore ?? 0;
+
+  // Ensure the relevance score is between 0 and 1
+  const aiRelevanceScore = Math.max(0, Math.min(1, parsed.relevanceScore ?? 0));
+
+  // Combine embedding similarity with AI-generated relevance score
+  return (cosineSimilarity + aiRelevanceScore) / 2;
+}
+
+function calculateCosineSimilarity(vec1: number[], vec2: number[]): number {
+  if (vec1.length !== vec2.length) {
+    throw new Error("Vectors must have the same length");
+  }
+
+  let dotProduct = 0;
+  let magnitude1 = 0;
+  let magnitude2 = 0;
+
+  for (let i = 0; i < vec1.length; i++) {
+    dotProduct += vec1[i] * vec2[i];
+    magnitude1 += vec1[i] * vec1[i];
+    magnitude2 += vec2[i] * vec2[i];
+  }
+
+  magnitude1 = Math.sqrt(magnitude1);
+  magnitude2 = Math.sqrt(magnitude2);
+
+  if (magnitude1 === 0 || magnitude2 === 0) {
+    return 0; // Avoid division by zero
+  }
+
+  return dotProduct / (magnitude1 * magnitude2);
 }

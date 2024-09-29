@@ -55,15 +55,24 @@ export async function* generateSearchSummaryWithCitations(
   const prompt = `
 User Query: "${userQuery}"
 
-Ad Results: ${JSON.stringify(adResults)}
+Ad Results (up to 13): ${JSON.stringify(adResults)}
 
-News Results: ${JSON.stringify(newsResults)}
+News Results (up to 13): ${JSON.stringify(newsResults)}
 
-TikTok Results: ${JSON.stringify(tiktokResults)}
+TikTok Results (up to 13): ${JSON.stringify(tiktokResults)}
 
-Please provide a concise summary of the search results, focusing on how they relate to the user's original query. Include key insights from both the ads and news articles, highlighting any trends, contradictions, or particularly relevant information. With ads in particular, if there are particularly interesting metadata, you should mention those (e.g. high impressions means successful ad, low spend means cheap ad, the combination of the two means a highly successful ad). If an ad or news result doesn't seem relevant to the user query, you should ignore it. Limit your response to 3-4 paragraphs.
+Please provide a comprehensive and insightful summary of the search results, focusing on how they relate to the user's original query. Follow these guidelines:
 
-When referencing specific information from an ad or news article, include a citation in the following format: <begin>{"type":{media_type},"id":{id}}<end>, where {media_type} is "ad" or "news", and {id} is the id of the ad or news article.
+1. Prioritize the most relevant and recent information.
+2. Highlight key trends, patterns, and contradictions across different result types.
+3. For ads, analyze metadata such as impressions, spend, and targeting to infer effectiveness and reach.
+4. For news articles, consider the source credibility, publication date, and political leanings.
+5. For TikToks, examine view counts, hashtags, and user engagement to gauge popularity and relevance.
+6. Provide context and background information when necessary to help the user understand the results better.
+7. Identify any potential biases or limitations in the search results.
+8. Suggest areas for further exploration or follow-up queries based on the results.
+
+Limit your response to 4-5 well-structured paragraphs. Use citations in the format: <begin>{"type":{media_type},"id":{id}}<end> when referencing specific items.
 `;
 
   const stream = await openai_client.chat.completions.create({
@@ -90,24 +99,45 @@ When referencing specific information from an ad or news article, include a cita
   }
 }
 
-export async function* generateAdSuggestions(streamedResults: any): AsyncGenerator<object, void, unknown> {
-  const platforms = ['tiktok', 'facebook', 'instagram', 'connectedTV'];
-  const prompt = `Based on the following information, generate trending ad creative suggestions for Democrats for TikTok, Facebook, Instagram, and Connected TV:
+export async function* generateAdSuggestions(
+  streamedResults: any
+): AsyncGenerator<object, void, unknown> {
+  const platforms = ["tiktok", "facebook", "instagram", "connectedTV"];
+  const prompt = `Based on the following information, generate innovative and effective ad creative suggestions for Democrats targeting various platforms:
 
-Summary: ${streamedResults.summary || ''}
+Summary: ${streamedResults.summary || ""}
 
-Relevant News Articles: ${JSON.stringify(streamedResults.news ? streamedResults.news.slice(0, 5) : [])}
+Relevant News Articles: ${JSON.stringify(
+    streamedResults.news ? streamedResults.news.slice(0, 5) : []
+  )}
 
-Relevant Political Ads: ${JSON.stringify(streamedResults.ads ? streamedResults.ads.slice(0, 5) : [])}
+Relevant Political Ads: ${JSON.stringify(
+    streamedResults.ads ? streamedResults.ads.slice(0, 5) : []
+  )}
 
-Relevant & Trending TikToks: ${JSON.stringify(streamedResults.tiktoks ? streamedResults.tiktoks.slice(0, 5) : [])}
+Relevant & Trending TikToks: ${JSON.stringify(
+    streamedResults.tiktoks ? streamedResults.tiktoks.slice(0, 5) : []
+  )}
 
-Generate 3 ad creative suggestions for each platform (TikTok, Facebook, Instagram, Connected TV) in the following JSON format:
+For each platform (TikTok, Facebook, Instagram, Connected TV, Threads), generate 3 ad creative suggestions that:
+1. Align with current trends and platform-specific best practices
+2. Address key issues identified in the search results
+3. Appeal to the target demographic, especially younger generations
+4. Incorporate effective elements from successful ads in the results
+5. Consider the political landscape and potential counterarguments
+
+Provide suggestions in the following JSON format:
 {
   "platform": "platform_name",
   "suggestions": [
-    { "title": "Ad title", "description": "Brief ad description", "hashtags": ["tag1", "tag2"] },
-    ...
+    {
+      "title": "Catchy ad title",
+      "description": "Detailed ad description",
+      "hashtags": ["relevant", "hashtags"],
+      "targetAudience": "Specific audience segment",
+      "callToAction": "Clear call to action"
+    },
+    // ... two more suggestions ...
   ]
 }
 
@@ -117,15 +147,22 @@ Generate and yield suggestions for one platform at a time.`;
     const stream = await openai_client.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "system", content: "You are an expert political ad strategist. Your responses should always be in valid JSON format." },
-        { role: "user", content: `${prompt}\n\nNow, generate suggestions for the ${platform} platform.` }
+        {
+          role: "system",
+          content:
+            "You are an expert political ad strategist. Your responses should always be in valid JSON format.",
+        },
+        {
+          role: "user",
+          content: `${prompt}\n\nNow, generate suggestions for the ${platform} platform.`,
+        },
       ],
       temperature: 0.7,
       max_tokens: 500,
       stream: true,
     });
 
-    let accumulatedContent = '';
+    let accumulatedContent = "";
 
     for await (const chunk of stream) {
       if (chunk.choices[0]?.delta?.content) {

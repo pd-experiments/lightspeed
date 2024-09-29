@@ -1,6 +1,8 @@
 # USE THESE if opts bug reoccurs:
 # pip install playwright==1.37.0
 # playwright install
+from __future__ import annotations
+import typing
 
 from TikTokApi import TikTokApi
 import asyncio
@@ -150,7 +152,8 @@ async def process_user(api, keyword):
     return None
 
 async def search_users_and_content():
-    async with TikTokApi() as api:
+    api = TikTokApi()
+    try:
         await api.create_sessions(ms_tokens=[ms_token], num_sessions=1, sleep_after=3)
         results = {
             "trending_videos": [],
@@ -161,8 +164,6 @@ async def search_users_and_content():
         print("Getting trending videos...")
         results["trending_videos"] = await get_trending_videos(api)
         print(f"Found {len(results['trending_videos'])} trending videos")
-
-        print("Processing hashtags and keywords...")
         # political_hashtags = [
         #     "politics", "election2024", "government", "president", "democracy",
         #     "congress", "senate", "house", "supremecourt", "policy",
@@ -232,6 +233,12 @@ async def search_users_and_content():
         logging.info(f"Results have been written to {output_file}")
 
         print("Done.")
+        
+    finally:
+        await api.close()
+
+    return results
+
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def supabase_upsert(table_name, data, on_conflict):
@@ -286,6 +293,19 @@ def process_comments_worker():
         except queue.Empty:
             break  # Exit the loop if no more items are in the queue
 
+async def main():
+    results = await search_users_and_content()
+    
+    print("Saving results to file...")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_file = os.path.join(script_dir, 'tiktok_political_data.json')
+    
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+    
+    logging.info(f"Results have been written to {output_file}")
+    print("Done.")
+
 if __name__ == "__main__":
     start_time = time.time()
     
@@ -295,7 +315,7 @@ if __name__ == "__main__":
         workers = [pool.apply_async(process_comments_worker) for _ in range(num_workers)]
         
         # Run the main scraping process
-        asyncio.run(search_users_and_content())
+        asyncio.run(main())
         
         # Wait for all comment processing to finish
         video_queue.join()

@@ -618,7 +618,12 @@ export default function PerplexityStylePage() {
                     </CardContent>
                   </Card>
                   {streamedResults.news &&
-                    streamedResults.news.length > 0 &&
+                    streamedResults.news.filter(
+                      (article) =>
+                        !sources.some(
+                          (source) => source.id === article.id
+                        )
+                    ).length > 0 &&
                     streamedResults.summary && (
                       <motion.div
                         className="mb-6"
@@ -629,6 +634,7 @@ export default function PerplexityStylePage() {
                         <h3 className="text-lg font-medium mb-2 text-blue-500">
                           Relevant News Articles
                         </h3>
+                        {streamedResults.news.length > 0}
                         <div className="relative w-full">
                         <div
                             className={`${

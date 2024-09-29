@@ -78,11 +78,16 @@ export default function PerplexityStylePage() {
   const [sources, setSources] = useState<any[]>([]);
   const [adSuggestions, setAdSuggestions] = useState<Record<string, any>>({});
   
-  const [streamedResults, setStreamedResults] = useState<StreamedSearchResult>({
+  const [streamedResults, setStreamedResults] = useState<{
+    summary: string;
+    news: Map<string, any>;
+    ads: Map<string, any>;
+    tiktoks: Map<string, any>;
+  }>({
     summary: "",
-    news: [],
-    ads: [],
-    tiktoks: [],
+    news: new Map(),
+    ads: new Map(),
+    tiktoks: new Map(),
   });
   const [searchStatus, setSearchStatus] = useState("");
 
@@ -149,10 +154,30 @@ export default function PerplexityStylePage() {
   const [searching, setSearching] = useState(false);
   const [completedPlatforms, setCompletedPlatforms] = useState<string[]>([]);
 
+  const updateResults = (type: 'news' | 'ads' | 'tiktoks', newData: any[]) => {
+    setStreamedResults((prevResults) => {
+      const updatedMap = new Map(prevResults[type]);
+      newData.forEach((item) => {
+        if (!updatedMap.has(item.id)) {
+          updatedMap.set(item.id, item);
+        }
+      });
+      return {
+        ...prevResults,
+        [type]: updatedMap,
+      };
+    });
+  };
+
   const handleSearch = async () => {
     setSearching(true);
     setIsLoading(true);
-    setStreamedResults({});
+    setStreamedResults({
+      summary: "",
+      news: new Map(),
+      ads: new Map(),
+      tiktoks: new Map(),
+    });
     setChatHistory([...chatHistory, { query: searchQuery, answer: "" }]);
     setCurrentChat(searchQuery);
 
@@ -182,28 +207,19 @@ export default function PerplexityStylePage() {
     eventSource.addEventListener("newsResults", (event) => {
       setIsLoading(false);
       const data = JSON.parse(event.data);
-      setStreamedResults((prevResults) => ({
-        ...prevResults,
-        news: [...(prevResults.news || []), ...(data.data || [])],
-      }));
+      updateResults('news', data.data || []);
     });
     
     eventSource.addEventListener("adResults", (event) => {
       setIsLoading(false);
       const data = JSON.parse(event.data);
-      setStreamedResults((prevResults) => ({
-        ...prevResults,
-        ads: [...(prevResults.ads || []), ...(data.data || [])],
-      }));
+      updateResults('ads', data.data || []);
     });
     
     eventSource.addEventListener("tiktokResults", (event) => {
       setIsLoading(false);
       const data = JSON.parse(event.data);
-      setStreamedResults((prevResults) => ({
-        ...prevResults,
-        tiktoks: [...(prevResults.tiktoks || []), ...(data.data || [])],
-      }));
+      updateResults('tiktoks', data.data || []);
     });
 
     eventSource.addEventListener("error", (event: Event) => {
@@ -330,13 +346,14 @@ export default function PerplexityStylePage() {
 
   const renderSummaryWithCitations = (summary: string) => {
     if (!summary) return null;
-  
-    const parts = summary.split(/(<begin>|<end>)/);
+
+    const parts = summary.split(/(<begin>|<end>|\*\*)/);
     let citationCounter = 0;
     const citationMap = new Map();
     let isInCitation = false;
     let currentCitation = '';
-  
+    let isBold = false;
+
     return parts.map((part, index) => {
       if (part === '<begin>') {
         isInCitation = true;
@@ -363,6 +380,9 @@ export default function PerplexityStylePage() {
           console.error("Error parsing citation:", error);
           return null;
         }
+      } else if (part === '**') {
+        isBold = !isBold;
+        return null;
       } else if (isInCitation) {
         currentCitation += part;
         return null;
@@ -370,7 +390,9 @@ export default function PerplexityStylePage() {
         return (
           <span
             key={index}
-            className="text-gray-800 leading-relaxed font-light"
+            className={`text-gray-800 leading-relaxed ${
+              isBold ? 'font-semibold' : 'font-light'
+            }`}
           >
             {part}
           </span>
@@ -561,116 +583,81 @@ export default function PerplexityStylePage() {
                   <div className="lg:col-span-2">
                     <Card className="mb-6 shadow-sm rounded-lg overflow-hidden border-none">
                       <CardContent className="p-2 border-none">
-                      {searchStatus &&
-                        completedPlatforms.length < platformOrder.length && (
-                          <AnimatePresence>
-                            <SearchStatusAnimation status={searchStatus} />
-                          </AnimatePresence>
-                        )}
-                      <motion.div
-                        className="text-md text-gray-800"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        {renderSummaryWithCitations(streamedResults.summary || "")}
-                      </motion.div>
-                      {sources.length > 0 &&
-                        !isLoading &&
-                        streamedResults.summary && (
-                          <motion.div
-                            className="mt-4"
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                          >
-                            <h3 className="text-md font-semibold mb-2 text-blue-500">
-                              Citations
-                            </h3>
-                            <div className="relative">
-                              <div className="overflow-x-auto pb-4">
-                                <div
-                                  className="grid grid-flow-col auto-cols-max gap-4"
-                                  style={{
-                                    gridTemplateColumns: `repeat(${Math.max(
-                                      4,
-                                      sources.length
-                                    )}, minmax(250px, 1fr))`,
-                                  }}
-                                >
-                                  {sources.map((source, index) => (
-                                    <motion.div
-                                      key={index}
-                                      className="w-[250px]"
-                                      variants={itemVariants}
-                                    >
-                                      <MinNewsCard article={source} />
-                                    </motion.div>
-                                  ))}
+                        {searchStatus &&
+                          completedPlatforms.length < platformOrder.length && (
+                            <AnimatePresence>
+                              <SearchStatusAnimation status={searchStatus} />
+                            </AnimatePresence>
+                          )}
+                        <motion.div
+                          className="text-md text-gray-800 space-y-4"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.5 }}
+                        >
+                          {renderSummaryWithCitations(streamedResults.summary || "")}
+                        </motion.div>
+                        {sources.length > 0 &&
+                          !isLoading &&
+                          streamedResults.summary && (
+                            <motion.div
+                              className="mt-4"
+                              variants={containerVariants}
+                              initial="hidden"
+                              animate="visible"
+                            >
+                              <h3 className="text-md font-semibold mb-2 text-blue-500">
+                                Citations
+                              </h3>
+                              <div className="relative">
+                                <div className="overflow-x-auto pb-4">
+                                  <div
+                                    className="grid grid-flow-col auto-cols-max gap-4"
+                                    style={{
+                                      gridTemplateColumns: `repeat(${Math.max(
+                                        4,
+                                        sources.length
+                                      )}, minmax(250px, 1fr))`,
+                                    }}
+                                  >
+                                    {sources.map((source, index) => (
+                                      <motion.div
+                                        key={index}
+                                        className="w-[250px]"
+                                        variants={itemVariants}
+                                      >
+                                        <MinNewsCard article={source} />
+                                      </motion.div>
+                                    ))}
+                                  </div>
                                 </div>
+                                {sources.length > 4 && (
+                                  <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+                                )}
                               </div>
-                              {sources.length > 4 && (
-                                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none" />
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                    </CardContent>
-                  </Card>
-                  {streamedResults.news &&
-                    streamedResults.news.filter(
-                      (article) =>
-                        !sources.some(
-                          (source) => source.id === article.id
-                        )
-                    ).length > 0 &&
-                    streamedResults.summary && (
-                      <motion.div
-                        className="mb-6"
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="visible"
-                      >
-                        <h3 className="text-lg font-medium mb-2 text-blue-500">
-                          Relevant News Articles
-                        </h3>
-                        {streamedResults.news.length > 0}
+                            </motion.div>
+                          )}
+                      </CardContent>
+                    </Card>
+                    {streamedResults.news.size > 0 && streamedResults.summary && (
+                      <motion.div className="mb-6" variants={containerVariants} initial="hidden" animate="visible">
+                        <h3 className="text-lg font-medium mb-2 text-blue-500">Relevant News Articles</h3>
                         <div className="relative w-full">
-                        <div
-                            className={`${
-                              expandedSections.news
-                                ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar"
-                                : "grid grid-cols-4 gap-4"
-                            }`}
-                          >
-                            {streamedResults.news
-                              .filter(
-                                (article) =>
-                                  !sources.some(
-                                    (source) => source.id === article.id
-                                  )
-                              )
+                          <div className={expandedSections.news ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar" : "grid grid-cols-4 gap-4"}>
+                            {Array.from(streamedResults.news.values())
                               .slice(0, expandedSections.news ? undefined : 3)
                               .map((article, index) => (
                                 <motion.div
-                                  key={index}
-                                  className={
-                                    expandedSections.news
-                                      ? "flex-shrink-0 w-64 mr-4"
-                                      : ""
-                                  }
+                                  key={article.id}
+                                  className={expandedSections.news ? "flex-shrink-0 w-64 mr-4" : ""}
                                   variants={itemVariants}
                                 >
                                   <MinNewsCard article={article} />
                                 </motion.div>
                               ))}
-                            {streamedResults.news.length > 3 && (
+                            {streamedResults.news.size > 3 && (
                               <motion.div
-                                className={
-                                  expandedSections.news
-                                    ? "flex-shrink-0 w-64"
-                                    : ""
-                                }
+                                className={expandedSections.news ? "flex-shrink-0 w-64" : ""}
                                 variants={itemVariants}
                               >
                                 <Card
@@ -681,9 +668,7 @@ export default function PerplexityStylePage() {
                                     <p className="text-blue-500 font-medium text-sm">
                                       {expandedSections.news
                                         ? "Show less"
-                                        : `View ${
-                                            streamedResults.news.length - 3
-                                          } more`}
+                                        : `View ${streamedResults.news.size - 3} more`}
                                     </p>
                                   </CardContent>
                                 </Card>
@@ -693,48 +678,25 @@ export default function PerplexityStylePage() {
                         </div>
                       </motion.div>
                     )}
-                  {streamedResults.ads &&
-                    streamedResults.ads.length > 0 &&
-                    streamedResults.summary && (
-                      <motion.div
-                        className="mb-6"
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="visible"
-                      >
-                        <h3 className="text-lg font-medium mb-2 text-blue-500">
-                          Relevant Political Advertisements
-                        </h3>
+                    {streamedResults.ads.size > 0 && streamedResults.summary && (
+                      <motion.div className="mb-6" variants={containerVariants} initial="hidden" animate="visible">
+                        <h3 className="text-lg font-medium mb-2 text-blue-500">Relevant Political Advertisements</h3>
                         <div className="relative w-full">
-                          <div
-                            className={`${
-                              expandedSections.ads
-                                ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar"
-                                : "grid grid-cols-4 gap-4"
-                            }`}
-                          >
-                            {streamedResults.ads
+                          <div className={expandedSections.ads ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar" : "grid grid-cols-4 gap-4"}>
+                            {Array.from(streamedResults.ads.values())
                               .slice(0, expandedSections.ads ? undefined : 3)
                               .map((adSearchResult, index) => (
                                 <motion.div
-                                  key={index}
-                                  className={
-                                    expandedSections.ads
-                                      ? "flex-shrink-0 w-64 mr-4"
-                                      : ""
-                                  }
+                                  key={adSearchResult.id}
+                                  className={expandedSections.ads ? "flex-shrink-0 w-64 mr-4" : ""}
                                   variants={itemVariants}
                                 >
                                   <MinAdSearchCard ad={adSearchResult as any} />
                                 </motion.div>
                               ))}
-                            {streamedResults.ads.length > 3 && (
+                            {streamedResults.ads.size > 3 && (
                               <motion.div
-                                className={
-                                  expandedSections.ads
-                                    ? "flex-shrink-0 w-64"
-                                    : ""
-                                }
+                                className={expandedSections.ads ? "flex-shrink-0 w-64" : ""}
                                 variants={itemVariants}
                               >
                                 <Card
@@ -745,9 +707,7 @@ export default function PerplexityStylePage() {
                                     <p className="text-blue-500 font-medium text-sm">
                                       {expandedSections.ads
                                         ? "Show less"
-                                        : `View ${
-                                            streamedResults.ads.length - 3
-                                          } more`}
+                                        : `View ${streamedResults.ads.size - 3} more`}
                                     </p>
                                   </CardContent>
                                 </Card>
@@ -757,58 +717,25 @@ export default function PerplexityStylePage() {
                         </div>
                       </motion.div>
                     )}
-
-                  {streamedResults.tiktoks &&
-                    streamedResults.tiktoks.length > 0 &&
-                    streamedResults.summary && (
-                      <motion.div
-                        className="mb-6"
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="visible"
-                      >
-                        <h3 className="text-lg font-medium mb-2 text-blue-500">
-                          Relevant TikToks
-                        </h3>
+                    {streamedResults.tiktoks.size > 0 && streamedResults.summary && (
+                      <motion.div className="mb-6" variants={containerVariants} initial="hidden" animate="visible">
+                        <h3 className="text-lg font-medium mb-2 text-blue-500">Relevant TikToks</h3>
                         <div className="relative w-full">
-                          <div
-                            className={`${
-                              expandedSections.tiktoks
-                                ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar"
-                                : "grid grid-cols-4 gap-4"
-                            }`}
-                          >
-                            {streamedResults.tiktoks
-                              .filter(
-                                (tiktok) =>
-                                  !sources.some(
-                                    (source) => source.id === tiktok.id
-                                  )
-                              )
-                              .slice(
-                                0,
-                                expandedSections.tiktoks ? undefined : 3
-                              )
+                          <div className={expandedSections.tiktoks ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar" : "grid grid-cols-4 gap-4"}>
+                            {Array.from(streamedResults.tiktoks.values())
+                              .slice(0, expandedSections.tiktoks ? undefined : 3)
                               .map((tiktok, index) => (
                                 <motion.div
-                                  key={index}
-                                  className={
-                                    expandedSections.tiktoks
-                                      ? "flex-shrink-0 w-64 mr-4"
-                                      : ""
-                                  }
+                                  key={tiktok.id}
+                                  className={expandedSections.tiktoks ? "flex-shrink-0 w-64 mr-4" : ""}
                                   variants={itemVariants}
                                 >
                                   <MinTiktokCard tiktok={tiktok} />
                                 </motion.div>
                               ))}
-                            {streamedResults.tiktoks.length > 3 && (
+                            {streamedResults.tiktoks.size > 3 && (
                               <motion.div
-                                className={
-                                  expandedSections.tiktoks
-                                    ? "flex-shrink-0 w-64"
-                                    : ""
-                                }
+                                className={expandedSections.tiktoks ? "flex-shrink-0 w-64" : ""}
                                 variants={itemVariants}
                               >
                                 <Card
@@ -819,9 +746,7 @@ export default function PerplexityStylePage() {
                                     <p className="text-blue-500 font-medium text-sm">
                                       {expandedSections.tiktoks
                                         ? "Show less"
-                                        : `View ${
-                                            streamedResults.tiktoks.length - 3
-                                          } more`}
+                                        : `View ${streamedResults.tiktoks.size - 3} more`}
                                     </p>
                                   </CardContent>
                                 </Card>
@@ -831,18 +756,18 @@ export default function PerplexityStylePage() {
                         </div>
                       </motion.div>
                     )}
-                </div>
+                  </div>
 
-                <div className="lg:col-span-1">
-                  {(completedPlatforms.length > 0 || currentlyLoadingPlatform) && (
-                    <motion.div
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="visible"
-                    >
-                      <h2 className="text-xl font-semibold mb-4 text-blue-500">
-                        Ad Creative Suggestions
-                      </h2>
+                  <div className="lg:col-span-1">
+                    {(completedPlatforms.length > 0 || currentlyLoadingPlatform) && (
+                      <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                      >
+                        <h2 className="text-xl font-semibold mb-4 text-blue-500">
+                          Ad Creative Suggestions
+                        </h2>
                         {completedPlatforms.length < platformOrder.length && (
                           <LoadingAnimation
                             completedPlatforms={completedPlatforms}
@@ -861,11 +786,11 @@ export default function PerplexityStylePage() {
                             )
                           )}
                         </div>
-                    </motion.div>
-                  )}
+                      </motion.div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ) : null}
+              ) : null}
           </main>
           <div className="sticky top-0 z-10 bg-transparent backdrop-filter backdrop-blur-lg">
             <div className="p-4 border-b border-gray-200 shadow-sm">

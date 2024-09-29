@@ -65,10 +65,10 @@ export async function searchNews(
     // Execute all promises concurrently
     const relevanceScores = await Promise.all(relevanceScorePromises);
 
-    // Filter articles based on relevance scores
+    // Filter articles based on relevance scores and limit to 13
     return data
       .filter((_, index) => relevanceScores[index] >= 0.5)
-      .slice(0, 20);
+      .slice(0, 13);
   } catch (error) {
     console.error("Error in searchNews function:", error);
     return [];

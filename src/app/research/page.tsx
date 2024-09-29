@@ -63,10 +63,8 @@ export default function PerplexityStylePage() {
   const [openaiClientHistoryId, setOpenaiClientHistoryId] = useState<string>(
     uuidv4()
   );
-
-  const [messageHistory, setMessageHistory] = useState<PairedSearchResult[]>(
-    []
-  );
+  
+  const [messageHistory, setMessageHistory] = useState<PairedSearchResult[]>([]);
   const [currentChat, setCurrentChat] = useState<string>("New Chat");
   const [expandedSections, setExpandedSections] = useState<{
     news: boolean;
@@ -79,10 +77,13 @@ export default function PerplexityStylePage() {
   });
   const [sources, setSources] = useState<any[]>([]);
   const [adSuggestions, setAdSuggestions] = useState<Record<string, any>>({});
-
-  const [streamedResults, setStreamedResults] = useState<StreamedSearchResult>(
-    {}
-  );
+  
+  const [streamedResults, setStreamedResults] = useState<StreamedSearchResult>({
+    summary: "",
+    news: [],
+    ads: [],
+    tiktoks: [],
+  });
   const [searchStatus, setSearchStatus] = useState("");
 
   const platformOrder = [
@@ -90,7 +91,7 @@ export default function PerplexityStylePage() {
     "facebook",
     "instagram",
     "connectedTV",
-    "threads",
+    // "threads",
   ];
   const [loadedPlatforms, setLoadedPlatforms] = useState<string[]>([]);
   const [currentlyLoadingPlatform, setCurrentlyLoadingPlatform] = useState<
@@ -98,10 +99,10 @@ export default function PerplexityStylePage() {
   >(null);
 
   const LoadingAnimation = React.memo(({
-    loadedPlatforms,
+    completedPlatforms,
     currentlyLoading,
   }: {
-    loadedPlatforms: string[];
+    completedPlatforms: string[];
     currentlyLoading: string | null;
   }) => (
     <motion.div
@@ -120,7 +121,7 @@ export default function PerplexityStylePage() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className={`flex items-center p-2 rounded-md ${
-              loadedPlatforms.includes(platform)
+              completedPlatforms.includes(platform)
                 ? "bg-blue-50"
                 : platform === currentlyLoading
                 ? "bg-blue-50"
@@ -130,7 +131,7 @@ export default function PerplexityStylePage() {
             <span className="flex-grow text-sm capitalize text-blue-700">
               {platform}
             </span>
-            {loadedPlatforms.includes(platform) ? (
+            {completedPlatforms.includes(platform) ? (
               <CheckCircle2 className="w-5 h-5 fill-blue-500 text-white" />
             ) : platform === currentlyLoading ? (
               <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
@@ -146,6 +147,8 @@ export default function PerplexityStylePage() {
   LoadingAnimation.displayName = 'LoadingAnimation';
 
   const [searching, setSearching] = useState(false);
+  const [completedPlatforms, setCompletedPlatforms] = useState<string[]>([]);
+
   const handleSearch = async () => {
     setSearching(true);
     setIsLoading(true);
@@ -181,27 +184,31 @@ export default function PerplexityStylePage() {
       const data = JSON.parse(event.data);
       setStreamedResults((prevResults) => ({
         ...prevResults,
-        news: data.data,
+        news: [...(prevResults.news || []), ...(data.data || [])],
       }));
     });
-
+    
     eventSource.addEventListener("adResults", (event) => {
       setIsLoading(false);
       const data = JSON.parse(event.data);
-      setStreamedResults((prevResults) => ({ ...prevResults, ads: data.data }));
+      setStreamedResults((prevResults) => ({
+        ...prevResults,
+        ads: [...(prevResults.ads || []), ...(data.data || [])],
+      }));
     });
-
+    
     eventSource.addEventListener("tiktokResults", (event) => {
       setIsLoading(false);
       const data = JSON.parse(event.data);
       setStreamedResults((prevResults) => ({
         ...prevResults,
-        tiktoks: data.data,
+        tiktoks: [...(prevResults.tiktoks || []), ...(data.data || [])],
       }));
     });
 
     eventSource.addEventListener("error", (event: Event) => {
       setIsLoading(false);
+      console.log("eventSource.addEventListener error", event);
       if (event instanceof MessageEvent) {
         const data = JSON.parse(event.data);
         setSearchStatus(`Error: ${data.error}`);
@@ -221,16 +228,14 @@ export default function PerplexityStylePage() {
       setIsLoading(false);
       const data = JSON.parse(event.data);
       setStreamedResults((prevResults) => {
-        const updatedSummary = prevResults.summary
-          ? prevResults.summary + data.message
-          : data.message;
-
+        const updatedSummary = (prevResults.summary || "") + (data.message || "");
         setChatHistory((prevHistory) => {
           const updatedHistory = [...prevHistory];
-          updatedHistory[updatedHistory.length - 1].answer = updatedSummary;
+          if (updatedHistory.length > 0) {
+            updatedHistory[updatedHistory.length - 1].answer = updatedSummary;
+          }
           return updatedHistory;
         });
-
         return {
           ...prevResults,
           summary: updatedSummary,
@@ -241,27 +246,33 @@ export default function PerplexityStylePage() {
     eventSource.addEventListener("adSuggestionsStart", () => {
       setSearchStatus("Generating ad creative suggestions");
       setCurrentlyLoadingPlatform(platformOrder[0]);
+      setCompletedPlatforms([]);
     });
 
     eventSource.addEventListener("adSuggestions", (event) => {
-      setSearchStatus("Generating ad creative suggestions");
       const data = JSON.parse(event.data);
       if (data.data && data.data.platform) {
         setAdSuggestions((prevSuggestions) => ({
           ...prevSuggestions,
           [data.data.platform]: data.data.suggestions || [],
         }));
-        setLoadedPlatforms((prev) => Array.from(new Set([...prev, data.data.platform])));
-    
+        
+        setCompletedPlatforms((prev) => [...prev, data.data.platform]);
+        
         const nextPlatformIndex = platformOrder.indexOf(data.data.platform) + 1;
-        setCurrentlyLoadingPlatform((prev) => 
-          nextPlatformIndex < platformOrder.length ? platformOrder[nextPlatformIndex] : null
-        );
-      } else {
-        console.error("Received invalid ad suggestion data:", data);
+        if (nextPlatformIndex < platformOrder.length) {
+          setCurrentlyLoadingPlatform(platformOrder[nextPlatformIndex]);
+        } else {
+          setCurrentlyLoadingPlatform(null);
+        }
       }
     });
-    
+
+    eventSource.addEventListener("adSuggestionsError", (event) => {
+      const data = JSON.parse(event.data);
+      console.error("Ad suggestion error:", data);
+    });
+
     eventSource.addEventListener("done", () => {
       setSearchStatus("Search completed");
       eventSource.close();
@@ -290,11 +301,14 @@ export default function PerplexityStylePage() {
       .from("int_news")
       .select("id, title, url, ai_summary, publish_date")
       .in("id", citations);
-
+  
     if (error) {
       console.error("Error fetching sources:", error);
     } else {
-      setSources(data || []);
+      setSources((prevSources) => {
+        const newSources = data?.filter((source) => !prevSources.some((prevSource) => prevSource.id === source.id)) || [];
+        return [...prevSources, ...newSources];
+      });
     }
   }, []);
 
@@ -306,22 +320,32 @@ export default function PerplexityStylePage() {
           const parsed = JSON.parse(citation.replace(/<begin>|<end>/g, ""));
           return parsed.id;
         });
-        fetchSources(citationIds);
+        const newCitationIds = citationIds.filter(id => !sources.some(source => source.id === id));
+        if (newCitationIds.length > 0) {
+          fetchSources(newCitationIds);
+        }
       }
     }
-  }, [streamedResults.summary, fetchSources]);
+  }, [streamedResults.summary, fetchSources, sources]);
 
   const renderSummaryWithCitations = (summary: string) => {
     if (!summary) return null;
-
-    const parts = summary.split(/(<begin>.*?<end>)/);
+  
+    const parts = summary.split(/(<begin>|<end>)/);
     let citationCounter = 0;
     const citationMap = new Map();
-
+    let isInCitation = false;
+    let currentCitation = '';
+  
     return parts.map((part, index) => {
-      if (part.startsWith("<begin>")) {
+      if (part === '<begin>') {
+        isInCitation = true;
+        currentCitation = '';
+        return null;
+      } else if (part === '<end>') {
+        isInCitation = false;
         try {
-          const citation = JSON.parse(part.replace(/<begin>|<end>/g, ""));
+          const citation = JSON.parse(currentCitation);
           if (!citationMap.has(citation.id)) {
             citationMap.set(citation.id, ++citationCounter);
           }
@@ -339,6 +363,9 @@ export default function PerplexityStylePage() {
           console.error("Error parsing citation:", error);
           return null;
         }
+      } else if (isInCitation) {
+        currentCitation += part;
+        return null;
       } else {
         return (
           <span
@@ -349,7 +376,7 @@ export default function PerplexityStylePage() {
           </span>
         );
       }
-    });
+    }).filter(Boolean);
   };
 
   const handleViewMore = (type: "news" | "ads" | "tiktoks") => {
@@ -384,9 +411,9 @@ export default function PerplexityStylePage() {
 
   return (
     <Navbar>
-      <div className="flex min-h-[95%] max-h-[95%] bg-white p-0 rounded-lg shadow-md">
+      <div className="flex flex-col md:flex-row min-h-full max-h-full bg-white rounded-lg shadow-md">
         {/* Left sidebar */}
-        <div className="w-64 bg-blue-50/30 text-gray-800 p-4 overflow-y-auto shadow-sm rounded-l-lg">
+        <div className="w-full md:w-64 bg-blue-50/30 text-gray-800 p-4 overflow-y-auto shadow-sm md:rounded-l-lg">
           <h2 className="text-lg font-medium mb-4 text-blue-500">History</h2>
           <div className="flex flex-col space-y-2">
             <Button
@@ -493,7 +520,7 @@ export default function PerplexityStylePage() {
                   <CloudLightningIcon className="w-12 h-12 text-blue-500" />
                 </div>
                 <h2 className="text-2xl font-semibold mb-2 text-blue-500">
-                  Welcome to Lightspeed Ads
+                  Welcome to Lightspeed
                 </h2>
                 <p className="text-gray-600 mb-8">
                   Start a conversation or try one of these suggestions:
@@ -530,26 +557,24 @@ export default function PerplexityStylePage() {
                 </div>
               </div>
             ) : streamedResults ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 max-md:col-span-2">
-                  <Card className="mb-6 shadow-sm rounded-lg overflow-hidden border-none">
-                    <CardContent className="p-2 border-none">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <Card className="mb-6 shadow-sm rounded-lg overflow-hidden border-none">
+                      <CardContent className="p-2 border-none">
                       {searchStatus &&
-                        loadedPlatforms.length < platformOrder.length && (
+                        completedPlatforms.length < platformOrder.length && (
                           <AnimatePresence>
                             <SearchStatusAnimation status={searchStatus} />
                           </AnimatePresence>
                         )}
-                      <motion.p
+                      <motion.div
                         className="text-md text-gray-800"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5 }}
                       >
-                        {renderSummaryWithCitations(
-                          streamedResults.summary || ""
-                        )}
-                      </motion.p>
+                        {renderSummaryWithCitations(streamedResults.summary || "")}
+                      </motion.div>
                       {sources.length > 0 &&
                         !isLoading &&
                         streamedResults.summary && (
@@ -593,7 +618,12 @@ export default function PerplexityStylePage() {
                     </CardContent>
                   </Card>
                   {streamedResults.news &&
-                    streamedResults.news.length > 0 &&
+                    streamedResults.news.filter(
+                      (article) =>
+                        !sources.some(
+                          (source) => source.id === article.id
+                        )
+                    ).length > 0 &&
                     streamedResults.summary && (
                       <motion.div
                         className="mb-6"
@@ -604,8 +634,9 @@ export default function PerplexityStylePage() {
                         <h3 className="text-lg font-medium mb-2 text-blue-500">
                           Relevant News Articles
                         </h3>
+                        {streamedResults.news.length > 0}
                         <div className="relative w-full">
-                          <div
+                        <div
                             className={`${
                               expandedSections.news
                                 ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar"
@@ -802,8 +833,8 @@ export default function PerplexityStylePage() {
                     )}
                 </div>
 
-                <div className="md:col-span-1 max-md:col-span-1">
-                  {(loadedPlatforms.length > 0 || currentlyLoadingPlatform) && (
+                <div className="lg:col-span-1">
+                  {(completedPlatforms.length > 0 || currentlyLoadingPlatform) && (
                     <motion.div
                       variants={containerVariants}
                       initial="hidden"
@@ -812,46 +843,50 @@ export default function PerplexityStylePage() {
                       <h2 className="text-xl font-semibold mb-4 text-blue-500">
                         Ad Creative Suggestions
                       </h2>
-                        {loadedPlatforms.length < platformOrder.length && (
+                        {completedPlatforms.length < platformOrder.length && (
                           <LoadingAnimation
-                            loadedPlatforms={loadedPlatforms}
+                            completedPlatforms={completedPlatforms}
                             currentlyLoading={currentlyLoadingPlatform}
                           />
                         )}
-                      <div className="space-y-4">
-                        {Object.entries(adSuggestions).map(
-                          ([platform, suggestions]) => (
-                            <motion.div key={platform} variants={itemVariants}>
-                              <AdSuggestionCollapsible
-                                platform={platform}
-                                suggestions={suggestions}
-                              />
-                            </motion.div>
-                          )
-                        )}
-                      </div>
+                        <div className="space-y-4">
+                          {Object.entries(adSuggestions).map(
+                            ([platform, suggestions]) => (
+                              <motion.div key={platform} variants={itemVariants}>
+                                <AdSuggestionCollapsible
+                                  platform={platform}
+                                  suggestions={suggestions}
+                                />
+                              </motion.div>
+                            )
+                          )}
+                        </div>
                     </motion.div>
                   )}
                 </div>
               </div>
             ) : null}
           </main>
-          <div className="p-4 border-t border-gray-200">
-            <div className="flex items-center">
-              <Input
-                placeholder="Ask anything..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                className="flex-1 mr-2 rounded-full border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              />
-              <Button
-                disabled={searching}
-                onClick={handleSearch}
-                className="bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors duration-200"
-              >
-                <Search className="mr-2 h-5 w-5" /> Ask
-              </Button>
+          <div className="sticky top-0 z-10 bg-transparent backdrop-filter backdrop-blur-lg">
+            <div className="p-4 border-b border-gray-200 shadow-sm">
+              <div className="flex flex-col sm:flex-row items-stretch space-y-2 sm:space-y-0 sm:space-x-2">
+                <div className="relative flex-grow">
+                  <Input
+                    placeholder="Ask anything..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                    className="w-full h-12 pl-4 pr-12 rounded-lg border-gray-200 bg-gray-50 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:ring-opacity-50 transition-all duration-200"
+                  />
+                  <Button
+                    disabled={searching}
+                    onClick={handleSearch}
+                    className="absolute right-1 top-1 h-10 w-10 p-0 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-400 rounded-md transition-colors duration-200 flex items-center justify-center"
+                  >
+                    <Search className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

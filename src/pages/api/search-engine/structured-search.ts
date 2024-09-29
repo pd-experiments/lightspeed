@@ -11,11 +11,33 @@ import {
 } from "@/lib/search/search-tiktoks";
 import { openai_client, OpenAIWithHistory } from "@/lib/openai-client";
 import { v4 as uuidv4 } from "uuid";
+import * as z from "zod";
 
 const map_openai_client_history_id_to_client = new Map<
   string,
   OpenAIWithHistory
 >();
+
+interface AdSuggestion {
+  description: string;
+  textContent: string;
+  hashtags: string[];
+  politicalLeaning: string;
+  imageDescription: string;
+  callToAction: string;
+}
+
+interface AdSuggestionResult {
+  platform: string;
+  suggestions: AdSuggestion[];
+}
+
+interface GenerateAdSuggestionsResult {
+  type: "platformComplete" | "platformError";
+  data:
+    | AdSuggestionResult
+    | { platform: string; error: string; suggestions: never[] };
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -94,6 +116,10 @@ export default async function handler(
       searchPromises
     );
 
+    console.log("newsResults", newsResults);
+    // console.log("adResults", adResults);
+    // console.log("tiktokResults", tiktokResults);
+
     sendEvent("newsResults", { type: "news", data: newsResults });
     sendEvent("adResults", { type: "ads", data: adResults });
     sendEvent("tiktokResults", { type: "tiktoks", data: tiktokResults });
@@ -118,9 +144,13 @@ export default async function handler(
       ads: adResults,
       tiktoks: tiktokResults,
     });
-    for await (const platformSuggestions of adSuggestionsGenerator) {
-      sendEvent("adSuggestions", { data: platformSuggestions });
-      adSuggestions.push(platformSuggestions);
+    for await (const result of adSuggestionsGenerator) {
+      if (result.type === "platformComplete") {
+        sendEvent("adSuggestions", { data: result.data });
+        adSuggestions.push(result.data);
+      } else if (result.type === "platformError") {
+        sendEvent("adSuggestionsError", { data: result.data });
+      }
     }
 
     if (
@@ -177,19 +207,15 @@ async function runNewsSearch(
       newsParams.epsilon
     );
 
-    // openai_client_with_history.addMultipleToHistory([
-    //   {
-    //     role: "user",
-    //     content: query,
-    //   },
-    //   {
-    //     role: "assistant",
-    //     content: JSON.stringify(results),
-    //   },
-    // ]);
+    // Add a post-processing step to re-rank results based on relevance
+    const rerankedResults = await reRankResults(
+      openai_client_with_history,
+      query,
+      results
+    );
 
-    sendEvent("newsResults", { type: "news", data: results });
-    return results;
+    sendEvent("newsResults", { type: "news", data: rerankedResults });
+    return rerankedResults;
   } else {
     sendEvent("newsSkipped", { message: "No news search parameters found" });
     return [];
@@ -293,7 +319,7 @@ async function runTikTokSearch(
 
 export async function* generateAdSuggestions(
   streamedResults: any
-): AsyncGenerator<object, void, unknown> {
+): AsyncGenerator<GenerateAdSuggestionsResult, void, unknown> {
   const platforms = [
     "tiktok",
     "facebook",
@@ -327,7 +353,8 @@ Generate 3 concise, engaging ad creative suggestions for the specified platform.
         messages: [
           {
             role: "system",
-            content: "You are an expert political ad strategist for the Democratic party.",
+            content:
+              "You are an expert political ad strategist for the Democratic party.",
           },
           {
             role: "user",
@@ -353,7 +380,14 @@ Generate 3 concise, engaging ad creative suggestions for the specified platform.
                       imageDescription: { type: "string" },
                       callToAction: { type: "string" },
                     },
-                    required: ["description", "textContent", "hashtags", "politicalLeaning", "imageDescription", "callToAction"],
+                    required: [
+                      "description",
+                      "textContent",
+                      "hashtags",
+                      "politicalLeaning",
+                      "imageDescription",
+                      "callToAction",
+                    ],
                   },
                 },
               },
@@ -367,13 +401,59 @@ Generate 3 concise, engaging ad creative suggestions for the specified platform.
       const functionCall = response.choices[0].message.function_call;
       if (functionCall && functionCall.arguments) {
         const parsedContent = JSON.parse(functionCall.arguments);
-        yield parsedContent;
+        yield { type: "platformComplete", data: parsedContent };
       } else {
         throw new Error("Invalid function call response");
       }
     } catch (error) {
       console.error(`Failed to generate suggestions for ${platform}:`, error);
-      yield { platform, error: "Failed to generate valid suggestions", suggestions: [] };
+      yield {
+        type: "platformError",
+        data: {
+          platform,
+          error: "Failed to generate valid suggestions",
+          suggestions: [],
+        },
+      };
     }
   }
+}
+
+async function reRankResults(
+  openai_client: OpenAIWithHistory,
+  query: string,
+  results: any[]
+) {
+  const rerankedResults = await Promise.all(
+    results.map(async (result) => {
+      const relevanceScore = await getRelevanceScore(
+        openai_client,
+        query,
+        result
+      );
+      return { ...result, relevanceScore };
+    })
+  );
+
+  return rerankedResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
+}
+
+async function getRelevanceScore(
+  openai_client: OpenAIWithHistory,
+  query: string,
+  result: any
+): Promise<number> {
+  const relevancePrompt = `Query: "${query}"
+Result: ${JSON.stringify(result)}
+On a scale of 0 to 1, how relevant is this result to the query?`;
+
+  const response = await openai_client.sendParsedMessage(
+    relevancePrompt,
+    "",
+    z.object({ relevanceScore: z.number() }),
+    false
+  );
+
+  // Ensure the relevance score is between 0 and 1
+  return Math.max(0, Math.min(1, response?.relevanceScore ?? 0));
 }

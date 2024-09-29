@@ -23,7 +23,7 @@ export default function HeroSection() {
       <div onClick={() => router.push("/dashboard")} className="backdrop-filter-[12px] inline-flex h-auto py-2 sm:h-7 items-center justify-between rounded-full border border-blue-200/30 bg-blue-100/20 px-3 sm:px-5 text-sm sm:text-md text-blue-500 dark:text-blue-200 transition-all ease-in hover:cursor-pointer hover:bg-blue-200/30 group translate-y-[-1rem] animate-fade-in opacity-0">
         <TextShimmer className="inline-flex items-center justify-center space-x-2">
           <DashboardIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-          <span>We&apos;re live at /dashboard</span>
+          <span>We&apos;re live at /research</span>
           <ArrowRightIcon className="w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
         </TextShimmer>
       </div>
@@ -38,7 +38,7 @@ export default function HeroSection() {
           a single AI workflow for political media monitoring, PR, & advertising teams.
         </span>
       </h1>
-      <Button onClick={() => router.push("/dashboard")} className="mt-8 sm:mt-[55px] translate-y-[-1rem] animate-fade-in gap-1 rounded-lg text-white opacity-0 ease-in-out [--animation-delay:600ms] bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+      <Button onClick={() => router.push("/research")} className="mt-8 sm:mt-[55px] translate-y-[-1rem] animate-fade-in gap-1 rounded-lg text-white opacity-0 ease-in-out [--animation-delay:600ms] bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 dark:bg-white dark:text-black dark:hover:bg-gray-200">
         Check out our public demo!
         <ArrowRightIcon className="ml-1 size-3 sm:size-4 transition-transform duration-300 ease-in-out group-hover:translate-x-1" />
       </Button>

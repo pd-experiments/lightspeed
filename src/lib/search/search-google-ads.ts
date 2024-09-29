@@ -78,10 +78,10 @@ export async function searchAds(
     // Execute all promises concurrently
     const relevanceScores = await Promise.all(relevanceScorePromises);
 
-    // Filter parsed.ads based on relevance scores
+    // Filter ads based on relevance scores and limit to 13
     return data
       .filter((_, index) => relevanceScores[index] >= 0.5)
-      .slice(0, 20);
+      .slice(0, 13);
   } catch (error) {
     console.error("Error in searchAds function:", error);
     return [];
@@ -120,13 +120,22 @@ export async function analyzeAdSearchQuery(
     `You are an AI assistant that analyzes user queries to determine if they should be processed by the searchAds function. If applicable, you should provide appropriate parameters for the function.
   
   Rules:
-  1. Determine if the user query should be processed by the searchAds function, i.e. if you think giving ad data back to the user is relevant, then you should set runSearchAds to true. Otherwise, set runSearchAds to false.
-  2. If relevant, set runSearchAds to true and provide parameters.
-  3. If not relevant, set runSearchAds to false and use default values for other fields.
-  4. When setting weights, ensure that they sum up to 1.
-  5. Ad success is measured by high impressions.
-  6. Cheap ads are measured by low spend.
-  7. At most 4 weights can be non-zero. The rest should be zero.
+  1. Determine if the user query should be processed by the searchAds function. Be more lenient in your decision-making process.
+  2. Set runSearchAds to true if:
+     - The query mentions any political topic, issue, or figure
+     - The query is about advertising, campaigns, or political messaging
+     - The query relates to elections, voting, or political events
+     - The query asks about public opinion on political matters
+     - The query mentions any government policy or legislation
+  3. Only set runSearchAds to false if the query is completely unrelated to politics, political advertising, or public affairs.
+  4. If relevant, set runSearchAds to true and provide parameters.
+  5. If not relevant, set runSearchAds to false and use default values for other fields.
+  6. When setting weights, ensure that they sum up to 1.
+  7. Ad success is measured by high impressions.
+  8. Cheap ads are measured by low spend.
+  9. At most 4 weights can be non-zero. The rest should be zero.
+  
+  Remember: The ads database contains political ads, so err on the side of running the search if there's any potential political relevance and there's a high likelihood that there would be ads in the database that would fit the user's query.
   
   Parameters:
   - query: Construct a thorough search query of what specifically the user wants.

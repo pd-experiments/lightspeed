@@ -8,6 +8,7 @@ import {
   Search,
   ExternalLink,
   ChevronDown,
+  ChevronUp,
   Image as ImageIcon,
   CloudLightningIcon,
 } from "lucide-react";
@@ -183,6 +184,12 @@ export default function PerplexityStylePage() {
 
   const [searching, setSearching] = useState(false);
   const [completedPlatforms, setCompletedPlatforms] = useState<string[]>([]);
+
+  const [revealedSections, setRevealedSections] = useState({
+    news: false,
+    ads: false,
+    tiktoks: false,
+  });
 
   const updateResults = (type: 'news' | 'ads' | 'tiktoks', newData: any[]) => {
     setStreamedResults((prevResults) => {
@@ -445,6 +452,10 @@ export default function PerplexityStylePage() {
     }));
   };
 
+  const handleReveal = (section: 'news' | 'ads' | 'tiktoks') => {
+    setRevealedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -680,119 +691,155 @@ export default function PerplexityStylePage() {
                     </Card>
                     {streamedResults.news.size > 0 && streamedResults.summary && (
                       <motion.div className="mb-6" variants={containerVariants} initial="hidden" animate="visible">
-                        <h3 className="text-lg font-medium mb-2 text-blue-500">Relevant News Articles</h3>
-                        <div className="relative w-full">
-                          <div className={expandedSections.news ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar" : "grid grid-cols-4 gap-4"}>
-                            {Array.from(streamedResults.news.values())
-                              .slice(0, expandedSections.news ? undefined : 3)
-                              .map((article, index) => (
-                                <motion.div
-                                  key={article.id}
-                                  className={expandedSections.news ? "flex-shrink-0 w-64 mr-4" : ""}
-                                  variants={itemVariants}
-                                >
-                                  <MinNewsCard article={article} />
-                                </motion.div>
-                              ))}
-                            {streamedResults.news.size > 3 && (
-                              <motion.div
-                                className={expandedSections.news ? "flex-shrink-0 w-64" : ""}
-                                variants={itemVariants}
-                              >
-                                <Card
-                                  className="h-full flex flex-col justify-between cursor-pointer hover:bg-gray-50"
-                                  onClick={() => handleViewMore("news")}
-                                >
-                                  <CardContent className="p-3">
-                                    <p className="text-blue-500 font-medium text-sm">
-                                      {expandedSections.news
-                                        ? "Show less"
-                                        : `View ${streamedResults.news.size - 3} more`}
-                                    </p>
-                                  </CardContent>
-                                </Card>
-                              </motion.div>
-                            )}
-                          </div>
-                        </div>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-between text-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                            onClick={() => handleReveal('news')}
+                          >
+                            <span>{revealedSections.news ? "Hide" : "Reveal"} Indexed News Articles</span>
+                            {revealedSections.news ? <ChevronUp className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </Button>
+                        {revealedSections.news && (
+                          <>
+                            {/* <h3 className="text-lg font-medium mb-2 text-blue-500">Relevant News Articles</h3> */}
+                            <div className="relative w-full mt-2">
+                              <div className={expandedSections.news ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar" : "grid grid-cols-4 gap-4"}>
+                                {Array.from(streamedResults.news.values())
+                                  .slice(0, expandedSections.news ? undefined : 3)
+                                  .map((article, index) => (
+                                    <motion.div
+                                      key={article.id}
+                                      className={expandedSections.news ? "flex-shrink-0 w-64 mr-4" : ""}
+                                      variants={itemVariants}
+                                    >
+                                      <MinNewsCard article={article} />
+                                    </motion.div>
+                                  ))}
+                                {streamedResults.news.size > 3 && (
+                                  <motion.div
+                                    className={expandedSections.news ? "flex-shrink-0 w-64" : ""}
+                                    variants={itemVariants}
+                                  >
+                                    <Card
+                                      className="h-full flex flex-col justify-between cursor-pointer hover:bg-gray-50"
+                                      onClick={() => handleViewMore("news")}
+                                    >
+                                      <CardContent className="p-3">
+                                        <p className="text-blue-500 font-medium text-sm">
+                                          {expandedSections.news
+                                            ? "Show less"
+                                            : `View ${streamedResults.news.size - 3} more`}
+                                        </p>
+                                      </CardContent>
+                                    </Card>
+                                  </motion.div>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </motion.div>
                     )}
                     {streamedResults.ads.size > 0 && streamedResults.summary && (
                       <motion.div className="mb-6" variants={containerVariants} initial="hidden" animate="visible">
-                        <h3 className="text-lg font-medium mb-2 text-blue-500">Relevant Political Advertisements</h3>
-                        <div className="relative w-full">
-                          <div className={expandedSections.ads ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar" : "grid grid-cols-4 gap-4"}>
-                            {Array.from(streamedResults.ads.values())
-                              .slice(0, expandedSections.ads ? undefined : 3)
-                              .map((adSearchResult, index) => (
-                                <motion.div
-                                  key={adSearchResult.id}
-                                  className={expandedSections.ads ? "flex-shrink-0 w-64 mr-4" : ""}
-                                  variants={itemVariants}
-                                >
-                                  <MinAdSearchCard ad={adSearchResult as any} />
-                                </motion.div>
-                              ))}
-                            {streamedResults.ads.size > 3 && (
-                              <motion.div
-                                className={expandedSections.ads ? "flex-shrink-0 w-64" : ""}
-                                variants={itemVariants}
-                              >
-                                <Card
-                                  className="h-full flex flex-col justify-between cursor-pointer hover:bg-gray-50"
-                                  onClick={() => handleViewMore("ads")}
-                                >
-                                  <CardContent className="p-3">
-                                    <p className="text-blue-500 font-medium text-sm">
-                                      {expandedSections.ads
-                                        ? "Show less"
-                                        : `View ${streamedResults.ads.size - 3} more`}
-                                    </p>
-                                  </CardContent>
-                                </Card>
-                              </motion.div>
-                            )}
-                          </div>
-                        </div>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between text-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                          onClick={() => handleReveal('ads')}
+                        >
+                          <span>{!revealedSections.ads ? "Reveal" : "Hide"} Indexed Political Advertisements</span>
+                          {revealedSections.ads ? <ChevronUp className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        </Button>
+                        {revealedSections.ads && (
+                          <>
+                            {/* <h3 className="text-lg font-medium mb-2 text-blue-500">Relevant Political Advertisements</h3> */}
+                            <div className="relative w-full mt-2">
+                              <div className={expandedSections.ads ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar" : "grid grid-cols-4 gap-4"}>
+                                {Array.from(streamedResults.ads.values())
+                                  .slice(0, expandedSections.ads ? undefined : 3)
+                                  .map((adSearchResult, index) => (
+                                    <motion.div
+                                      key={adSearchResult.id}
+                                      className={expandedSections.ads ? "flex-shrink-0 w-64 mr-4" : ""}
+                                      variants={itemVariants}
+                                    >
+                                      <MinAdSearchCard ad={adSearchResult as any} />
+                                    </motion.div>
+                                  ))}
+                                {streamedResults.ads.size > 3 && (
+                                  <motion.div
+                                    className={expandedSections.ads ? "flex-shrink-0 w-64" : ""}
+                                    variants={itemVariants}
+                                  >
+                                    <Card
+                                      className="h-full flex flex-col justify-between cursor-pointer hover:bg-gray-50"
+                                      onClick={() => handleViewMore("ads")}
+                                    >
+                                      <CardContent className="p-3">
+                                        <p className="text-blue-500 font-medium text-sm">
+                                          {expandedSections.ads
+                                            ? "Show less"
+                                            : `View ${streamedResults.ads.size - 3} more`}
+                                        </p>
+                                      </CardContent>
+                                    </Card>
+                                  </motion.div>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </motion.div>
                     )}
                     {streamedResults.tiktoks.size > 0 && streamedResults.summary && (
                       <motion.div className="mb-6" variants={containerVariants} initial="hidden" animate="visible">
-                        <h3 className="text-lg font-medium mb-2 text-blue-500">Relevant TikToks</h3>
-                        <div className="relative w-full">
-                          <div className={expandedSections.tiktoks ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar" : "grid grid-cols-4 gap-4"}>
-                            {Array.from(streamedResults.tiktoks.values())
-                              .slice(0, expandedSections.tiktoks ? undefined : 3)
-                              .map((tiktok, index) => (
-                                <motion.div
-                                  key={tiktok.id}
-                                  className={expandedSections.tiktoks ? "flex-shrink-0 w-64 mr-4" : ""}
-                                  variants={itemVariants}
-                                >
-                                  <MinTiktokCard tiktok={tiktok} />
-                                </motion.div>
-                              ))}
-                            {streamedResults.tiktoks.size > 3 && (
-                              <motion.div
-                                className={expandedSections.tiktoks ? "flex-shrink-0 w-64" : ""}
-                                variants={itemVariants}
-                              >
-                                <Card
-                                  className="h-full flex flex-col justify-between cursor-pointer hover:bg-gray-50"
-                                  onClick={() => handleViewMore("tiktoks")}
-                                >
-                                  <CardContent className="p-3">
-                                    <p className="text-blue-500 font-medium text-sm">
-                                      {expandedSections.tiktoks
-                                        ? "Show less"
-                                        : `View ${streamedResults.tiktoks.size - 3} more`}
-                                    </p>
-                                  </CardContent>
-                                </Card>
-                              </motion.div>
-                            )}
-                          </div>
-                        </div>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-between text-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                            onClick={() => handleReveal('tiktoks')}
+                          >
+                            <span>{!revealedSections.tiktoks ? "Reveal" : "Hide"} Indexed TikToks</span>
+                            {revealedSections.tiktoks ? <ChevronUp className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </Button>
+                        {revealedSections.tiktoks && (
+                          <>
+                            {/* <h3 className="text-lg font-medium mb-2 text-blue-500">Relevant TikToks</h3> */}
+                            <div className="relative w-full mt-2">
+                              <div className={expandedSections.tiktoks ? "flex overflow-x-auto pb-2 space-x-4 no-scrollbar" : "grid grid-cols-4 gap-4"}>
+                                {Array.from(streamedResults.tiktoks.values())
+                                  .slice(0, expandedSections.tiktoks ? undefined : 3)
+                                  .map((tiktok, index) => (
+                                    <motion.div
+                                      key={tiktok.id}
+                                      className={expandedSections.tiktoks ? "flex-shrink-0 w-64 mr-4" : ""}
+                                      variants={itemVariants}
+                                    >
+                                      <MinTiktokCard tiktok={tiktok} />
+                                    </motion.div>
+                                  ))}
+                                {streamedResults.tiktoks.size > 3 && (
+                                  <motion.div
+                                    className={expandedSections.tiktoks ? "flex-shrink-0 w-64" : ""}
+                                    variants={itemVariants}
+                                  >
+                                    <Card
+                                      className="h-full flex flex-col justify-between cursor-pointer hover:bg-gray-50"
+                                      onClick={() => handleViewMore("tiktoks")}
+                                    >
+                                      <CardContent className="p-3">
+                                        <p className="text-blue-500 font-medium text-sm">
+                                          {expandedSections.tiktoks
+                                            ? "Show less"
+                                            : `View ${streamedResults.tiktoks.size - 3} more`}
+                                        </p>
+                                      </CardContent>
+                                    </Card>
+                                  </motion.div>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </motion.div>
                     )}
                   </div>

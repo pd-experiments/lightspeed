@@ -121,7 +121,8 @@ export async function GET(req: NextRequest) {
           query,
           adResults,
           newsResults,
-          tiktokResults
+          tiktokResults, 
+          openai_client_with_history
         );
         sendEvent("summaryStart", { message: "Generating summary" });
         for await (const chunk of summary) {

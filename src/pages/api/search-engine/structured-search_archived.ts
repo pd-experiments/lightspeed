@@ -128,7 +128,8 @@ export default async function handler(
       query,
       adResults,
       newsResults,
-      tiktokResults
+      tiktokResults,
+      openai_client_history_id_for_session
     );
     sendEvent("summaryStart", { message: "Generating summary" });
     for await (const chunk of summary) {

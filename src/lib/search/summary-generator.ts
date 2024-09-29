@@ -1,9 +1,14 @@
-import { openai_client } from "../openai-client";
 import {
   EnhancedGoogleAd,
   NewsArticle,
   TikTok,
 } from "../types/lightspeed-search";
+import { openai_client, OpenAIWithHistory } from "@/lib/openai-client";
+
+const map_openai_client_history_id_to_client = new Map<
+  string,
+  OpenAIWithHistory
+>();
 
 // Function to generate AI summary of search results with citations
 export async function* generateSearchSummaryWithCitations(
@@ -50,8 +55,13 @@ export async function* generateSearchSummaryWithCitations(
     | "political_leaning"
     | "tone"
     | "topic"
-  >[]
+  >[],
+  openai_client_with_history: OpenAIWithHistory
 ): AsyncGenerator<string, void, unknown> {
+  if (!openai_client_with_history) {
+    throw new Error("OpenAI client with history not found");
+  }
+
   const prompt = `
 User Query: "${userQuery}"
 
@@ -72,30 +82,23 @@ Please provide a comprehensive and insightful summary of the search results, foc
 7. Identify any potential biases or limitations in the search results.
 8. Suggest areas for further exploration or follow-up queries based on the results.
 
-Limit your response to 4-5 well-structured paragraphs. Use citations in the format: <begin>{"type":{media_type},"id":{id}}<end> when referencing specific items.
+Limit your response to 4-5 well-structured paragraphs. Use citations in the format: <begin>{"type":{media_type},"id":{id}}<end> when referencing specific items, where media_type is strictly "ads", "news", or "tiktoks".
 `;
 
-  const stream = await openai_client.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are an AI assistant tasked with summarizing search results related to political topics. Provide clear, unbiased insights based on the given information, and include citations for specific information.",
-      },
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-    max_tokens: 1024,
-    stream: true,
-  });
+  const systemPrompt = "You are an AI assistant tasked with summarizing search results related to political topics. Provide clear, unbiased insights based on the given information, and include citations for specific information.";
+
+  const stream = openai_client_with_history.sendTextMessage(
+    systemPrompt,
+    prompt,
+    true,
+    {
+      model: "gpt-4o",
+      maxTokens: 1024,
+    }
+  );
 
   for await (const chunk of stream) {
-    if (chunk.choices[0]?.delta?.content) {
-      yield chunk.choices[0].delta.content;
-    }
+    yield chunk;
   }
 }
 

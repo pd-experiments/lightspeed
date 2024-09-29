@@ -27,7 +27,7 @@ export class OpenAIWithHistory {
     this.betaClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   }
 
-  async sendTextMessage(
+  async *sendTextMessage(
     systemPrompt: string,
     content: string,
     addToHistory: boolean = true,
@@ -36,12 +36,12 @@ export class OpenAIWithHistory {
       temperature?: number;
       maxTokens?: number;
     } = {}
-  ): Promise<string> {
+  ): AsyncGenerator<string, string, unknown> {
     if (addToHistory) {
       this.addToHistory({ role: "user", content });
     }
 
-    const response = await this.textClient.chat.completions.create({
+    const stream = await this.textClient.chat.completions.create({
       model: options.model || "gpt-4o-mini",
       messages: [
         ...this.messageHistory,
@@ -50,20 +50,27 @@ export class OpenAIWithHistory {
       ],
       temperature: options.temperature,
       max_tokens: options.maxTokens,
+      stream: true,
     });
 
-    const assistantMessage = response.choices[0].message.content;
-    if (assistantMessage) {
-      if (addToHistory) {
-        this.addToHistory({
-          role: "assistant",
-          content: assistantMessage,
-        });
+    let fullResponse = "";
+
+    for await (const chunk of stream) {
+      if (chunk.choices[0]?.delta?.content) {
+        const content = chunk.choices[0].delta.content;
+        fullResponse += content;
+        yield content;
       }
-      return assistantMessage;
     }
 
-    throw new Error("No response from OpenAI");
+    if (addToHistory) {
+      this.addToHistory({
+        role: "assistant",
+        content: fullResponse,
+      });
+    }
+
+    return fullResponse;
   }
 
   async sendParsedMessage<T>(

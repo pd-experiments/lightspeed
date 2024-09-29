@@ -52,6 +52,8 @@ import {
 import { AdSuggestionCollapsible } from "@/components/research/AdSuggestionCollapsible";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const platformOrder = [
   "tiktok",
@@ -122,6 +124,19 @@ const LoadingAnimation = React.memo(({
 ));
 
 LoadingAnimation.displayName = 'LoadingAnimation';
+
+const CitationLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
+  <sup>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-600 cursor-pointer ml-0.5 font-medium text-xs hover:text-blue-800 transition-colors duration-200"
+    >
+      {children}
+    </a>
+  </sup>
+);
 
 export default function PerplexityStylePage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -207,7 +222,26 @@ export default function PerplexityStylePage() {
     eventSource.onmessage = (event) => {
       setSearchStatus("Searching...");
       const data = JSON.parse(event.data);
-      setStreamedResults((prevResults) => ({ ...prevResults, ...data }));
+      setStreamedResults((prevResults) => {
+        // Log citations if they exist in the new summary
+        if (data.summary) {
+          const newCitations = data.summary.match(/<begin>({[^}]+})<end>/g);
+          if (newCitations) {
+            newCitations.forEach((citation: string) => {
+              const jsonString = citation.replace(/<begin>|<end>/g, "");
+              console.log("Found citation:", citation);
+              console.log("Citation JSON:", jsonString);
+              try {
+                const parsed = JSON.parse(jsonString);
+                console.log("Parsed citation:", parsed);
+              } catch (error) {
+                console.error("Error parsing citation JSON:", citation);
+              }
+            });
+          }
+        }
+        return { ...prevResults, ...data };
+      });
       setIsLoading(false);
       setSearchStatus(
         "Grabbing relevant data from social media, ads, and the web..."
@@ -313,93 +347,95 @@ export default function PerplexityStylePage() {
     });
   }
 
-  const fetchSources = useCallback(async (citations: string[]) => {
-    const { data, error } = await supabase
-      .from("int_news")
-      .select("id, title, url, ai_summary, publish_date")
-      .in("id", citations);
-  
-    if (error) {
-      console.error("Error fetching sources:", error);
-    } else {
-      setSources((prevSources) => {
-        const newSources = data?.filter((source) => !prevSources.some((prevSource) => prevSource.id === source.id)) || [];
-        return [...prevSources, ...newSources];
-      });
+  const fetchSources = useCallback(async (citations: { id: string, type: string }[]) => {
+    const newsIds = citations.filter(c => c.type === 'news').map(c => c.id);
+    const adIds = citations.filter(c => c.type === 'ads').map(c => c.id);
+    const tiktokIds = citations.filter(c => c.type === 'tiktoks').map(c => c.id);
+
+    const [newsData, adsData, tiktoksData] = await Promise.all([
+      supabase.from("int_news").select("id, title, url, ai_summary, publish_date").in("id", newsIds),
+      supabase.from("int_ads__google_ads_enhanced").select("*").in("id", adIds),
+      supabase.from("tiktok_embeddings").select("*").in("id", tiktokIds)
+    ]);
+
+    if (tiktoksData.data && tiktoksData.data.length > 0) {
+      console.log("tiktoksData:", tiktoksData);
     }
+
+    const newSources = [
+      ...(newsData.data || []).map(item => ({ ...item, type: 'news' })),
+      ...(adsData.data || []).map(item => ({ ...item, type: 'ads' })),
+      ...(tiktoksData.data || []).map(item => ({ ...item, type: 'tiktoks' }))
+    ];
+
+    setSources(prevSources => {
+      const filteredNewSources = newSources.filter(
+        newSource => !prevSources.some(prevSource => prevSource.id === newSource.id)
+      );
+      
+      return [...prevSources, ...filteredNewSources];
+    });
   }, []);
 
   useEffect(() => {
     if (streamedResults.summary) {
       const citations = streamedResults.summary.match(/<begin>({[^}]+})<end>/g);
       if (citations) {
-        const citationIds = citations.map((citation) => {
-          const parsed = JSON.parse(citation.replace(/<begin>|<end>/g, ""));
-          return parsed.id;
+        citations.forEach(citation => {
+          const jsonString = citation.replace(/<begin>|<end>/g, "");
+          try {
+            const parsed = JSON.parse(jsonString);
+          } catch (error) {
+            console.error("Error parsing citation JSON:", citation);
+          }
         });
-        const newCitationIds = citationIds.filter(id => !sources.some(source => source.id === id));
-        if (newCitationIds.length > 0) {
-          fetchSources(newCitationIds);
+
+        const parsedCitations = citations.map(citation => {
+          const parsed = JSON.parse(citation.replace(/<begin>|<end>/g, ""));
+          return { id: parsed.id, type: parsed.type };
+        });
+        const newCitations = parsedCitations.filter(
+          citation => !sources.some(source => source.id === citation.id)
+        );
+        if (newCitations.length > 0) {
+          fetchSources(newCitations);
         }
       }
     }
-  }, [streamedResults.summary, fetchSources, sources]);
+  }, [streamedResults.summary, sources]);
 
   const renderSummaryWithCitations = (summary: string) => {
     if (!summary) return null;
 
-    const parts = summary.split(/(<begin>|<end>|\*\*)/);
-    let citationCounter = 0;
     const citationMap = new Map();
-    let isInCitation = false;
-    let currentCitation = '';
-    let isBold = false;
+    let citationCounter = 0;
 
-    return parts.map((part, index) => {
-      if (part === '<begin>') {
-        isInCitation = true;
-        currentCitation = '';
-        return null;
-      } else if (part === '<end>') {
-        isInCitation = false;
-        try {
-          const citation = JSON.parse(currentCitation);
-          if (!citationMap.has(citation.id)) {
-            citationMap.set(citation.id, ++citationCounter);
-          }
-          const citationNumber = citationMap.get(citation.id);
-          return (
-            <sup
-              key={index}
-              className="text-blue-600 cursor-pointer ml-0.5 font-medium text-xs hover:text-blue-800 transition-colors duration-200"
-              title="Click to view source"
-            >
-              [{citationNumber}]
-            </sup>
-          );
-        } catch (error) {
-          console.error("Error parsing citation:", error);
-          return null;
+    // Replace citations with numbered references
+    const summaryWithNumberedCitations = summary.replace(/<begin>({[^}]+})<end>/g, (match) => {
+      try {
+        const parsedCitation = JSON.parse(match.replace(/<begin>|<end>/g, ""));
+        if (!citationMap.has(parsedCitation.id)) {
+          citationCounter++;
+          citationMap.set(parsedCitation.id, { number: citationCounter, type: parsedCitation.type });
         }
-      } else if (part === '**') {
-        isBold = !isBold;
-        return null;
-      } else if (isInCitation) {
-        currentCitation += part;
-        return null;
-      } else {
-        return (
-          <span
-            key={index}
-            className={`text-gray-800 leading-relaxed ${
-              isBold ? 'font-semibold' : 'font-light'
-            }`}
-          >
-            {part}
-          </span>
-        );
+        return ` [${citationMap.get(parsedCitation.id).number}]`;
+      } catch (error) {
+        console.error("Error parsing citation:", match);
+        return match;
       }
-    }).filter(Boolean);
+    });
+
+    return (
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          a: ({ node, ...props }) => <a {...props} />
+        }}
+        className="text-md text-gray-800 space-y-4"
+      >
+        {summaryWithNumberedCitations}
+      </ReactMarkdown>
+    );
   };
 
   const handleViewMore = (type: "news" | "ads" | "tiktoks") => {
@@ -627,7 +663,9 @@ export default function PerplexityStylePage() {
                                         className="w-[250px]"
                                         variants={itemVariants}
                                       >
-                                        <MinNewsCard article={source} />
+                                        {source.type === 'news' && <MinNewsCard article={source} />}
+                                        {source.type === 'ads' && <MinAdSearchCard ad={source} />}
+                                        {source.type === 'tiktoks' && <MinTiktokCard tiktok={source} />}
                                       </motion.div>
                                     ))}
                                   </div>

@@ -108,12 +108,22 @@ export async function analyzeTikTokSearchQuery(
     `You are an AI assistant that analyzes user queries to determine if they should be processed by the searchTikToks function. If applicable, you should provide appropriate parameters for the function.
 
 Rules:
-1. Determine if the user query should be processed by the searchTikToks function, i.e. if you think giving TikTok data back to the user is relevant, then you should set runSearchTikToks to true. Otherwise, set runSearchTikToks to false.
-2. If relevant, set runSearchTikToks to true and provide parameters.
-3. If not relevant, set runSearchTikToks to false and use default values for other fields.
-4. When setting weights, ensure that they sum up to 1.
-5. TikTok success is measured by high views.
-6. At most 4 weights can be non-zero. The rest should be zero.
+1. Determine if the user query should be processed by the searchTikToks function. Be more lenient in your decision-making process.
+2. Set runSearchTikToks to true if:
+   - The query relates to current trends, viral content, or popular discussions
+   - The query asks about public opinion on political or social matters
+   - The query mentions any political topic, issue, or figure that might be discussed on social media
+   - The query is about recent events or breaking news that people might be reacting to on TikTok
+   - The query relates to youth culture, internet culture, or social media movements
+   - The query asks about the spread of information or misinformation on social platforms
+3. Only set runSearchTikToks to false if the query is completely unrelated to current events, social media trends, or public discourse.
+4. If relevant, set runSearchTikToks to true and provide parameters.
+5. If not relevant, set runSearchTikToks to false and use default values for other fields.
+6. When setting weights, ensure that they sum up to 1.
+7. TikTok success is measured by high views.
+8. At most 4 weights can be non-zero. The rest should be zero.
+
+Remember: TikTok data can provide valuable insights into current trends, public opinion, and the spread of information. It's a good source for understanding how political messages are being received and shared, especially among younger demographics.
 
 Parameters:
 - query: Construct a thorough search query of what specifically the user wants.
@@ -129,7 +139,66 @@ Parameters:
 - weightRecency: Weight for date recency (0-1)
 - weightViews: Weight for TikTok views (0-1)
 
-Provide appropriate values based on the user's query and the given rules.`,
+Provide appropriate values based on the user's query and the given rules.
+
+Examples:
+Example 1:
+User Query: "What are people saying about the new climate change bill?"
+Output:
+{
+  runSearchTikToks: true,
+  query: "TikTok reactions to new climate change bill",
+  keywords: ["Climate Change", "Environment"],
+  leanings: [],
+  tones: ["Informative", "Activist"],
+  minViews: 10000,
+  maxViews: null,
+  weightKeyword: 0.3,
+  weightLeaning: 0,
+  weightTones: 0.1,
+  weightEmbedding: 0.3,
+  weightRecency: 0.3,
+  weightViews: 0
+}
+
+Example 2:
+User Query: "How are young voters reacting to the latest presidential debate?"
+Output:
+{
+  runSearchTikToks: true,
+  query: "Young voters' TikTok reactions to latest presidential debate",
+  keywords: ["Elections", "Voting"],
+  leanings: [],
+  tones: ["Opinionated", "Humorous"],
+  minViews: 50000,
+  maxViews: null,
+  weightKeyword: 0.2,
+  weightLeaning: 0,
+  weightTones: 0.1,
+  weightEmbedding: 0.2,
+  weightRecency: 0.4,
+  weightViews: 0.1
+}
+
+Example 3:
+User Query: "What's the capital of France?"
+Output:
+{
+  runSearchTikToks: false,
+  query: "",
+  keywords: [],
+  leanings: [],
+  tones: [],
+  minViews: null,
+  maxViews: null,
+  weightKeyword: 0,
+  weightLeaning: 0,
+  weightTones: 0,
+  weightEmbedding: 1,
+  weightRecency: 0,
+  weightViews: 0
+}
+`,
     userQuery,
     SearchTikToksParamsSchema,
     false
